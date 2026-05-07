@@ -204,6 +204,74 @@ print(f"Best: {result.best_fitness}")
 
 ---
 
+## Cómo Desestructurar un Notebook en un Framework
+
+> Esta sección documenta el proceso de pensamiento para transformar un notebook monolítico de ~15.000 líneas en un paquete Python modular. Es la guía que el usuario sigue para entender y replicar el refactor.
+
+### Problema
+Un notebook mezcla todo: datos, algoritmo, monitoreo, visualización. Es como una casa construida sin planos — funciona, pero no escalable.
+
+### Regla de oro
+> **Separa por "razón de cambio": las cosas que cambian por motivos distintos deben vivir en lugares distintos.**
+
+### Proceso paso a paso
+
+#### 1. Identificar actores independientes
+Preguntarse: *¿Qué piezas podrían vivir solas sin saber que existe el resto?*
+
+- Parser de instancias → `instances/`
+- Reparación de soluciones → `core/repair.py`
+- Detector DTW → `monitoring/dtw.py`
+- Algoritmo PSO → `metaheuristics/pso.py`
+
+#### 2. Definir contratos (lo que une a todos)
+Objetos compartidos que todos producen/consumen pero que no dependen de nadie:
+
+- `MKPInstance` — descripción del problema (todos lo usan)
+- `Solution` — descripción de una solución (todos lo producen)
+- `Metaheuristic` (ABC) — interfaz que cualquier algoritmo debe cumplir
+
+Es como definir los enchufes estándar: si todos usan el mismo enchufe, podés cambiar el electrodoméstico sin cambiar la pared.
+
+#### 3. Invertir dependencias
+Las dependencias apuntan **siempre hacia adentro**:
+
+```
+run_original.py → engine → metaheuristics → core
+                               ↘ monitoring ↗
+                               ↘ instances  ↗
+```
+
+- `core/` NO sabe que existe PSO, DTW, ni nada.
+- `monitoring/` NO sabe que existe PSO.
+- `metaheuristics/` SÍ sabe de `core/`, pero NO de `monitoring/`.
+- `engine/` es el **único** que conecta todo (patrón Mediator).
+
+#### 4. El "sniff test"
+Para cada módulo: *¿Podría escribir un test unitario sin importar ningún otro módulo del proyecto?*
+
+| Módulo | ¿Testeable solo? |
+|---|---|
+| `repair_solution()` | Sí. Le paso vector + problema, me devuelve solución factible. |
+| `StagnationMonitor` | Sí. Le paso una lista de números, me dice cuándo dispara. |
+| `BinaryPSO.step()` | Sí. Lo inicializo, doy un step, veo que devuelve un float. |
+| `OptimizationEngine.run()` | Necesita un PSO mock, pero no el PSO real. |
+
+#### 5. Pensar en el cambio futuro
+El diseño se paga cuando agregás cosas nuevas:
+
+| ¿Qué querés hacer? | ¿Dónde va? |
+|---|---|
+| Agregar GWO o WOA | Implementar `Metaheuristic` en `metaheuristics/` |
+| Cambiar el detector de estancamiento | Reemplazar `monitoring/dtw.py` |
+| Autoadaptar parámetros con delta | `engine/optimizer.py` (el mediador) |
+| Cambiar cómo se repara | `core/repair.py` |
+
+### Por qué los `__init__.py`
+Son archivos vacíos (o casi) que le dicen a Python: "esta carpeta es un paquete". Sin ellos, `from lb2.core.problem import MKPInstance` no funciona. Son como el timbre de la puerta: no hacen nada por dentro, pero sin ellos no entrás.
+
+---
+
 ## Para el Agente de IA
 
 Si estás leyendo esto como contexto para continuar el trabajo:
@@ -214,3 +282,4 @@ Si estás leyendo esto como contexto para continuar el trabajo:
 4. **Las interfaces base** (`Metaheuristic`, `StagnationStrategy`) son el contrato que NO debe cambiar sin consultar al usuario
 5. **Validá contra los baselines** de la tabla de resultados
 6. **El usuario habla en español rioplatense** — respondé en español si te escribe en español
+7. **El usuario quiere entender el proceso de desestructuración** — explicá el "por qué" de cada módulo antes de escribir código
