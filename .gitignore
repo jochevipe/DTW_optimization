@@ -23,4 +23,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-dtw_stagnation.py
+
+.atl/
+.ruff_cache/
