@@ -44,6 +44,7 @@ def run_experiment(
 
     historial_fitness: List[float] = []
     historial_dtw: List[Dict] = []
+    historial_modos: List[str] = []
     fire_count = 0
 
     for it in range(num_iteraciones):
@@ -73,6 +74,7 @@ def run_experiment(
                     f"no_imp={out['no_improve_len']} >> EXPLOIT"
                 )
 
+        historial_modos.append(mh.mode)
         historial_fitness.append(fitness)
 
     sol, fit = mh.get_best()
@@ -84,6 +86,7 @@ def run_experiment(
         "optimo_conocido": optimo,
         "historial_fitness": historial_fitness,
         "historial_dtw": historial_dtw,
+        "historial_modos": historial_modos,
         "fire_count": fire_count,
         "ganancia": (fit / optimo * 100) if optimo > 0 else 0,
     }

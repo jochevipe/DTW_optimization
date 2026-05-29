@@ -8,9 +8,10 @@ Uso (desde la raíz del proyecto):
 
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
 from pathlib import Path
 
-from mkp_common import BinaryPSO, GeneticAlgorithm, BinaryGWO, cargar_instancia
+from mkp_common import BinaryPSO, GeneticAlgorithm, BinaryGWO, BinaryDE, cargar_instancia
 from mkp_common.results import save_results
 
 from .runner import run_epochs
@@ -28,6 +29,7 @@ MHS = {
     "BinaryPSO": BinaryPSO,
     "GA": GeneticAlgorithm,
     "GWO": BinaryGWO,
+    "DE": BinaryDE,
 }
 
 
@@ -80,6 +82,7 @@ MH_COLORS = {
     "BinaryPSO": "#2196F3",
     "GA": "#E91E63",
     "GWO": "#4CAF50",
+    "DE": "#FF9800",
 }
 
 
@@ -195,7 +198,8 @@ def generate_plots(resultados_por_mh: dict):
     ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    save_path = "results/fire_binario/comparacion_mhs.png"
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    save_path = f"results/fire_binario/comparacion_mhs_{run_id}.png"
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(save_path, dpi=150)
     print(f"\n  Grafico guardado: {save_path}")
@@ -238,9 +242,10 @@ def main():
         print_epoch_results(nombre, resultados, inst)
 
         inst_name = Path(RUTA_INSTANCIA).stem
+        run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         save_results(
             resultados,
-            path=f"results/fire_binario/{nombre}_{inst_name}_{INDICE_INSTANCIA}.json",
+            path=f"results/fire_binario/{nombre}_{inst_name}_{INDICE_INSTANCIA}_{run_id}.json",
             mh_name=nombre,
             optimo_conocido=inst["optimo"] if inst["optimo"] > 0 else None,
             extra_info={
