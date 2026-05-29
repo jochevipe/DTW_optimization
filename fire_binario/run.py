@@ -22,12 +22,10 @@ from .config import (
     NUM_ITERACIONES,
     NUM_PARTICULAS,
     RUTA_INSTANCIA,
+    SEMILLA,
+    VERBOSE,
 )
 from .runner import run_experiment
-
-
-# ─── Seed para el experimento individual ────────────────────────────────────
-SEMILLA = None
 
 
 # ─── Colores para el plot ───────────────────────────────────────────────────
@@ -298,7 +296,7 @@ def main():
         num_particulas=NUM_PARTICULAS,
         num_iteraciones=NUM_ITERACIONES,
         semilla=SEMILLA,
-        verbose=False,
+        verbose=VERBOSE,
     )
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     res["semilla"] = SEMILLA

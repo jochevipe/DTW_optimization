@@ -14,10 +14,11 @@ INDICE_INSTANCIA = 0
 NUM_PARTICULAS = 20
 NUM_ITERACIONES = 100
 EPOCHS = 10
-VERBOSE = True
+VERBOSE = False
+SEMILLA = 3  # None para aleatoriedad real
 
 # --- MH por defecto (para scripts individuales) ---
-MH_CLASS = GeneticAlgorithm
+MH_CLASS = BinaryPSO
 
 # --- DTW (idéntico al notebook "original") ---
 DTW_CFG = StagnationConfig(

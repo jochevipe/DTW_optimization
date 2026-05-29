@@ -1,6 +1,7 @@
 """
-Resultados: visualización, diagnóstico, guardado y comparación.
-Pensado para comparar múltiples MHs sobre las mismas instancias.
+Resultados: persistencia de datos, carga y diagnóstico en consola para MKP.
+Especializado en gestionar métricas y estadísticas de múltiples metaheurísticas.
+Las tareas de ploteo avanzado y para paper se delegan a los scripts de análisis dedicados.
 """
 
 import json
@@ -9,16 +10,9 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-# matplotlib es opcional — si no está, las funciones de plot avisan
-try:
-    import matplotlib.pyplot as plt
-    HAS_PLT = True
-except ImportError:
-    HAS_PLT = False
-
 
 # =============================================================================
-# DIAGNOSTICO DTW (texto)
+# DIAGNOSTICO DTW (Texto / Consola)
 # =============================================================================
 
 
@@ -44,7 +38,7 @@ def diagnosticar_dtw(historial_dtw: List[Dict]) -> None:
 
 
 def print_summary(resultados: List[dict], inst: dict) -> None:
-    """Imprime resumen final de múltiples epochs."""
+    """Imprime resumen final de múltiples epochs en consola."""
     fits = [r["mejor_fitness"] for r in resultados]
     optimo = inst["optimo"]
 
@@ -62,127 +56,7 @@ def print_summary(resultados: List[dict], inst: dict) -> None:
 
 
 # =============================================================================
-# GRAFICOS
-# =============================================================================
-
-
-def _check_plt():
-    if not HAS_PLT:
-        print("[results] matplotlib no instalado. Instalar con: pip install matplotlib")
-        return False
-    return True
-
-
-def plot_convergence(
-    historial_fitness: List[float],
-    title: str = "Convergencia",
-    optimo: Optional[float] = None,
-    save_path: Optional[str] = None,
-) -> None:
-    """Grafica la curva de convergencia (fitness vs iteración)."""
-    if not _check_plt():
-        return
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(historial_fitness, linewidth=1.5, label="gbest fitness")
-    if optimo and optimo > 0:
-        ax.axhline(y=optimo, color="r", linestyle="--", alpha=0.7, label=f"Óptimo ({optimo:.0f})")
-    ax.set_xlabel("Iteración")
-    ax.set_ylabel("Fitness")
-    ax.set_title(title)
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
-
-    if save_path:
-        fig.savefig(save_path, dpi=150)
-        print(f"  Guardado: {save_path}")
-    else:
-        plt.show()
-    plt.close(fig)
-
-
-def plot_dtw_metrics(
-    historial_dtw: List[Dict],
-    title: str = "Métricas DTW",
-    save_path: Optional[str] = None,
-) -> None:
-    """Grafica D1, D2 y delta del monitor DTW."""
-    if not _check_plt():
-        return
-
-    ready = [h for h in historial_dtw if h.get("ready")]
-    if not ready:
-        print("  [DTW] Sin datos para graficar")
-        return
-
-    iters = list(range(len(ready)))
-    d1s = [h["D1_vs_ramp"] for h in ready]
-    d2s = [h["D2_vs_const"] for h in ready]
-    deltas = [h["delta"] for h in ready]
-
-    fig, axes = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
-
-    axes[0].plot(iters, d1s, label="D1 (vs rampa)", alpha=0.8)
-    axes[0].plot(iters, d2s, label="D2 (vs meseta)", alpha=0.8)
-    axes[0].set_ylabel("Distancia DTW")
-    axes[0].set_title(title)
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
-
-    axes[1].plot(iters, deltas, color="purple", label="delta (D1-D2)", alpha=0.8)
-    axes[1].axhline(y=0, color="gray", linestyle="--", alpha=0.5)
-    axes[1].set_xlabel("Iteración (desde warm-up)")
-    axes[1].set_ylabel("Delta")
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    if save_path:
-        fig.savefig(save_path, dpi=150)
-        print(f"  Guardado: {save_path}")
-    else:
-        plt.show()
-    plt.close(fig)
-
-
-def plot_comparison(
-    resultados_por_mh: Dict[str, List[dict]],
-    title: str = "Comparación de MHs",
-    save_path: Optional[str] = None,
-) -> None:
-    """
-    Box plot comparando fitness de múltiples MHs.
-
-    Args:
-        resultados_por_mh: {"PSO": [resultados...], "GA": [resultados...]}
-    """
-    if not _check_plt():
-        return
-
-    nombres = list(resultados_por_mh.keys())
-    datos = [
-        [r["mejor_fitness"] for r in resultados_por_mh[n]]
-        for n in nombres
-    ]
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.boxplot(datos, label=nombres)
-    ax.set_ylabel("Mejor Fitness")
-    ax.set_title(title)
-    ax.grid(True, alpha=0.3, axis="y")
-    plt.tight_layout()
-
-    if save_path:
-        fig.savefig(save_path, dpi=150)
-        print(f"  Guardado: {save_path}")
-    else:
-        plt.show()
-    plt.close(fig)
-
-
-# =============================================================================
-# GUARDADO / CARGA
+# GUARDADO / CARGA JSON (Lógica de Persistencia Compartida)
 # =============================================================================
 
 
@@ -194,14 +68,15 @@ def save_results(
     optimo_conocido: Optional[float] = None,
 ) -> None:
     """
-    Guarda resultados a JSON (sin numpy arrays, solo metricas).
+    Guarda resultados a JSON de forma limpia (removiendo tipos de numpy
+    para evitar problemas de serialización).
 
     Args:
-        resultados:       Lista de dicts de run_experiment/run_epochs
-        path:             Ruta del archivo .json
-        mh_name:          Nombre de la MH para identificacion
-        extra_info:       Info adicional (config, instancia, etc.)
-        optimo_conocido:  Valor optimo conocido de la literatura (si existe)
+        resultados:       Lista de dicts obtenidos de una tanda de ejecución.
+        path:             Ruta del archivo .json a escribir.
+        mh_name:          Nombre de la metaheurística para identificación.
+        extra_info:       Configuraciones adicionales del experimento.
+        optimo_conocido:  Óptimo teórico de la instancia si existe.
     """
     fits = [r["mejor_fitness"] for r in resultados]
     mejor = float(np.max(fits))
@@ -237,6 +112,6 @@ def save_results(
 
 
 def load_results(path: str) -> dict:
-    """Carga resultados desde JSON."""
+    """Carga resultados previamente persistidos desde un JSON."""
     with open(path) as f:
         return json.load(f)
