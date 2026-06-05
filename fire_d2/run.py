@@ -1,9 +1,9 @@
 """
-Análisis individual de una MH + DTW Fire Binario.
+Análisis individual de una MH + DTW Fire D2 (estrategia A3).
 Ejecuta 1 corrida, muestra métricas DTW por iteración, genera plot para paper.
 
 Uso (desde la raíz del proyecto):
-    python -m fire_binario.plot_experiment
+    python -m fire_d2.run
 """
 
 import sys
@@ -34,8 +34,8 @@ COLORS = {
     "fire_marker": "#c0392b",
     "explore_bg": "#e74c3c",
     "optimum": "#7f8c8d",
-    "delta": "#6c3483",
-    "theta_delta": "#e67e22",
+    "d2": "#2980b9",
+    "theta_c": "#e67e22",
 }
 
 
@@ -62,11 +62,13 @@ def print_iteration_table(res: dict, inst: dict) -> None:
     print(f"\n{'=' * len(hdr)}")
     print(
         f"  DTW Log — {MH_CLASS.__name__} | "
+        f"Strategy: A3 (D2 Pure) | "
         f"seed={res.get('semilla', '?')} | "
         f"instance={Path(RUTA_INSTANCIA).stem}[{INDICE_INSTANCIA}]"
     )
     if optimo > 0:
         print(f"  Optimo conocido: {optimo}")
+    print(f"  Decision rule: fire = D2 <= theta_c")
     print(f"{'=' * len(hdr)}")
     print(hdr)
     print(sep)
@@ -77,7 +79,9 @@ def print_iteration_table(res: dict, inst: dict) -> None:
         dtw = hist_dtw[i]
 
         if dtw.get("ready"):
-            fire_s = "  T  " if dtw["fire"] else "  F  "
+            # Para A3, fire es D2 <= theta_c (no el fire del monitor)
+            fire_a3 = dtw["D2_vs_const"] <= dtw["theta_c"]
+            fire_s = "  T  " if fire_a3 else "  F  "
             row = (
                 f"{i:4d} | {fitness:10.1f} | {mode:>7} | {fire_s} | "
                 f"{dtw['D1_vs_ramp']:7.1f} | {dtw['D2_vs_const']:7.1f} | "
@@ -137,12 +141,12 @@ def _get_fire_transitions(hist_mode):
     return transitions
 
 
-def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_binario"):
+def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_d2"):
     """
     Plot de 2 paneles para paper científico.
 
     Panel 1: Fitness + zonas explore + fire markers + óptimo
-    Panel 2: Delta + theta_delta + fire markers
+    Panel 2: D2 vs theta_c + fire markers (señal de decisión A3)
     """
     hist_fit = res["historial_fitness"]
     hist_dtw = res["historial_dtw"]
@@ -151,12 +155,12 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_binario"):
     mh_name = MH_CLASS.__name__
 
     # --- Extraer datos DTW ---
-    ready_iters, deltas, thetas_d = [], [], []
+    ready_iters, d2_vals, theta_c_vals = [], [], []
     for i, h in enumerate(hist_dtw):
         if h.get("ready"):
             ready_iters.append(i)
-            deltas.append(h["delta"])
-            thetas_d.append(h["theta_delta"])
+            d2_vals.append(h["D2_vs_const"])
+            theta_c_vals.append(h["theta_c"])
 
     explore_ranges = _get_explore_ranges(hist_mode)
     fire_transitions = _get_fire_transitions(hist_mode)
@@ -210,50 +214,51 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_binario"):
 
     ax1.set_ylabel("Fitness")
     ax1.set_title(
-        f"{mh_name} + DTW Fire — Convergence (seed={res.get('semilla', '?')})"
+        f"{mh_name} + DTW Fire D2 — Convergence (seed={res.get('semilla', '?')})"
     )
     ax1.legend(loc="lower right", framealpha=0.9)
     ax1.grid(True, alpha=0.2, linestyle=":")
 
-    # ─── Panel 2: Delta ──────────────────────────────────────────────────
+    # ─── Panel 2: D2 vs theta_c (señal de decisión A3) ───────────────────
     ax2.plot(
-        ready_iters, deltas, color=COLORS["delta"],
-        linewidth=1.3, label=r"$\Delta$ (D1 $-$ D2)", zorder=3,
+        ready_iters, d2_vals, color=COLORS["d2"],
+        linewidth=1.3, label=r"$D_2$ (distance to plateau)", zorder=3,
     )
     ax2.plot(
-        ready_iters, thetas_d, color=COLORS["theta_delta"],
+        ready_iters, theta_c_vals, color=COLORS["theta_c"],
         linewidth=1, linestyle="--", alpha=0.7,
-        label=r"$\theta_\Delta$ (threshold)", zorder=2,
+        label=r"$\theta_c$ (threshold)", zorder=2,
     )
-    ax2.axhline(y=0, color="#95a5a6", linestyle="-", linewidth=0.8, alpha=0.4)
 
-    # Fire markers en delta
+    # Zona de fire: donde D2 <= theta_c (sombreado)
+    fire_zone = [d2 <= tc for d2, tc in zip(d2_vals, theta_c_vals)]
+    ax2.fill_between(
+        ready_iters, d2_vals, theta_c_vals,
+        where=fire_zone,
+        color=COLORS["fire_marker"], alpha=0.10,
+        label="Fire zone (D2 ≤ θc)",
+    )
+
+    # Fire markers en D2
     for fi in fire_transitions:
         if fi in ready_iters:
             idx = ready_iters.index(fi)
             ax2.scatter(
-                fi, deltas[idx], color=COLORS["fire_marker"],
+                fi, d2_vals[idx], color=COLORS["fire_marker"],
                 marker="v", s=35, zorder=5,
                 edgecolors="white", linewidths=0.5,
             )
-
-    # Sombreado delta > 0
-    ax2.fill_between(
-        ready_iters, deltas, 0,
-        where=[d > 0 for d in deltas],
-        color=COLORS["delta"], alpha=0.06,
-    )
 
     # Zonas explore
     for s, e in explore_ranges:
         ax2.axvspan(s, e, color=COLORS["explore_bg"], alpha=0.08, zorder=1)
 
     ax2.set_xlabel("Iteration")
-    ax2.set_ylabel(r"$\Delta$ (D1 $-$ D2)")
+    ax2.set_ylabel(r"$D_2$ (DTW to plateau)")
     ax2.set_title(
-        r"DTW Stagnation Signal — $\Delta > 0$ indicates stagnation"
+        r"DTW Stagnation Signal — Fire when $D_2 \leq \theta_c$"
     )
-    ax2.legend(loc="upper left", framealpha=0.9)
+    ax2.legend(loc="upper right", framealpha=0.9)
     ax2.grid(True, alpha=0.2, linestyle=":")
 
     plt.tight_layout(h_pad=1.5)
@@ -283,12 +288,14 @@ def main():
     mh_name = MH_CLASS.__name__
     archivo = Path(RUTA_INSTANCIA).stem
 
-    print(f"\n  MH: {mh_name}")
+    print(f"\n  Strategy: A3 (Fire D2 Pure)")
+    print(f"  MH: {mh_name}")
     print(f"  Instance: {archivo}[{INDICE_INSTANCIA}]"
           f" — n={inst['n']}, m={inst['m']}")
     print(f"  Pop: {NUM_PARTICULAS}, Iters: {NUM_ITERACIONES}")
-    print(f"  DTW: window={DTW_CFG.window}, patience={DTW_CFG.patience}, "
-          f"ddtw={DTW_CFG.use_ddtw}, adapt_th={DTW_CFG.adapt_thresholds}")
+    print(f"  DTW: window={DTW_CFG.window}, ddtw={DTW_CFG.use_ddtw}, "
+          f"adapt_th={DTW_CFG.adapt_thresholds}")
+    print(f"  Decision: fire = D2 <= theta_c")
 
     res = run_experiment(
         mh_class=MH_CLASS,

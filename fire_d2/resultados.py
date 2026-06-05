@@ -1,9 +1,9 @@
 """
-Script maestro de resultados — Fire Binario.
+Script maestro de resultados — Fire D2 (estrategia A3).
 Corre todas las MHs, muestra métricas DTW en consola, y genera gráficos.
 
 Uso (desde la raíz del proyecto):
-    python -m fire_binario.resultados
+    python -m fire_d2.resultados
 """
 
 import sys
@@ -60,15 +60,11 @@ def print_epoch_results(nombre: str, resultados: list, inst: dict):
         ready = [h for h in res["historial_dtw"] if h.get("ready")]
         if ready:
             last = ready[-1]
-            d1s = [h["D1_vs_ramp"] for h in ready]
             d2s = [h["D2_vs_const"] for h in ready]
-            deltas = [h["delta"] for h in ready]
             print(
-                f"    DTW  D1={np.mean(d1s):7.1f} (+-{np.std(d1s):.1f}) | "
-                f"D2={np.mean(d2s):7.1f} (+-{np.std(d2s):.1f}) | "
-                f"delta={np.mean(deltas):+7.1f} | "
-                f"th_c={last['theta_c']:.1f}  th_r={last['theta_r']:.1f}  "
-                f"th_d={last['theta_delta']:.1f}"
+                f"    DTW  D2={np.mean(d2s):7.1f} (+-{np.std(d2s):.1f}) | "
+                f"th_c={last['theta_c']:.1f} | "
+                f"Decision: fire = D2 <= theta_c"
             )
 
     fits = [r["mejor_fitness"] for r in resultados]
@@ -92,7 +88,8 @@ COLORS = {
     "fire_marker": "#c0392b",
     "explore_bg": "#e74c3c",
     "optimum": "#7f8c8d",
-    "theta_delta": "#e67e22",
+    "d2": "#2980b9",
+    "theta_c": "#e67e22",
 }
 
 
@@ -127,7 +124,7 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
     """
     Genera 2 paneles estilo paper:
       1. Fitness: todas las MHs superpuestas + líneas punteadas en explore + fire markers + óptimo
-      2. Delta: delta de cada MH + theta_delta + fire markers
+      2. D2 vs theta_c: señal de decisión de cada MH + fire markers
     """
     nombres = list(resultados_por_mh.keys())
 
@@ -228,13 +225,13 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
 
     ax1.set_ylabel("Fitness")
     ax1.set_title(
-        f"Fire binario — All MHs (seed={SEMILLA})"
+        f"Fire D2 — Convergence Comparison (seed={SEMILLA})"
     )
     ax1.legend(loc="lower right", framealpha=0.9)
     ax1.grid(True, alpha=0.2, linestyle=":")
 
     # =========================================================================
-    # Panel 2: DELTA con theta_delta
+    # Panel 2: D2 vs theta_c (señal de decisión A3)
     # =========================================================================
     for mh_idx, nombre in enumerate(nombres):
         res = mejores[nombre]
@@ -244,43 +241,40 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
 
         fire_transitions = _get_fire_transitions(hist_mode)
 
-        ready_iters, deltas, thetas_d = [], [], []
+        ready_iters, d2_vals, theta_c_vals = [], [], []
         for i, h in enumerate(hist_dtw):
             if h.get("ready"):
                 ready_iters.append(i)
-                deltas.append(h["delta"])
-                thetas_d.append(h["theta_delta"])
+                d2_vals.append(h["D2_vs_const"])
+                theta_c_vals.append(h["theta_c"])
 
         if ready_iters:
-            # Delta
+            # D2
             ax2.plot(
-                ready_iters, deltas, color=color,
-                linewidth=1.3, label=rf"$\Delta$ {nombre}", zorder=3,
+                ready_iters, d2_vals, color=color,
+                linewidth=1.3, label=rf"$D_2$ {nombre}", zorder=3,
             )
-            # Theta_delta (línea punteada)
+            # Theta_c (línea punteada)
             ax2.plot(
-                ready_iters, thetas_d, color=color,
+                ready_iters, theta_c_vals, color=color,
                 linewidth=0.8, linestyle=":", alpha=0.5,
-                label=rf"$\theta_\Delta$ {nombre}", zorder=2,
+                label=rf"$\theta_c$ {nombre}", zorder=2,
             )
 
-            # Fire markers en delta (con offset vertical para evitar solapamiento)
-            y_offset = (mh_idx - len(nombres) / 2) * 0.5
+            # Fire markers en D2
             for fi in fire_transitions:
                 if fi in ready_iters:
                     idx = ready_iters.index(fi)
                     ax2.scatter(
-                        fi, deltas[idx] + y_offset, color=color,
+                        fi, d2_vals[idx], color=color,
                         marker="v", s=40, zorder=5,
                         edgecolors="white", linewidths=0.5,
                     )
 
-    ax2.axhline(y=0, color="#95a5a6", linestyle="-", linewidth=0.8, alpha=0.4)
-
     ax2.set_xlabel("Iteration")
-    ax2.set_ylabel(r"$\Delta$ (D1 $-$ D2)")
+    ax2.set_ylabel(r"$D_2$ (DTW to plateau)")
     ax2.set_title(
-        r"DTW Stagnation Signal — $\Delta > 0$ indicates stagnation"
+        r"DTW Decision Signal — Fire when $D_2 \leq \theta_c$"
     )
     ax2.legend(loc="upper left", framealpha=0.9, fontsize=7)
     ax2.grid(True, alpha=0.2, linestyle=":")
@@ -291,7 +285,7 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
     Path(save_dir).mkdir(parents=True, exist_ok=True)
     inst_name = Path(RUTA_INSTANCIA).stem
     for ext in ("png", "pdf"):
-        path = f"{save_dir}/fire_binario_{inst_name}_{INDICE_INSTANCIA}.{ext}"
+        path = f"{save_dir}/fire_d2_{inst_name}_{INDICE_INSTANCIA}.{ext}"
         fig.savefig(path)
         print(f"  Saved: {path}")
 
@@ -309,18 +303,18 @@ def main():
     inst = cargar_instancia(RUTA_INSTANCIA, idx=INDICE_INSTANCIA)
 
     print("=" * 70)
-    print("  RESULTADOS MAESTRO — Fire Binario")
+    print("  RESULTADOS MAESTRO — Fire D2 (Estrategia A3)")
     print("=" * 70)
+    print(f"  Decision rule: fire = D2 <= theta_c")
     print(f"  Instancia: {RUTA_INSTANCIA}[{INDICE_INSTANCIA}]")
     print(f"  n={inst['n']}, m={inst['m']}")
     print(f"  Particulas/Pop: {NUM_PARTICULAS}, Iteraciones: {NUM_ITERACIONES}, "
           f"Epochs: {EPOCHS}")
-    print(f"  DTW: window={DTW_CFG.window}, patience={DTW_CFG.patience}, "
-          f"ddtw={DTW_CFG.use_ddtw}")
+    print(f"  DTW: window={DTW_CFG.window}, ddtw={DTW_CFG.use_ddtw}")
 
     # Crear carpeta de salida con timestamp
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_dir = f"results/fire_binario/todos/comparacion_mhs_{run_id}"
+    save_dir = f"results/fire_d2/todos/comparacion_mhs_{run_id}"
     Path(save_dir).mkdir(parents=True, exist_ok=True)
 
     resultados_por_mh = {}
@@ -346,13 +340,13 @@ def main():
             mh_name=nombre,
             optimo_conocido=inst["optimo"] if inst["optimo"] > 0 else None,
             extra_info={
-                "estrategia": "fire_binario",
+                "estrategia": "fire_d2",
+                "decision_rule": "D2 <= theta_c",
                 "instancia": RUTA_INSTANCIA,
                 "idx": INDICE_INSTANCIA,
                 "poblacion": NUM_PARTICULAS,
                 "iteraciones": NUM_ITERACIONES,
                 "dtw_window": DTW_CFG.window,
-                "dtw_patience": DTW_CFG.patience,
             },
         )
 

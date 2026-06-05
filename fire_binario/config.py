@@ -7,7 +7,7 @@ from mkp_common import BinaryDE, BinaryGWO, GeneticAlgorithm, BinaryPSO
 from mkp_common.monitor import StagnationConfig
 
 # --- Instancia ---
-RUTA_INSTANCIA = "instances/mknapcb1.txt"
+RUTA_INSTANCIA = "instances/mknapcb4.txt"
 INDICE_INSTANCIA = 0
 
 # --- Población y presupuesto ---
@@ -22,9 +22,9 @@ MH_CLASS = BinaryPSO
 
 # --- DTW (idéntico al notebook "original") ---
 DTW_CFG = StagnationConfig(
-    window=15,
+    window=10,
     band=2,
-    plateau_max=10,
+    plateau_max=2,
     patience=2,
     min_slope=2.0,
     use_ddtw=True,
