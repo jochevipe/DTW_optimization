@@ -122,5 +122,10 @@ class BinaryGWO(BaseMH):
             self.mode = "exploit"
             self.a = self.A_EXPLOIT
 
+    def adapt_continuous(self, intensity: float) -> None:
+        intensity = max(0.0, min(1.0, intensity))
+        self.a = self.A_EXPLOIT + intensity * (self.A_EXPLORE - self.A_EXPLOIT)
+        self.mode = "explore" if intensity > 0.5 else "exploit"
+
     def get_best(self) -> Tuple[np.ndarray, float]:
         return self.gbest.copy(), self.gbest_fitness

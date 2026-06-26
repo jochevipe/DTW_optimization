@@ -77,6 +77,7 @@ def print_epoch_results(nombre: str, resultados: list, inst: dict):
 
 # Colores por MH
 MH_COLORS = {
+    "PSO": "#2196F3",
     "BinaryPSO": "#2196F3",
     "GA": "#E91E63",
     "GWO": "#4CAF50",
@@ -224,9 +225,7 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
     ax1.plot([], [], color="gray", linewidth=1.5, linestyle="--", label="Explore")
 
     ax1.set_ylabel("Fitness")
-    ax1.set_title(
-        f"Fire D2 — Convergence Comparison (seed={SEMILLA})"
-    )
+    ax1.set_title(f"Fire D2 — All MHs (seed={SEMILLA})")
     ax1.legend(loc="lower right", framealpha=0.9)
     ax1.grid(True, alpha=0.2, linestyle=":")
 

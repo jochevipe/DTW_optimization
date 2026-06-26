@@ -49,6 +49,17 @@ class BaseMH(ABC):
         """
         ...
 
+    def adapt_continuous(self, intensity: float) -> None:
+        """
+        Adaptar parámetros de forma continua.
+        intensity=0.0 → parámetros de explotación.
+        intensity=1.0 → parámetros de exploración.
+        0 < intensity < 1 → interpolación lineal.
+
+        Por defecto no hace nada; cada MH debe sobrescribirlo.
+        """
+        pass
+
     @abstractmethod
     def get_best(self) -> Tuple[np.ndarray, float]:
         """Retorna (mejor_solucion, mejor_fitness)."""

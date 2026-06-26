@@ -34,6 +34,7 @@ MHS = {
 
 # Colores por MH (consistentes con las otras versiones)
 MH_COLORS = {
+    "PSO": "#2196F3",
     "BinaryPSO": "#2196F3",
     "GA": "#E91E63",
     "GWO": "#4CAF50",
@@ -114,9 +115,7 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
 
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Fitness")
-    ax.set_title(
-        f"Vanilla — All MHs (seed={SEMILLA})"
-    )
+    ax.set_title(f"Vanilla — All MHs (seed={SEMILLA})")
     ax.legend(loc="lower right", framealpha=0.9)
     ax.grid(True, alpha=0.2, linestyle=":")
 
