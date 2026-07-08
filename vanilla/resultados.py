@@ -144,7 +144,8 @@ def main():
     print(f"  Poblacion: {NUM_PARTICULAS}, Iteraciones: {NUM_ITERACIONES}, Epochs: {EPOCHS}")
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_dir = f"results/vanilla/todos/comparacion_mhs_{run_id}"
+    inst_name = Path(RUTA_INSTANCIA).stem
+    save_dir = f"results/vanilla/todos/{inst_name}_{INDICE_INSTANCIA}/comparacion_mhs_{run_id}"
     Path(save_dir).mkdir(parents=True, exist_ok=True)
 
     resultados_por_mh = {}

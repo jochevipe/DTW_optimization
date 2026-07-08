@@ -319,7 +319,8 @@ def main():
 
     # Crear carpeta de salida con timestamp
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_dir = f"results/fire_binario/todos/comparacion_mhs_{run_id}"
+    inst_name = Path(RUTA_INSTANCIA).stem
+    save_dir = f"results/fire_binario/todos/{inst_name}_{INDICE_INSTANCIA}/comparacion_mhs_{run_id}"
     Path(save_dir).mkdir(parents=True, exist_ok=True)
 
     resultados_por_mh = {}

@@ -1,0 +1,45 @@
+================================================================================
+  Numerical Results — mknapcb2[0] — Vanilla vs DTW Versions
+  Wilcoxon signed-rank (two-sided) | Bonferroni alpha = 0.0125
+================================================================================
+
+  [PSO]
+    Vanilla:            57433.6  +/- 198.3
+    Version                    Mean        Std      Delta    p-value  Sig
+    -------------------- ---------- ---------- ---------- ----------  ---
+    Fire D2 (A3)            57934.2      200.3 +    529.0     0.0020  YES
+    Fire Binario (A4)       57856.5      135.6 +    373.0     0.0020  YES
+    B1 Sigmoide             57962.6      137.7 +    455.5     0.0020  YES
+    B3 D2-Direct            57948.1      167.6 +    528.5     0.0020  YES
+    -> Best: Fire D2 (A3)  (delta = +529.0)
+
+  [GA]
+    Vanilla:            58996.8  +/- 117.3
+    Version                    Mean        Std      Delta    p-value  Sig
+    -------------------- ---------- ---------- ---------- ----------  ---
+    Fire D2 (A3)            58826.3      124.7    -188.5     0.0039  YES
+    Fire Binario (A4)       58857.4      121.8    -109.0     0.0078  YES
+    B1 Sigmoide             58802.9      115.8    -177.0     0.0020  YES
+    B3 D2-Direct            58829.5      122.8    -188.5     0.0039  YES
+    -> Best: Fire Binario (A4)  (delta = +-109.0)
+
+  [GWO]
+    Vanilla:            57972.1  +/- 98.5
+    Version                    Mean        Std      Delta    p-value  Sig
+    -------------------- ---------- ---------- ---------- ----------  ---
+    Fire D2 (A3)            57890.1      210.0     -67.0     0.1250  no
+    Fire Binario (A4)       57996.6      112.8 +      0.0     0.5469  no
+    B1 Sigmoide             58086.2      185.5 +     95.5     0.2539  no
+    B3 D2-Direct            57984.9      223.8      -6.0     0.9023  no
+    -> Best: B1 Sigmoide  (delta = +95.5)
+
+  [DE]
+    Vanilla:            57881.8  +/- 184.6
+    Version                    Mean        Std      Delta    p-value  Sig
+    -------------------- ---------- ---------- ---------- ----------  ---
+    Fire D2 (A3)            57900.0      119.6      -6.0     1.0000  no
+    Fire Binario (A4)       57884.0      341.6 +     42.0     1.0000  no
+    B1 Sigmoide             57642.0      221.1    -274.0     0.0488  no
+    B3 D2-Direct            57772.5      260.9    -138.0     0.3750  no
+    -> Best: Fire Binario (A4)  (delta = +42.0)
+

@@ -3,12 +3,14 @@ Configuración centralizada del enfoque Sigmoid Delta (B1).
 Estrategia de adaptación continua con sigmoid sobre delta/theta_delta.
 """
 
+import os
+
 from mkp_common import BinaryPSO
 from mkp_common.monitor import StagnationConfig
 
-# --- Instancia ---
-RUTA_INSTANCIA = "instances/mknapcb4.txt"
-INDICE_INSTANCIA = 0
+# --- Instancia (sobrescribible via env: MKP_INSTANCIA, MKP_INDICE) ---
+RUTA_INSTANCIA = os.environ.get("MKP_INSTANCIA", "instances/mknapcb4.txt")
+INDICE_INSTANCIA = int(os.environ.get("MKP_INDICE", "0"))
 
 # --- Población y presupuesto ---
 NUM_PARTICULAS = 20

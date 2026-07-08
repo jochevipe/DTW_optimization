@@ -240,7 +240,8 @@ def main():
     print(f"  B1: k={K}, center={CENTER}")
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_dir = f"results/sigmoid_delta/todos/comparacion_mhs_{run_id}"
+    inst_name = Path(RUTA_INSTANCIA).stem
+    save_dir = f"results/sigmoid_delta/todos/{inst_name}_{INDICE_INSTANCIA}/comparacion_mhs_{run_id}"
     Path(save_dir).mkdir(parents=True, exist_ok=True)
 
     resultados_por_mh = {}

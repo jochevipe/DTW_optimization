@@ -1,13 +1,17 @@
 """
 Script maestro — Ejecuta etapas secuenciales de pruebas y resultados.
-Cada etapa es un módulo Python que se ejecuta via runpy.
+Cada etapa es un módulo Python que se ejecuta via subprocess.
 
 Uso (desde la raíz del proyecto):
     python run_all.py
+    python run_all.py --instancia instances/mknapcb1.txt
+    python run_all.py --instancia instances/mknapcb1.txt --indice 2
 
 Para agregar/quitar etapas, modificá la lista ETAPAS abajo.
 """
 
+import argparse
+import os
 import subprocess
 import sys
 import time
@@ -28,6 +32,8 @@ ETAPAS = [
     ("Fire D2 (Todos)",   "fire_d2.resultados", []),
     #("Sigmoid Delta",  "sigmoid_delta.run",        []),
     ("Sigmoid Delta (Todos)",   "sigmoid_delta.resultados", []),
+    #("B3 D2-Direct",  "b3_d2.run",        []),
+    ("B3 D2-Direct (Todos)",   "b3_d2.resultados", []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -37,7 +43,36 @@ STOP_ON_ERROR = False
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def run_stage(name: str, module: str, extra_args: list[str] = None) -> bool:
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Script maestro — ejecuta todas las versiones sobre la misma instancia"
+    )
+    parser.add_argument(
+        "--instancia",
+        default=None,
+        help="Ruta a la instancia MKP (ej: instances/mknapcb1.txt). "
+             "Si no se especifica, cada versión usa su default.",
+    )
+    parser.add_argument(
+        "--indice",
+        type=int,
+        default=None,
+        help="Índice de la instancia (default: 0). Solo se usa si --instancia está presente.",
+    )
+    return parser.parse_args()
+
+
+def build_env(instancia: str | None, indice: int | None) -> dict:
+    """Construye un environment dict con las variables MKP si se especificaron."""
+    env = os.environ.copy()
+    if instancia is not None:
+        env["MKP_INSTANCIA"] = instancia
+    if indice is not None:
+        env["MKP_INDICE"] = str(indice)
+    return env
+
+
+def run_stage(name: str, module: str, extra_args: list[str] = None, env: dict = None) -> bool:
     """Ejecuta una etapa y retorna True si fue exitosa."""
     extra_args = extra_args or []
     cmd = [sys.executable, "-m", module] + extra_args
@@ -48,7 +83,7 @@ def run_stage(name: str, module: str, extra_args: list[str] = None) -> bool:
     print(f"{'=' * 70}")
 
     t0 = time.perf_counter()
-    result = subprocess.run(cmd, capture_output=False, text=True)
+    result = subprocess.run(cmd, capture_output=False, text=True, env=env)
     elapsed = time.perf_counter() - t0
     elapsed_str = str(timedelta(seconds=round(elapsed)))
 
@@ -61,6 +96,9 @@ def run_stage(name: str, module: str, extra_args: list[str] = None) -> bool:
 
 
 def main():
+    args = parse_args()
+    env = build_env(args.instancia, args.indice)
+
     root = Path(__file__).parent
     print("=" * 70)
     print("  SCRIPT MAESTRO — Cola de experimentos")
@@ -68,15 +106,20 @@ def main():
     print(f"  Proyecto: {root}")
     print(f"  Etapas: {len(ETAPAS)}")
     print(f"  Stop on error: {STOP_ON_ERROR}")
+    if args.instancia:
+        print(f"  Instancia: {args.instancia}")
+        print(f"  Índice:    {args.indice if args.indice is not None else 0}")
+    else:
+        print(f"  Instancia: (default de cada versión)")
     print()
 
     t_total_start = time.perf_counter()
     ok, fail = 0, 0
     failed_stages = []
 
-    for i, (name, module, args) in enumerate(ETAPAS, 1):
+    for i, (name, module, extra_args) in enumerate(ETAPAS, 1):
         print(f"\n  [{i}/{len(ETAPAS)}] {name}")
-        success = run_stage(name, module, args)
+        success = run_stage(name, module, extra_args, env=env)
 
         if success:
             ok += 1
