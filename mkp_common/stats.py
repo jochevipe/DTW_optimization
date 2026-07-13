@@ -1,13 +1,14 @@
 """
 mkp_common.stats — Statistical helpers for comparing metaheuristic variants.
 
-Provides Wilcoxon signed-rank tests (paired by seed/epoch) and Bonferroni
-correction for comparing DTW adaptations against a vanilla baseline.
+Provides Wilcoxon signed-rank tests (paired by seed/epoch), Shapiro-Wilk
+normality checks on paired differences, and Holm-Bonferroni correction
+for comparing DTW adaptations against a vanilla baseline.
 """
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -19,6 +20,77 @@ def _check_scipy():
         return stats
     except Exception:  # pragma: no cover
         return None
+
+
+def _shapiro_on_differences(
+    baseline: np.ndarray,
+    version: np.ndarray,
+) -> Dict:
+    """
+    Shapiro-Wilk normality test on paired differences d = version - baseline.
+
+    Returns a dict with statistic, p_value, and a boolean ``normal`` that is
+    True when normality cannot be rejected at α = 0.05.
+    """
+    stats = _check_scipy()
+    diffs = version - baseline
+
+    # All-zero differences: technically not normal, but degenerate.
+    if np.all(diffs == 0):
+        return {"statistic": 1.0, "p_value": 1.0, "normal": True,
+                "note": "degenerate (all differences zero)"}
+
+    try:
+        stat, p = stats.shapiro(diffs)
+    except Exception:
+        return {"statistic": float("nan"), "p_value": float("nan"),
+                "normal": False, "note": "shapiro failed"}
+
+    return {
+        "statistic": float(stat),
+        "p_value": float(p),
+        "normal": p >= 0.05,
+    }
+
+
+def _holm_correct(
+    p_values: List[Tuple[str, str, float]],
+    alpha: float = 0.05,
+) -> Dict[Tuple[str, str], bool]:
+    """
+    Holm-Bonferroni step-down correction.
+
+    Parameters
+    ----------
+    p_values : list of (mh_name, version_name, p_value)
+        All comparisons to correct.
+    alpha : float
+        Family-wise error rate.
+
+    Returns
+    -------
+    dict
+        Mapping ``(mh, version) -> bool`` indicating Holm-significance.
+    """
+    # Sort by p-value ascending; keep original index.
+    indexed = sorted(enumerate(p_values), key=lambda x: x[1][2])
+
+    m = len(indexed)
+    significant: Dict[Tuple[str, str], bool] = {}
+
+    # Holm step-down: for rank k (0-indexed), threshold = alpha / (m - k)
+    for k, (orig_idx, (mh, vn, p)) in enumerate(indexed):
+        threshold = alpha / (m - k)
+        if p < threshold:
+            significant[(mh, vn)] = True
+        else:
+            # First non-significant → all remaining are non-significant.
+            for _, (mh2, vn2, _) in indexed[k:]:
+                significant[(mh2, vn2)] = False
+            return significant
+
+    # All passed.
+    return significant
 
 
 def wilcoxon_test(
@@ -116,7 +188,10 @@ def compare_versions(
     """
     Compare every version in *version_dirs* against the vanilla baseline.
 
-    Bonferroni correction is applied across the number of versions tested.
+    Shapiro-Wilk normality is checked on paired differences for each
+    (MH, version) pair.  Holm-Bonferroni step-down correction is applied
+    across ALL comparisons (MH × version) to control the family-wise error
+    rate at *alpha*.
 
     Parameters
     ----------
@@ -135,26 +210,31 @@ def compare_versions(
     Returns
     -------
     dict
-        Structured results with summary, per-MH statistics and per-version
-        Wilcoxon outcomes.
+        Structured results with summary, per-MH statistics, per-version
+        Wilcoxon outcomes, Shapiro-Wilk results, and Holm-corrected
+        significance flags.
     """
-    stats = _check_scipy()
-    if stats is None:
+    stats_mod = _check_scipy()
+    if stats_mod is None:
         raise RuntimeError("scipy is required for statistical tests. Run: pip install scipy")
 
     n_versions = len(version_dirs)
-    alpha_corrected = alpha / n_versions if n_versions > 0 else alpha
 
+    # ── Pass 1: collect all test results WITHOUT significance ────────────
     per_mh: Dict[str, Dict] = {}
+    all_p_values: List[Tuple[str, str, float]] = []  # (mh, version, p)
+
     for mh in mh_names:
         baseline_data = _load_mh_json(baseline_dir, mh)
         if baseline_data is None:
             continue
 
         baseline_fits = baseline_data.get("fitness", [])
+        baseline_arr = np.asarray(baseline_fits, dtype=float)
         mh_entry = {
             "baseline_mean": float(np.mean(baseline_fits)) if baseline_fits else np.nan,
             "baseline_std": float(np.std(baseline_fits)) if baseline_fits else np.nan,
+            "baseline_fitness": baseline_fits,
             "versions": {},
         }
 
@@ -167,45 +247,75 @@ def compare_versions(
             if len(version_fits) != len(baseline_fits):
                 continue
 
+            version_arr = np.asarray(version_fits, dtype=float)
+
+            # Shapiro-Wilk on paired differences.
+            shapiro = _shapiro_on_differences(baseline_arr, version_arr)
+
+            # Wilcoxon (raw alpha — significance overridden by Holm below).
             test_result = wilcoxon_test(
                 baseline_fits,
                 version_fits,
-                alpha=alpha_corrected,
+                alpha=alpha,
                 alternative=alternative,
             )
+
+            p_val = test_result["p_value"]
+            all_p_values.append((mh, version_name, p_val))
 
             mh_entry["versions"][version_name] = {
                 "mean": float(np.mean(version_fits)) if version_fits else np.nan,
                 "std": float(np.std(version_fits)) if version_fits else np.nan,
                 "version_fitness": version_fits,
                 **test_result,
+                "shapiro": shapiro,
             }
 
-        mh_entry["baseline_fitness"] = baseline_fits
-
         per_mh[mh] = mh_entry
+
+    # ── Pass 2: apply Holm-Bonferroni across all comparisons ─────────────
+    n_comparisons = len(all_p_values)
+    holm_significance: Dict[Tuple[str, str], bool] = {}
+    if n_comparisons > 0:
+        holm_significance = _holm_correct(all_p_values, alpha=alpha)
+
+    # Override ``significant`` and store ``holm_significant``.
+    for mh, mh_entry in per_mh.items():
+        for vn, ventry in mh_entry.get("versions", {}).items():
+            ventry["significant"] = holm_significance.get((mh, vn), False)
+            ventry["holm_significant"] = ventry["significant"]
+            # Number of comparisons for this test's Holm rank context.
+            ventry["holm_n_comparisons"] = n_comparisons
 
     return {
         "summary": {
             "alpha": alpha,
             "n_versions": n_versions,
-            "alpha_corrected": alpha_corrected,
+            "n_comparisons": n_comparisons,
             "test": "Wilcoxon signed-rank (paired)",
-            "correction": "Bonferroni",
+            "normality_check": "Shapiro-Wilk on paired differences",
+            "correction": "Holm-Bonferroni (step-down)",
             "alternative": alternative,
         },
         "mhs": per_mh,
     }
 
 
-def _marker(p_value: float, alpha: float, alpha_corrected: float, ascii_only: bool = False) -> str:
-    """Return significance marker for a p-value."""
-    if p_value < alpha_corrected:
+def _marker(
+    p_value: float,
+    alpha: float,
+    significant: bool,
+    ascii_only: bool = False,
+) -> str:
+    """Return significance marker based on Holm-corrected status and raw p-value."""
+    if significant:
+        # Holm-significant: star rating by p-value magnitude.
         if p_value < 0.001:
             return "***"
         if p_value < 0.01:
             return "**"
         return "*"
+    # Not Holm-significant, but nominally significant at raw alpha.
     if p_value < alpha:
         return "^" if ascii_only else "¹"
     return ""
@@ -263,7 +373,7 @@ def format_table(
     summary = results.get("summary", {})
     mhs = results.get("mhs", {})
     alpha = summary.get("alpha", 0.05)
-    alpha_corrected = summary.get("alpha_corrected", alpha)
+    n_comparisons = summary.get("n_comparisons", 0)
     n_versions = summary.get("n_versions", 0)
 
     version_names = []
@@ -293,7 +403,8 @@ def format_table(
             std = v.get("std", np.nan)
             median_diff = v.get("median_diff", np.nan)
             p_value = v.get("p_value", np.nan)
-            marker = _marker(p_value, alpha, alpha_corrected, ascii_only=ascii_only)
+            sig = v.get("significant", False)
+            marker = _marker(p_value, alpha, sig, ascii_only=ascii_only)
 
             primary_cells.append(f"{mean:.1f} {pm_symbol} {std:.1f}")
             sign = "+" if median_diff >= 0 else ""
@@ -358,19 +469,19 @@ def format_table(
         return VL + line + VL
 
     title_text = f" {title} "
-    bonferroni_text = (
-        f" Bonferroni alpha = {alpha_corrected:.4f} ({n_versions} comparison"
-        f"{'s' if n_versions != 1 else ''}) "
+    holm_text = (
+        f" Holm-Bonferroni alpha = {alpha:.4f} ({n_comparisons} comparison"
+        f"{'s' if n_comparisons != 1 else ''}) "
     )
 
     title_width = sum(col_widths) + 3 * len(col_widths) + 1
     title_line = title_text.center(title_width)
-    bonferroni_line = bonferroni_text.center(title_width)
+    holm_line = holm_text.center(title_width)
 
     lines = [
         TL + HL * (title_width - 2) + TR,
         VL + title_line + VL,
-        VL + bonferroni_line + VL,
+        VL + holm_line + VL,
         sep(LC, RC),
         row_line(headers[0], headers[1:]),
         sep(LC, RC, cross=CROSS),
@@ -386,14 +497,14 @@ def format_table(
 
     # Legend.
     lines.append("")
-    lines.append("Significance markers:")
-    lines.append("  *   p < 0.05 (significant after Bonferroni)")
+    lines.append("Significance markers (Holm-Bonferroni corrected):")
+    lines.append("  *   p < 0.05 (Holm-significant)")
     lines.append("  **  p < 0.01")
     lines.append("  *** p < 0.001")
     marker_legend = "^" if ascii_only else "¹"
     lines.append(
-        f"  {marker_legend}   p < {alpha:.3f} but not significant after "
-        f"Bonferroni (alpha_corr = {alpha_corrected:.4f})"
+        f"  {marker_legend}   p < {alpha:.3f} (nominally significant "
+        f"but not after Holm correction)"
     )
 
     return "\n".join(lines)
@@ -412,7 +523,7 @@ def format_math_table(
     summary = results.get("summary", {})
     mhs = results.get("mhs", {})
     alpha = summary.get("alpha", 0.05)
-    alpha_corrected = summary.get("alpha_corrected", alpha)
+    n_comparisons = summary.get("n_comparisons", 0)
     alternative = summary.get("alternative", "greater")
     alt_text = "(two-sided)" if alternative == "two-sided" else "(one-tailed >)"
 
@@ -424,7 +535,7 @@ def format_math_table(
     lines = []
     lines.append(f"{'=' * 80}")
     lines.append(f"  {title}")
-    lines.append(f"  Wilcoxon signed-rank {alt_text} | Bonferroni alpha = {alpha_corrected:.4f}")
+    lines.append(f"  Wilcoxon signed-rank {alt_text} | Holm-Bonferroni alpha = {alpha:.4f} ({n_comparisons} comparisons)")
     lines.append(f"{'=' * 80}")
     lines.append("")
 
@@ -434,8 +545,8 @@ def format_math_table(
 
         lines.append(f"  [{mh}]")
         lines.append(f"    Vanilla:            {b_mean:.1f}  +/- {b_std:.1f}")
-        lines.append(f"    {'Version':<20s} {'Mean':>10s} {'Std':>10s} {'Delta':>10s} {'p-value':>10s}  Sig")
-        lines.append(f"    {'-'*20} {'-'*10} {'-'*10} {'-'*10} {'-'*10}  ---")
+        lines.append(f"    {'Version':<20s} {'Mean':>10s} {'Std':>10s} {'DMed':>10s} {'p-value':>10s} Holm Sig   Normal?")
+        lines.append(f"    {'-'*20} {'-'*10} {'-'*10} {'-'*10} {'-'*10} --------   -------")
 
         for vn in version_names:
             v = mh_entry.get("versions", {}).get(vn)
@@ -445,10 +556,19 @@ def format_math_table(
             std = v["std"]
             delta = v["median_diff"]
             p = v["p_value"]
-            sig = "YES" if v["significant"] else "no"
+
+            # Holm significance.
+            sig = "YES" if v.get("significant", False) else "no"
+
+            # Shapiro-Wilk normality verdict.
+            shapiro = v.get("shapiro", {})
+            normal = "yes" if shapiro.get("normal", False) else "NO"
+            if shapiro.get("note"):
+                normal = shapiro["note"][:12]
+
             sign = "+" if delta >= 0 else ""
             lines.append(
-                f"    {vn:<20s} {mean:10.1f} {std:10.1f} {sign}{delta:9.1f} {p:10.4f}  {sig}"
+                f"    {vn:<20s} {mean:10.1f} {std:10.1f} {sign}{delta:9.1f} {p:10.4f}  {sig:<8s}  {normal}"
             )
 
         # Best version for this MH
