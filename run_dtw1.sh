@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=dtw_opt   # Nombre que verás en la cola
+#SBATCH --job-name=dtw_opt1   # Nombre que verás en la cola
 #SBATCH --partition=CPU
 #SBATCH --cpus-per-task=10           # 4 CPUs para procesar datos (cargar imágenes)
 #SBATCH --mem=32G                   # 16 GB de RAM del sistema (no de video)
-#SBATCH --output=./logs/dtw_opt%j.log   # Archivo donde se guardará lo que imprima el script (%j es el ID del trabajo)
-#SBATCH --error=./errors/dtw_opt%j.error        # Archivo donde se guardarán los errores si falla
+#SBATCH --output=./logs/dtw_opt1%j.log   # Archivo donde se guardará lo que imprima el script (%j es el ID del trabajo)
+#SBATCH --error=./errors/dtw_opt1%j.error        # Archivo donde se guardarán los errores si falla
 #SBATCH --qos=normal               #QOS de HPC
 
 export OMP_NUM_THREADS=1
@@ -26,7 +26,7 @@ echo "Variables de hilos configuradas a: $OMP_NUM_THREADS"
 conda activate DTW_optimization
 
 # 4. Ejecutar tu script de Python
-python run_all.py --instancia instances/mknapcb1.txt --indice 0
+python run_all_hpc.py --instancia instances/mknapcb1.txt --indice 0
 python -m analisis.estadistico
 
 echo "<<Script de Trabajo terminado>>"
