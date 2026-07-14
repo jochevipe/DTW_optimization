@@ -56,7 +56,8 @@ def _ensure_scipy() -> bool:
         return False
 
 
-def _plot_box(results: dict, output_path: Path, instance_label: str = "") -> None:
+def _plot_box(results: dict, output_path: Path, instance_label: str = "",
+              optimo: Optional[float] = None) -> None:
     """Optional boxplot comparing all versions (requires matplotlib)."""
     if not MATPLOTLIB_AVAILABLE:
         return
@@ -93,6 +94,11 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "") -> Non
         ax.set_title(mh)
         ax.set_ylabel("Fitness")
         ax.tick_params(axis="x", rotation=30)
+
+        if optimo and optimo > 0:
+            ax.axhline(optimo, color="red", linestyle="--", linewidth=1.2,
+                       label=f"Óptimo = {optimo:.0f}")
+            ax.legend(loc="lower right", fontsize="small")
 
     suptitle = f"DTW Adaptations vs Vanilla — {instance_label} — Fitness Distribution"
     fig.suptitle(suptitle)
@@ -213,8 +219,14 @@ def main():
     print(f"Saved: {math_path}")
 
     if MATPLOTLIB_AVAILABLE:
+<<<<<<< HEAD
         plot_path = output_dir / f"comparacion_{stamp}.pdf"
         _plot_box(results, plot_path, instance_label=instance_label)
+=======
+        plot_path = output_dir / f"comparacion_{stamp}.png"
+        optimo = results.get("summary", {}).get("optimo_conocido")
+        _plot_box(results, plot_path, instance_label=instance_label, optimo=optimo)
+>>>>>>> refs/remotes/origin/main
 
     return 0
 
