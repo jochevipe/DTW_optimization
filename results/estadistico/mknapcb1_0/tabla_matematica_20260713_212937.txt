@@ -1,0 +1,45 @@
+================================================================================
+  Numerical Results — mknapcb1[0] — Vanilla vs DTW Versions
+  Wilcoxon signed-rank (two-sided) | Holm-Bonferroni alpha = 0.0500 (16 comparisons)
+================================================================================
+
+  [PSO]
+    Vanilla:            24105.3  +/- 83.9
+    Version                    Mean        Std       DMed    p-value Holm Sig   Normal?
+    -------------------- ---------- ---------- ---------- ---------- --------   -------
+    Fire D2 (A3)            24186.7       74.6 +    121.0     0.0206  no        yes
+    Fire Binario (A4)       24204.4       79.6 +    104.5     0.0018  YES       yes
+    B1 Sigmoide             24199.5       49.1 +     96.5     0.0023  YES       yes
+    B3 D2-Direct            24197.2       76.0 +    111.5     0.0045  no        yes
+    -> Best: Fire D2 (A3)  (delta = +121.0)
+
+  [GA]
+    Vanilla:            24245.1  +/- 91.5
+    Version                    Mean        Std       DMed    p-value Holm Sig   Normal?
+    -------------------- ---------- ---------- ---------- ---------- --------   -------
+    Fire D2 (A3)            24269.1       67.0 +      0.0     0.1486  no        yes
+    Fire Binario (A4)       24281.3       40.8 +      0.0     0.1297  no        NO
+    B1 Sigmoide             24275.7       49.5 +      8.5     0.0669  no        NO
+    B3 D2-Direct            24270.1       66.3 +      0.0     0.1641  no        NO
+    -> Best: B1 Sigmoide  (delta = +8.5)
+
+  [GWO]
+    Vanilla:            24049.4  +/- 89.8
+    Version                    Mean        Std       DMed    p-value Holm Sig   Normal?
+    -------------------- ---------- ---------- ---------- ---------- --------   -------
+    Fire D2 (A3)            24017.5      114.5     -44.5     0.0383  no        yes
+    Fire Binario (A4)       24035.0      109.5      -3.0     0.5014  no        yes
+    B1 Sigmoide             24008.8      130.6     -45.0     0.0825  no        yes
+    B3 D2-Direct            24048.2      117.3      -7.0     0.8083  no        yes
+    -> Best: Fire Binario (A4)  (delta = +-3.0)
+
+  [DE]
+    Vanilla:            24147.0  +/- 102.6
+    Version                    Mean        Std       DMed    p-value Holm Sig   Normal?
+    -------------------- ---------- ---------- ---------- ---------- --------   -------
+    Fire D2 (A3)            24187.7       91.0 +     44.5     0.0731  no        yes
+    Fire Binario (A4)       24143.7       83.8      -5.0     0.8813  no        yes
+    B1 Sigmoide             24169.3       53.8 +      8.5     0.6142  no        yes
+    B3 D2-Direct            24194.2       90.4 +     62.5     0.0894  no        yes
+    -> Best: B3 D2-Direct  (delta = +62.5)
+

@@ -26,3 +26,6 @@ Thumbs.db
 
 .atl/
 .ruff_cache/
+
+/errors
+/logs

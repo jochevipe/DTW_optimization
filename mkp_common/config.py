@@ -22,8 +22,8 @@ INDICE_INSTANCIA = int(os.environ.get("MKP_INDICE", "0"))
 # POPULATION & BUDGET — shared across all strategies
 # ═══════════════════════════════════════════════════════════════════════════
 NUM_PARTICULAS = 20
-NUM_ITERACIONES = 100
-EPOCHS = 30
+NUM_ITERACIONES = 200
+EPOCHS = 20
 VERBOSE = False
 SEMILLA = 1   # None for real randomness across runs
 
@@ -31,7 +31,7 @@ SEMILLA = 1   # None for real randomness across runs
 # DTW — base fields shared by all DTW-enabled strategies
 # ═══════════════════════════════════════════════════════════════════════════
 _DTW_BASE = dict(
-    window=10,
+    window=20,
     band=2,
     min_slope=2.0,
     use_ddtw=True,
@@ -41,7 +41,7 @@ _DTW_BASE = dict(
 # --- Fire Binario (A4) — 3-condition fire: plateau + patience + no-improve ---
 DTW_FIRE_BINARIO = StagnationConfig(
     **_DTW_BASE,
-    plateau_max=2,
+    plateau_max=4,
     patience=2,
 )
 
@@ -50,7 +50,7 @@ DTW_FIRE_BINARIO = StagnationConfig(
 # but are NOT used in the A3 decision function.
 DTW_FIRE_D2 = StagnationConfig(
     **_DTW_BASE,
-    plateau_max=10,
+    plateau_max=4,
     patience=2,
 )
 

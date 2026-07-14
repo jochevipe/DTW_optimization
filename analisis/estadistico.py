@@ -213,7 +213,7 @@ def main():
     print(f"Saved: {math_path}")
 
     if MATPLOTLIB_AVAILABLE:
-        plot_path = output_dir / f"comparacion_{stamp}.png"
+        plot_path = output_dir / f"comparacion_{stamp}.pdf"
         _plot_box(results, plot_path, instance_label=instance_label)
 
     return 0

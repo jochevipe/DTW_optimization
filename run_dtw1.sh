@@ -26,7 +26,7 @@ echo "Variables de hilos configuradas a: $OMP_NUM_THREADS"
 conda activate DTW_optimization
 
 # 4. Ejecutar tu script de Python
-python run_all_hpc.py --instancia instances/mknapcb1.txt --indice 0
-python -m analisis.estadistico
+python run_all_hpc.py --instancia instances/mknapcb9.txt --indice 0
+python -m analisis.estadistico --instancia instances/mknapcb9.txt --indice 0
 
 echo "<<Script de Trabajo terminado>>"
