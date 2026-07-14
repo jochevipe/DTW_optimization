@@ -223,11 +223,15 @@ def compare_versions(
     # ── Pass 1: collect all test results WITHOUT significance ────────────
     per_mh: Dict[str, Dict] = {}
     all_p_values: List[Tuple[str, str, float]] = []  # (mh, version, p)
+    optimo_conocido: Optional[float] = None
 
     for mh in mh_names:
         baseline_data = _load_mh_json(baseline_dir, mh)
         if baseline_data is None:
             continue
+
+        if optimo_conocido is None:
+            optimo_conocido = baseline_data.get("optimo_conocido")
 
         baseline_fits = baseline_data.get("fitness", [])
         baseline_arr = np.asarray(baseline_fits, dtype=float)
@@ -296,6 +300,7 @@ def compare_versions(
             "normality_check": "Shapiro-Wilk on paired differences",
             "correction": "Holm-Bonferroni (step-down)",
             "alternative": alternative,
+            "optimo_conocido": optimo_conocido,
         },
         "mhs": per_mh,
     }
