@@ -13,6 +13,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from mkp_common.stats import compare_versions, format_table, format_math_table
 
@@ -96,11 +97,18 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "",
         ax.tick_params(axis="x", rotation=30)
 
         if optimo and optimo > 0:
-            ax.axhline(optimo, color="red", linestyle="--", linewidth=1.2,
-                       label=f"Óptimo = {optimo:.0f}")
-            ax.legend(loc="lower right", fontsize="small")
+            ax.axhline(
+                optimo,
+                color="#2ecc71",
+                linestyle="--",
+                linewidth=2,
+            )
 
-    suptitle = f"DTW Adaptations vs Vanilla — {instance_label} — Fitness Distribution"
+    if optimo and optimo > 0:
+        opt_part = f" (opt={optimo:.0f})"
+    else:
+        opt_part = ""
+    suptitle = f"Statistical test — {instance_label}{opt_part}"
     fig.suptitle(suptitle)
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
@@ -154,6 +162,8 @@ def main():
 
     baseline = find_latest(BASE / "results" / "vanilla" / "todos", subdir=subdir)
     versions = {
+        "Vanilla-Exploración": find_latest(BASE / "results" / "vanilla_exploracion" / "todos", subdir=subdir),
+        "Vanilla-Explotación": find_latest(BASE / "results" / "vanilla_explotacion" / "todos", subdir=subdir),
         "Fire D2 (A3)": find_latest(BASE / "results" / "fire_d2" / "todos", subdir=subdir),
         "Fire Binario (A4)": find_latest(BASE / "results" / "fire_binario" / "todos", subdir=subdir),
         "B1 Sigmoide": find_latest(BASE / "results" / "sigmoid_delta" / "todos", subdir=subdir),
@@ -219,14 +229,9 @@ def main():
     print(f"Saved: {math_path}")
 
     if MATPLOTLIB_AVAILABLE:
-<<<<<<< HEAD
         plot_path = output_dir / f"comparacion_{stamp}.pdf"
-        _plot_box(results, plot_path, instance_label=instance_label)
-=======
-        plot_path = output_dir / f"comparacion_{stamp}.png"
         optimo = results.get("summary", {}).get("optimo_conocido")
         _plot_box(results, plot_path, instance_label=instance_label, optimo=optimo)
->>>>>>> refs/remotes/origin/main
 
     return 0
 

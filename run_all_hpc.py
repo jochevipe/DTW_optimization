@@ -74,7 +74,11 @@ from fire_d2.config import fire_d2 as _fire_d2_fn
 from sigmoid_delta.runner import run_experiment as _sigmoid_run
 from b3_d2.runner import run_experiment as _b3_run
 from vanilla.runner import run_experiment as _vanilla_run
+from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
+from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
 from vanilla.resultados import generate_plots as _plots_vanilla
+from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
+from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
 from fire_binario.resultados import generate_plots as _plots_fire_binario
 from fire_d2.resultados import generate_plots as _plots_fire_d2
 from sigmoid_delta.resultados import generate_plots as _plots_sigmoid_delta
@@ -101,6 +105,28 @@ TaskResult = Dict[str, Any]
 
 def _runner_vanilla(mh_c, inst, seed):
     return _vanilla_run(
+        mh_class=mh_c,
+        inst=inst,
+        num_particulas=NUM_PARTICULAS,
+        num_iteraciones=NUM_ITERACIONES,
+        semilla=seed,
+    )
+
+
+def _runner_vanilla_explotacion(mh_c, inst, seed):
+    """Vanilla-Explotación: MHs en modo exploit (igual que vanilla estándar)."""
+    return _vanilla_explotacion_run(
+        mh_class=mh_c,
+        inst=inst,
+        num_particulas=NUM_PARTICULAS,
+        num_iteraciones=NUM_ITERACIONES,
+        semilla=seed,
+    )
+
+
+def _runner_vanilla_exploracion(mh_c, inst, seed):
+    """Vanilla-Exploración: MHs forzadas a modo explore."""
+    return _vanilla_exploracion_run(
         mh_class=mh_c,
         inst=inst,
         num_particulas=NUM_PARTICULAS,
@@ -163,6 +189,18 @@ def _runner_b3_d2(mh_c, inst, seed):
 
 
 STRATEGIES: Dict[str, dict] = {
+    "vanilla_explotacion": {
+        "folder": "vanilla_explotacion",
+        "label": "Vanilla-Explotación",
+        "extra_info": {"estrategia": "vanilla_explotacion"},
+        "runner": _runner_vanilla_explotacion,
+    },
+    "vanilla_exploracion": {
+        "folder": "vanilla_exploracion",
+        "label": "Vanilla-Exploración",
+        "extra_info": {"estrategia": "vanilla_exploracion"},
+        "runner": _runner_vanilla_exploracion,
+    },
     "vanilla": {
         "folder": "vanilla",
         "label": "Vanilla (sin DTW)",
@@ -493,6 +531,8 @@ def main() -> int:
 
     # Plot functions — one per strategy (same signature everywhere)
     _PLOTTERS = {
+        "vanilla_explotacion": _plots_vanilla_explotacion,
+        "vanilla_exploracion": _plots_vanilla_exploracion,
         "vanilla": _plots_vanilla,
         "fire_binario": _plots_fire_binario,
         "fire_d2": _plots_fire_d2,

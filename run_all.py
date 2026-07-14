@@ -24,16 +24,15 @@ from pathlib import Path
 
 ETAPAS = [
     # (nombre, módulo_a_ejecutar, args_extra)
-    #("Vanilla",    "vanilla.run",         []),
-    ("Vanilla (Todos)",     "vanilla.resultados",  []),
-    #("Fire Binary",    "fire_binario.run",         []),
-    ("Fire Binary (Todos)",     "fire_binario.resultados",  []),
-    #("Fire D2",  "fire_d2.run",        []),
-    ("Fire D2 (Todos)",   "fire_d2.resultados", []),
-    #("Sigmoid Delta",  "sigmoid_delta.run",        []),
-    ("Sigmoid Delta (Todos)",   "sigmoid_delta.resultados", []),
-    #("B3 D2-Direct",  "b3_d2.run",        []),
-    ("B3 D2-Direct (Todos)",   "b3_d2.resultados", []),
+    # -- Líneas base sin DTW --
+    ("Vanilla-Explotación",     "vanilla_explotacion.resultados",  []),
+    ("Vanilla-Exploración",     "vanilla_exploracion.resultados",  []),
+    ("Vanilla (estándar)",      "vanilla.resultados",  []),
+    # -- DTW --
+    ("Fire Binary",             "fire_binario.resultados",  []),
+    ("Fire D2",                 "fire_d2.resultados", []),
+    ("Sigmoid Delta",           "sigmoid_delta.resultados", []),
+    ("B3 D2-Direct",            "b3_d2.resultados", []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════
