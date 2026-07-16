@@ -79,6 +79,7 @@ def save_results(
         optimo_conocido:  Óptimo teórico de la instancia si existe.
     """
     fits = [r["mejor_fitness"] for r in resultados]
+    tiempos = [r.get("tiempo", 0) for r in resultados]
     mejor = float(np.max(fits))
 
     stats = {
@@ -86,6 +87,8 @@ def save_results(
         "promedio": float(np.mean(fits)),
         "peor": float(np.min(fits)),
         "std": float(np.std(fits)),
+        "tiempo_promedio": float(np.mean(tiempos)),
+        "tiempo_std": float(np.std(tiempos)),
     }
 
     if optimo_conocido and optimo_conocido > 0:
@@ -99,7 +102,7 @@ def save_results(
         "fitness": fits,
         "fire_counts": [r["fire_count"] for r in resultados],
         "ganancias": [r["ganancia"] for r in resultados],
-        "tiempos": [r.get("tiempo", 0) for r in resultados],
+        "tiempos": tiempos,
         "stats": stats,
     }
     if extra_info:

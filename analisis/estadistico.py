@@ -113,6 +113,10 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "",
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     print(f"Boxplot saved to: {output_path}")
+    # also save PNG for quick preview
+    png_path = output_path.with_suffix(".png")
+    fig.savefig(png_path, dpi=150, bbox_inches="tight")
+    print(f"Boxplot saved to: {png_path}")
 
 
 def parse_args():

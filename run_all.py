@@ -27,7 +27,7 @@ ETAPAS = [
     # -- Líneas base sin DTW --
     ("Vanilla-Explotación",     "vanilla_explotacion.resultados",  []),
     ("Vanilla-Exploración",     "vanilla_exploracion.resultados",  []),
-    ("Vanilla (estándar)",      "vanilla.resultados",  []),
+    #("Vanilla (estándar)",      "vanilla.resultados",  []),
     # -- DTW --
     ("Fire Binary",             "fire_binario.resultados",  []),
     ("Fire D2",                 "fire_d2.resultados", []),

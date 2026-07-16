@@ -200,13 +200,13 @@ STRATEGIES: Dict[str, dict] = {
         "label": "Vanilla-Exploración",
         "extra_info": {"estrategia": "vanilla_exploracion"},
         "runner": _runner_vanilla_exploracion,
-    },
+    },""" 
     "vanilla": {
         "folder": "vanilla",
         "label": "Vanilla (sin DTW)",
         "extra_info": {"estrategia": "vanilla"},
         "runner": _runner_vanilla,
-    },
+    }, """
     "fire_binario": {
         "folder": "fire_binario",
         "label": "Fire Binario (A4)",
