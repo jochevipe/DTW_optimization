@@ -70,19 +70,19 @@ from mkp_common.config import (
 # Strategy-specific imports
 # ---------------------------------------------------------------------------
 from mkp_common.runner import run_experiment as _generic_run
-from fire_d2.config import fire_d2 as _fire_d2_fn
-from sigmoid_delta.runner import run_experiment as _sigmoid_run
-from b3_d2.runner import run_experiment as _b3_run
+from binary_simple.config import fire_d2 as _fire_d2_fn
+from continuous_complex.runner import run_experiment as _continuous_complex_run
+from continuous_simple.runner import run_experiment as _continuous_simple_run
 from vanilla.runner import run_experiment as _vanilla_run
 from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
 from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
 from vanilla.resultados import generate_plots as _plots_vanilla
 from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
 from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
-from fire_binario.resultados import generate_plots as _plots_fire_binario
-from fire_d2.resultados import generate_plots as _plots_fire_d2
-from sigmoid_delta.resultados import generate_plots as _plots_sigmoid_delta
-from b3_d2.resultados import generate_plots as _plots_b3_d2
+from binary_complex.resultados import generate_plots as _plots_binary_complex
+from binary_simple.resultados import generate_plots as _plots_binary_simple
+from continuous_complex.resultados import generate_plots as _plots_continuous_complex
+from continuous_simple.resultados import generate_plots as _plots_continuous_simple
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -135,7 +135,8 @@ def _runner_vanilla_exploracion(mh_c, inst, seed):
     )
 
 
-def _runner_fire_binario(mh_c, inst, seed):
+def _runner_binary_complex(mh_c, inst, seed):
+    """Binary-Complex: decisión multi-criterio (3 condiciones + patience)."""
     return _generic_run(
         mh_class=mh_c,
         inst=inst,
@@ -148,7 +149,8 @@ def _runner_fire_binario(mh_c, inst, seed):
     )
 
 
-def _runner_fire_d2(mh_c, inst, seed):
+def _runner_binary_simple(mh_c, inst, seed):
+    """Binary-Simple: decisión por umbral D2."""
     return _generic_run(
         mh_class=mh_c,
         inst=inst,
@@ -161,8 +163,9 @@ def _runner_fire_d2(mh_c, inst, seed):
     )
 
 
-def _runner_sigmoid_delta(mh_c, inst, seed):
-    return _sigmoid_run(
+def _runner_continuous_complex(mh_c, inst, seed):
+    """Continuous-Complex: intensidad sigmoide desde delta."""
+    return _continuous_complex_run(
         mh_class=mh_c,
         inst=inst,
         monitor_cfg=DTW_SIGMOID_DELTA,
@@ -175,8 +178,9 @@ def _runner_sigmoid_delta(mh_c, inst, seed):
     )
 
 
-def _runner_b3_d2(mh_c, inst, seed):
-    return _b3_run(
+def _runner_continuous_simple(mh_c, inst, seed):
+    """Continuous-Simple: intensidad directa desde D2."""
+    return _continuous_simple_run(
         mh_class=mh_c,
         inst=inst,
         monitor_cfg=DTW_B3_D2,
@@ -200,53 +204,53 @@ STRATEGIES: Dict[str, dict] = {
         "label": "Vanilla-Exploración",
         "extra_info": {"estrategia": "vanilla_exploracion"},
         "runner": _runner_vanilla_exploracion,
-    },""" 
+    },
     "vanilla": {
         "folder": "vanilla",
         "label": "Vanilla (sin DTW)",
         "extra_info": {"estrategia": "vanilla"},
         "runner": _runner_vanilla,
-    }, """
-    "fire_binario": {
-        "folder": "fire_binario",
-        "label": "Fire Binario (A4)",
-        "extra_info": {
-            "estrategia": "fire_binario",
-            "dtw_window": DTW_FIRE_BINARIO.window,
-            "dtw_patience": DTW_FIRE_BINARIO.patience,
-        },
-        "runner": _runner_fire_binario,
     },
-    "fire_d2": {
-        "folder": "fire_d2",
-        "label": "Fire D2 (A3)",
+    "binary_simple": {
+        "folder": "binary_simple",
+        "label": "Binary-Simple",
         "extra_info": {
-            "estrategia": "fire_d2",
+            "estrategia": "binary_simple",
             "decision_rule": "D2 <= theta_c",
             "dtw_window": DTW_FIRE_D2.window,
         },
-        "runner": _runner_fire_d2,
+        "runner": _runner_binary_simple,
     },
-    "sigmoid_delta": {
-        "folder": "sigmoid_delta",
-        "label": "Sigmoid Delta (B1)",
+    "binary_complex": {
+        "folder": "binary_complex",
+        "label": "Binary-Complex",
         "extra_info": {
-            "estrategia": "sigmoid_delta",
+            "estrategia": "binary_complex",
+            "dtw_window": DTW_FIRE_BINARIO.window,
+            "dtw_patience": DTW_FIRE_BINARIO.patience,
+        },
+        "runner": _runner_binary_complex,
+    },
+    "continuous_simple": {
+        "folder": "continuous_simple",
+        "label": "Continuous-Simple",
+        "extra_info": {
+            "estrategia": "continuous_simple",
+            "scale": B3_SCALE,
+            "dtw_window": DTW_B3_D2.window,
+        },
+        "runner": _runner_continuous_simple,
+    },
+    "continuous_complex": {
+        "folder": "continuous_complex",
+        "label": "Continuous-Complex",
+        "extra_info": {
+            "estrategia": "continuous_complex",
             "k": B1_K,
             "center": B1_CENTER,
             "dtw_window": DTW_SIGMOID_DELTA.window,
         },
-        "runner": _runner_sigmoid_delta,
-    },
-    "b3_d2": {
-        "folder": "b3_d2",
-        "label": "B3 D2-Direct",
-        "extra_info": {
-            "estrategia": "b3_d2",
-            "scale": B3_SCALE,
-            "dtw_window": DTW_B3_D2.window,
-        },
-        "runner": _runner_b3_d2,
+        "runner": _runner_continuous_complex,
     },
 }
 
@@ -534,10 +538,10 @@ def main() -> int:
         "vanilla_explotacion": _plots_vanilla_explotacion,
         "vanilla_exploracion": _plots_vanilla_exploracion,
         "vanilla": _plots_vanilla,
-        "fire_binario": _plots_fire_binario,
-        "fire_d2": _plots_fire_d2,
-        "sigmoid_delta": _plots_sigmoid_delta,
-        "b3_d2": _plots_b3_d2,
+        "binary_simple": _plots_binary_simple,
+        "binary_complex": _plots_binary_complex,
+        "continuous_simple": _plots_continuous_simple,
+        "continuous_complex": _plots_continuous_complex,
     }
 
     saved_dirs: Dict[str, str] = {}

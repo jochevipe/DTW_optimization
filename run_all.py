@@ -28,11 +28,12 @@ ETAPAS = [
     ("Vanilla-Explotación",     "vanilla_explotacion.resultados",  []),
     ("Vanilla-Exploración",     "vanilla_exploracion.resultados",  []),
     #("Vanilla (estándar)",      "vanilla.resultados",  []),
-    # -- DTW --
-    ("Fire Binary",             "fire_binario.resultados",  []),
-    ("Fire D2",                 "fire_d2.resultados", []),
-    ("Sigmoid Delta",           "sigmoid_delta.resultados", []),
-    ("B3 D2-Direct",            "b3_d2.resultados", []),
+    # -- DTW: Binary --
+    ("Binary-Simple",           "binary_simple.resultados",  []),
+    ("Binary-Complex",          "binary_complex.resultados",  []),
+    # -- DTW: Continuous --
+    ("Continuous-Simple",       "continuous_simple.resultados", []),
+    ("Continuous-Complex",      "continuous_complex.resultados", []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════

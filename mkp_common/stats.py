@@ -348,7 +348,7 @@ def _can_encode_unicode() -> bool:
 
 def format_table(
     results: Dict,
-    title: str = "Statistical Comparison vs Vanilla",
+    title: str = "Statistical Comparison vs Exploration-only",
     ascii_only: Optional[bool] = None,
 ) -> str:
     """
@@ -423,7 +423,7 @@ def format_table(
 
     # Column headers.
     pm_symbol = "+/-" if ascii_only else "±"
-    headers = ["MH", f"Vanilla (mean {pm_symbol} std)"] + version_names
+    headers = ["MH", f"Exploration-only (mean {pm_symbol} std)"] + version_names
 
     # Column widths based on content.
     col_widths = [len(h) for h in headers]
@@ -549,7 +549,7 @@ def format_math_table(
         b_std = mh_entry["baseline_std"]
 
         lines.append(f"  [{mh}]")
-        lines.append(f"    Vanilla:            {b_mean:.1f}  +/- {b_std:.1f}")
+        lines.append(f"    Exploration-only:    {b_mean:.1f}  +/- {b_std:.1f}")
         lines.append(f"    {'Version':<20s} {'Mean':>10s} {'Std':>10s} {'DMed':>10s} {'p-value':>10s} Holm Sig   Normal?")
         lines.append(f"    {'-'*20} {'-'*10} {'-'*10} {'-'*10} {'-'*10} --------   -------")
 

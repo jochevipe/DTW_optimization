@@ -43,8 +43,8 @@ COLORS = {
     "optimum": "#7f8c8d",
 }
 
-STRATEGY_KEY = "vanilla_explotacion"
-STRATEGY_LABEL = "Vanilla-Explotación"
+STRATEGY_KEY = "v_explotacion"
+STRATEGY_LABEL = "V-Explotación"
 
 
 def print_epoch_results(nombre: str, resultados: list, inst: dict):

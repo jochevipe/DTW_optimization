@@ -1,5 +1,5 @@
 """
-Statistical comparison of DTW versions vs Vanilla baseline.
+Statistical comparison of DTW versions vs V-Exploración baseline.
 Uses Wilcoxon signed-rank test (paired by seed) with Bonferroni correction.
 
 Usage:
@@ -73,7 +73,7 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "",
     version_names = list(dict.fromkeys(version_names))
 
     n_mhs = len(mhs)
-    n_versions = len(version_names) + 1  # +1 for vanilla
+    n_versions = len(version_names) + 1  # +1 for V-Exploración (baseline)
     fig_width = max(8, 2.5 * n_versions)
     fig, axes = plt.subplots(1, n_mhs, figsize=(fig_width, 5), sharey=False)
     if n_mhs == 1:
@@ -81,7 +81,7 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "",
 
     for ax, (mh, mh_entry) in zip(axes, mhs.items()):
         data = [mh_entry.get("baseline_fitness", [])]
-        labels = ["Vanilla"]
+        labels = ["Exploration-only"]
 
         for v_name in version_names:
             v = mh_entry.get("versions", {}).get(v_name)
@@ -95,6 +95,8 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "",
         ax.set_title(mh)
         ax.set_ylabel("Fitness")
         ax.tick_params(axis="x", rotation=30)
+        for label in ax.get_xticklabels():
+            label.set_ha("right")
 
         if optimo and optimo > 0:
             ax.axhline(
@@ -108,7 +110,7 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "",
         opt_part = f" (opt={optimo:.0f})"
     else:
         opt_part = ""
-    suptitle = f"Statistical test — {instance_label}{opt_part}"
+    suptitle = f"Fitness distribution across MH variants — {instance_label}{opt_part}"
     fig.suptitle(suptitle)
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
@@ -121,7 +123,7 @@ def _plot_box(results: dict, output_path: Path, instance_label: str = "",
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Statistical comparison of DTW versions vs Vanilla baseline"
+        description="Statistical comparison of DTW versions vs V-Exploración baseline"
     )
     parser.add_argument(
         "--instancia",
@@ -139,7 +141,7 @@ def parse_args():
         "--one-sided",
         action="store_true",
         default=False,
-        help="Usar test one-sided (version > vanilla) en vez de two-sided (default).",
+        help="Usar test one-sided (version > baseline) en vez de two-sided (default).",
     )
     return parser.parse_args()
 
@@ -164,24 +166,23 @@ def main():
         print(f"  Buscando en: results/*/todos/{subdir}/")
         print()
 
-    baseline = find_latest(BASE / "results" / "vanilla" / "todos", subdir=subdir)
+    baseline = find_latest(BASE / "results" / "vanilla_exploracion" / "todos", subdir=subdir)
     versions = {
-        "Vanilla-Exploración": find_latest(BASE / "results" / "vanilla_exploracion" / "todos", subdir=subdir),
-        "Vanilla-Explotación": find_latest(BASE / "results" / "vanilla_explotacion" / "todos", subdir=subdir),
-        "Fire D2 (A3)": find_latest(BASE / "results" / "fire_d2" / "todos", subdir=subdir),
-        "Fire Binario (A4)": find_latest(BASE / "results" / "fire_binario" / "todos", subdir=subdir),
-        "B1 Sigmoide": find_latest(BASE / "results" / "sigmoid_delta" / "todos", subdir=subdir),
-        "B3 D2-Direct": find_latest(BASE / "results" / "b3_d2" / "todos", subdir=subdir),
+        "Exploitation-only": find_latest(BASE / "results" / "vanilla_explotacion" / "todos", subdir=subdir),
+        "Binary-Simple": find_latest(BASE / "results" / "binary_simple" / "todos", subdir=subdir),
+        "Binary-Complex": find_latest(BASE / "results" / "binary_complex" / "todos", subdir=subdir),
+        "Continuous-Simple": find_latest(BASE / "results" / "continuous_simple" / "todos", subdir=subdir),
+        "Continuous-Complex": find_latest(BASE / "results" / "continuous_complex" / "todos", subdir=subdir),
     }
 
     # Drop versions whose directories are missing.
     versions = {k: v for k, v in versions.items() if v is not None}
     if not versions:
-        print("No DTW result directories found. Run the experiments first.")
+        print("No result directories found. Run the experiments first.")
         return 1
 
     if baseline is None:
-        print("Baseline vanilla results not found. Run the vanilla experiment first.")
+        print("Baseline vanilla_exploracion results not found. Run vanilla_exploracion first.")
         return 1
 
     mhs = ["PSO", "GA", "GWO", "DE"]
@@ -214,13 +215,13 @@ def main():
     alt_label = "(one-tailed >)" if args.one_sided else "(two-sided)"
 
     # Formatted table (console + file)
-    title1 = f"DTW Adaptation vs Vanilla — {instance_label} — Wilcoxon Signed-Rank {alt_label}"
+    title1 = f"DTW Adaptation vs Exploration-only — {instance_label} — Wilcoxon Signed-Rank {alt_label}"
     table = format_table(results, title=title1)
     print(table)
 
     # Math table (console + file)
     print()
-    title2 = f"Numerical Results — {instance_label} — Vanilla vs DTW Versions"
+    title2 = f"Numerical Results — {instance_label} — Exploration-only vs Variants"
     math_table = format_math_table(results, title=title2)
     print(math_table)
 

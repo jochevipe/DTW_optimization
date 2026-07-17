@@ -117,7 +117,7 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
 
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Fitness")
-    ax.set_title(f"Vanilla — All MHs (seed={SEMILLA})")
+    ax.set_title(f"Vanilla (exploit por defecto) — All MHs (seed={SEMILLA})")
     ax.legend(loc="lower right", framealpha=0.9)
     ax.grid(True, alpha=0.2, linestyle=":")
 
