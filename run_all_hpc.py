@@ -205,12 +205,12 @@ STRATEGIES: Dict[str, dict] = {
         "extra_info": {"estrategia": "vanilla_exploracion"},
         "runner": _runner_vanilla_exploracion,
     },
-    "vanilla": {
+    """ "vanilla": {
         "folder": "vanilla",
         "label": "Vanilla (sin DTW)",
         "extra_info": {"estrategia": "vanilla"},
         "runner": _runner_vanilla,
-    },
+    }, """
     "binary_simple": {
         "folder": "binary_simple",
         "label": "Binary-Simple",

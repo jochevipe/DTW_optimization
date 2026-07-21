@@ -22,8 +22,8 @@ INDICE_INSTANCIA = int(os.environ.get("MKP_INDICE", "0"))
 # POPULATION & BUDGET — shared across all strategies
 # ═══════════════════════════════════════════════════════════════════════════
 NUM_PARTICULAS = 20
-NUM_ITERACIONES = 50
-EPOCHS = 2
+NUM_ITERACIONES = 1000
+EPOCHS = 31
 VERBOSE = False
 SEMILLA = 1   # None for real randomness across runs
 
