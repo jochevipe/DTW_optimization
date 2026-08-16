@@ -103,12 +103,5 @@ class BinaryPSO(BaseMH):
             self.c1 = self.C1_EXPLOIT
             self.c2 = self.C2_EXPLOIT
 
-    def adapt_continuous(self, intensity: float) -> None:
-        intensity = max(0.0, min(1.0, intensity))
-        self.w = self.W_EXPLOIT + intensity * (self.W_EXPLORE - self.W_EXPLOIT)
-        self.c1 = self.C1_EXPLOIT + intensity * (self.C1_EXPLORE - self.C1_EXPLOIT)
-        self.c2 = self.C2_EXPLOIT + intensity * (self.C2_EXPLORE - self.C2_EXPLOIT)
-        self.mode = "explore" if intensity > 0.5 else "exploit"
-
     def get_best(self) -> Tuple[np.ndarray, float]:
         return self.gbest.copy(), self.gbest_fitness

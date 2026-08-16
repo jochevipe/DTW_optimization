@@ -30,10 +30,6 @@ ETAPAS = [
     #("Vanilla (estándar)",      "vanilla.resultados",  []),
     # -- DTW: Binary --
     ("Binary-Simple",           "binary_simple.resultados",  []),
-    ("Binary-Complex",          "binary_complex.resultados",  []),
-    # -- DTW: Continuous --
-    ("Continuous-Simple",       "continuous_simple.resultados", []),
-    ("Continuous-Complex",      "continuous_complex.resultados", []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -146,7 +142,37 @@ def main():
             print(f"    - {fs}")
     print(f"{'=' * 70}")
 
-    return 0 if fail == 0 else 1
+    # ── Análisis estadístico post-experimentos ──────────────────────────
+    analysis_ok = True
+    if ok >= 1:
+        print(f"\n{'=' * 70}")
+        print(f"  ANÁLISIS ESTADÍSTICO")
+        print(f"{'=' * 70}")
+
+        analysis_cmd = [sys.executable, "-m", "analisis.estadistico"]
+        if args.instancia:
+            analysis_cmd += ["--instancia", args.instancia]
+        if args.indice is not None:
+            analysis_cmd += ["--indice", str(args.indice)]
+
+        print(f"  Comando: {' '.join(analysis_cmd)}")
+        print()
+
+        t_analysis = time.perf_counter()
+        result = subprocess.run(analysis_cmd, capture_output=False, text=True, env=env)
+        analysis_elapsed = time.perf_counter() - t_analysis
+        analysis_str = str(timedelta(seconds=round(analysis_elapsed)))
+
+        if result.returncode == 0:
+            print(f"\n  [OK] Análisis estadístico completado en {analysis_str}")
+        else:
+            print(f"\n  [FAIL] Análisis estadístico fallo (codigo {result.returncode}) en {analysis_str}")
+            analysis_ok = False
+    else:
+        print(f"\n  [SKIP] Análisis estadístico omitido — ninguna etapa completada con exito.")
+        analysis_ok = False
+
+    return 0 if (fail == 0 and analysis_ok) else 1
 
 
 if __name__ == "__main__":

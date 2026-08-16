@@ -1,0 +1,52 @@
+{
+  "mh": "DE",
+  "epochs": 5,
+  "optimo_conocido": 24381.0,
+  "fitness": [
+    23905.0,
+    23574.0,
+    24073.0,
+    23908.0,
+    23779.0
+  ],
+  "fire_counts": [
+    1,
+    2,
+    2,
+    1,
+    1
+  ],
+  "ganancias": [
+    98.04766006316395,
+    96.69004552725482,
+    98.73672121734137,
+    98.05996472663139,
+    97.53086419753086
+  ],
+  "tiempos": [
+    0.9730404000001727,
+    0.9855068000001665,
+    0.9502813000003698,
+    0.9360187999996015,
+    0.9655763999999181
+  ],
+  "stats": {
+    "mejor": 24073.0,
+    "promedio": 23847.8,
+    "peor": 23574.0,
+    "std": 165.71710835034503,
+    "tiempo_promedio": 0.9620847400000457,
+    "tiempo_std": 0.017317999273444143,
+    "optimo_conocido": 24381.0,
+    "gap_al_optimo": 1.2633
+  },
+  "info": {
+    "estrategia": "binary_simple",
+    "decision_rule": "D2 <= theta_c",
+    "instancia": "instances/mknapcb1.txt",
+    "idx": 0,
+    "poblacion": 20,
+    "iteraciones": 50,
+    "dtw_window": 20
+  }
+}

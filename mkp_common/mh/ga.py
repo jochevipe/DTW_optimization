@@ -127,11 +127,5 @@ class GeneticAlgorithm(BaseMH):
             self.crossover_rate = self.CX_EXPLOIT
             self.mutation_rate = self.MUT_EXPLOIT
 
-    def adapt_continuous(self, intensity: float) -> None:
-        intensity = max(0.0, min(1.0, intensity))
-        self.crossover_rate = self.CX_EXPLOIT + intensity * (self.CX_EXPLORE - self.CX_EXPLOIT)
-        self.mutation_rate = self.MUT_EXPLOIT + intensity * (self.MUT_EXPLORE - self.MUT_EXPLOIT)
-        self.mode = "explore" if intensity > 0.5 else "exploit"
-
     def get_best(self) -> Tuple[np.ndarray, float]:
         return self.gbest.copy(), self.gbest_fitness

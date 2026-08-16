@@ -57,13 +57,7 @@ from mkp_common.config import (
     NUM_ITERACIONES,
     EPOCHS,
     VERBOSE,
-    DTW_FIRE_BINARIO,
     DTW_FIRE_D2,
-    DTW_SIGMOID_DELTA,
-    DTW_B3_D2,
-    B1_K,
-    B1_CENTER,
-    B3_SCALE,
 )
 
 # ---------------------------------------------------------------------------
@@ -71,18 +65,13 @@ from mkp_common.config import (
 # ---------------------------------------------------------------------------
 from mkp_common.runner import run_experiment as _generic_run
 from binary_simple.config import fire_d2 as _fire_d2_fn
-from continuous_complex.runner import run_experiment as _continuous_complex_run
-from continuous_simple.runner import run_experiment as _continuous_simple_run
 from vanilla.runner import run_experiment as _vanilla_run
 from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
 from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
 from vanilla.resultados import generate_plots as _plots_vanilla
 from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
 from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
-from binary_complex.resultados import generate_plots as _plots_binary_complex
 from binary_simple.resultados import generate_plots as _plots_binary_simple
-from continuous_complex.resultados import generate_plots as _plots_continuous_complex
-from continuous_simple.resultados import generate_plots as _plots_continuous_simple
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -135,20 +124,6 @@ def _runner_vanilla_exploracion(mh_c, inst, seed):
     )
 
 
-def _runner_binary_complex(mh_c, inst, seed):
-    """Binary-Complex: decisión multi-criterio (3 condiciones + patience)."""
-    return _generic_run(
-        mh_class=mh_c,
-        inst=inst,
-        monitor_cfg=DTW_FIRE_BINARIO,
-        num_particulas=NUM_PARTICULAS,
-        num_iteraciones=NUM_ITERACIONES,
-        semilla=seed,
-        verbose=VERBOSE,
-        fire_fn=None,
-    )
-
-
 def _runner_binary_simple(mh_c, inst, seed):
     """Binary-Simple: decisión por umbral D2."""
     return _generic_run(
@@ -160,35 +135,6 @@ def _runner_binary_simple(mh_c, inst, seed):
         semilla=seed,
         verbose=VERBOSE,
         fire_fn=_fire_d2_fn,
-    )
-
-
-def _runner_continuous_complex(mh_c, inst, seed):
-    """Continuous-Complex: intensidad sigmoide desde delta."""
-    return _continuous_complex_run(
-        mh_class=mh_c,
-        inst=inst,
-        monitor_cfg=DTW_SIGMOID_DELTA,
-        num_particulas=NUM_PARTICULAS,
-        num_iteraciones=NUM_ITERACIONES,
-        semilla=seed,
-        verbose=VERBOSE,
-        k=B1_K,
-        center=B1_CENTER,
-    )
-
-
-def _runner_continuous_simple(mh_c, inst, seed):
-    """Continuous-Simple: intensidad directa desde D2."""
-    return _continuous_simple_run(
-        mh_class=mh_c,
-        inst=inst,
-        monitor_cfg=DTW_B3_D2,
-        num_particulas=NUM_PARTICULAS,
-        num_iteraciones=NUM_ITERACIONES,
-        semilla=seed,
-        verbose=VERBOSE,
-        scale=B3_SCALE,
     )
 
 
@@ -220,37 +166,6 @@ STRATEGIES: Dict[str, dict] = {
             "dtw_window": DTW_FIRE_D2.window,
         },
         "runner": _runner_binary_simple,
-    },
-    "binary_complex": {
-        "folder": "binary_complex",
-        "label": "Binary-Complex",
-        "extra_info": {
-            "estrategia": "binary_complex",
-            "dtw_window": DTW_FIRE_BINARIO.window,
-            "dtw_patience": DTW_FIRE_BINARIO.patience,
-        },
-        "runner": _runner_binary_complex,
-    },
-    "continuous_simple": {
-        "folder": "continuous_simple",
-        "label": "Continuous-Simple",
-        "extra_info": {
-            "estrategia": "continuous_simple",
-            "scale": B3_SCALE,
-            "dtw_window": DTW_B3_D2.window,
-        },
-        "runner": _runner_continuous_simple,
-    },
-    "continuous_complex": {
-        "folder": "continuous_complex",
-        "label": "Continuous-Complex",
-        "extra_info": {
-            "estrategia": "continuous_complex",
-            "k": B1_K,
-            "center": B1_CENTER,
-            "dtw_window": DTW_SIGMOID_DELTA.window,
-        },
-        "runner": _runner_continuous_complex,
     },
 }
 
@@ -539,9 +454,6 @@ def main() -> int:
         "vanilla_exploracion": _plots_vanilla_exploracion,
         "vanilla": _plots_vanilla,
         "binary_simple": _plots_binary_simple,
-        "binary_complex": _plots_binary_complex,
-        "continuous_simple": _plots_continuous_simple,
-        "continuous_complex": _plots_continuous_complex,
     }
 
     saved_dirs: Dict[str, str] = {}

@@ -43,7 +43,7 @@ COLORS = {
     "optimum": "#7f8c8d",
 }
 
-STRATEGY_KEY = "v_explotacion"
+STRATEGY_KEY = "vanilla_explotacion"
 STRATEGY_LABEL = "V-Explotación"
 
 

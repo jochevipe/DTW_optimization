@@ -120,11 +120,5 @@ class BinaryDE(BaseMH):
             self.F = self.F_EXPLOIT
             self.CR = self.CR_EXPLOIT
 
-    def adapt_continuous(self, intensity: float) -> None:
-        intensity = max(0.0, min(1.0, intensity))
-        self.F = self.F_EXPLOIT + intensity * (self.F_EXPLORE - self.F_EXPLOIT)
-        self.CR = self.CR_EXPLOIT + intensity * (self.CR_EXPLORE - self.CR_EXPLOIT)
-        self.mode = "explore" if intensity > 0.5 else "exploit"
-
     def get_best(self) -> Tuple[np.ndarray, float]:
         return self.gbest.copy(), self.gbest_fitness

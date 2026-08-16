@@ -170,9 +170,6 @@ def main():
     versions = {
         "Exploitation-only": find_latest(BASE / "results" / "vanilla_explotacion" / "todos", subdir=subdir),
         "Binary-Simple": find_latest(BASE / "results" / "binary_simple" / "todos", subdir=subdir),
-        "Binary-Complex": find_latest(BASE / "results" / "binary_complex" / "todos", subdir=subdir),
-        "Continuous-Simple": find_latest(BASE / "results" / "continuous_simple" / "todos", subdir=subdir),
-        "Continuous-Complex": find_latest(BASE / "results" / "continuous_complex" / "todos", subdir=subdir),
     }
 
     # Drop versions whose directories are missing.
