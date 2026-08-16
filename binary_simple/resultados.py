@@ -284,9 +284,13 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
 
     # --- Guardar ---
     Path(save_dir).mkdir(parents=True, exist_ok=True)
-    inst_name = Path(RUTA_INSTANCIA).stem
+    # Derivar inst_name del save_dir (funciona tanto standalone como desde HPC)
+    # save_dir format: results/binary_simple/todos/{inst_name}_{idx}/comparacion_mhs_{run_id}
+    parts = Path(save_dir).parts
+    inst_label = [p for p in parts if "_" in p and p.split("_")[0].startswith("mknapcb")]
+    inst_name = inst_label[0].rsplit("_", 1)[0] if inst_label else Path(RUTA_INSTANCIA).stem
     for ext in ("png", "pdf"):
-        path = f"{save_dir}/binary_simple_{inst_name}_{INDICE_INSTANCIA}.{ext}"
+        path = f"{save_dir}/binary_simple_{inst_name}.{ext}"
         fig.savefig(path)
         print(f"  Saved: {path}")
 

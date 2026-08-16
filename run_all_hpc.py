@@ -66,10 +66,8 @@ from mkp_common.config import (
 from mkp_common.runner import run_experiment as _generic_run
 from binary_simple.config import fire_d2 as _fire_d2_fn
 from binary_hysteresis.config import make_fire_fn as _make_hysteresis_fn
-from vanilla.runner import run_experiment as _vanilla_run
 from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
 from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
-from vanilla.resultados import generate_plots as _plots_vanilla
 from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
 from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
 from binary_simple.resultados import generate_plots as _plots_binary_simple
@@ -92,16 +90,6 @@ TaskResult = Dict[str, Any]
 # ---------------------------------------------------------------------------
 # Named runner functions (must be module-level — picklable by multiprocessing)
 # ---------------------------------------------------------------------------
-
-
-def _runner_vanilla(mh_c, inst, seed):
-    return _vanilla_run(
-        mh_class=mh_c,
-        inst=inst,
-        num_particulas=NUM_PARTICULAS,
-        num_iteraciones=NUM_ITERACIONES,
-        semilla=seed,
-    )
 
 
 def _runner_vanilla_explotacion(mh_c, inst, seed):
@@ -167,12 +155,6 @@ STRATEGIES: Dict[str, dict] = {
         "extra_info": {"estrategia": "vanilla_exploracion"},
         "runner": _runner_vanilla_exploracion,
     },
-    """ "vanilla": {
-        "folder": "vanilla",
-        "label": "Vanilla (sin DTW)",
-        "extra_info": {"estrategia": "vanilla"},
-        "runner": _runner_vanilla,
-    }, """
     "binary_simple": {
         "folder": "binary_simple",
         "label": "Binary-Simple",
@@ -478,7 +460,6 @@ def main() -> int:
     _PLOTTERS = {
         "vanilla_explotacion": _plots_vanilla_explotacion,
         "vanilla_exploracion": _plots_vanilla_exploracion,
-        "vanilla": _plots_vanilla,
         "binary_simple": _plots_binary_simple,
         "binary_hysteresis": _plots_binary_hysteresis,
     }
@@ -507,7 +488,9 @@ def main() -> int:
                 plotter(mh_res, inst, saved)
                 print(f"    Plots saved to {saved}/")
             except Exception as exc:
+                import traceback
                 print(f"    [WARN] Plot generation failed for {sk}: {exc}")
+                traceback.print_exc()
 
     # ── Final summary ────────────────────────────────────────────────────
     print("=" * 70)

@@ -27,7 +27,6 @@ ETAPAS = [
     # -- Líneas base sin DTW --
     ("Vanilla-Explotación",     "vanilla_explotacion.resultados",  []),
     ("Vanilla-Exploración",     "vanilla_exploracion.resultados",  []),
-    #("Vanilla (estándar)",      "vanilla.resultados",  []),
     # -- DTW: Binary --
     ("Binary-Simple",           "binary_simple.resultados",  []),
     ("Binary-Hysteresis",       "binary_hysteresis.resultados", []),
