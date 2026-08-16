@@ -30,6 +30,7 @@ ETAPAS = [
     #("Vanilla (estándar)",      "vanilla.resultados",  []),
     # -- DTW: Binary --
     ("Binary-Simple",           "binary_simple.resultados",  []),
+    ("Binary-Hysteresis",       "binary_hysteresis.resultados", []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -65,6 +65,7 @@ from mkp_common.config import (
 # ---------------------------------------------------------------------------
 from mkp_common.runner import run_experiment as _generic_run
 from binary_simple.config import fire_d2 as _fire_d2_fn
+from binary_hysteresis.config import make_fire_fn as _make_hysteresis_fn
 from vanilla.runner import run_experiment as _vanilla_run
 from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
 from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
@@ -72,6 +73,7 @@ from vanilla.resultados import generate_plots as _plots_vanilla
 from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
 from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
 from binary_simple.resultados import generate_plots as _plots_binary_simple
+from binary_hysteresis.resultados import generate_plots as _plots_binary_hysteresis
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -138,6 +140,20 @@ def _runner_binary_simple(mh_c, inst, seed):
     )
 
 
+def _runner_binary_hysteresis(mh_c, inst, seed):
+    """Binary-Hysteresis: stateful switch on delta."""
+    return _generic_run(
+        mh_class=mh_c,
+        inst=inst,
+        monitor_cfg=DTW_FIRE_D2,
+        num_particulas=NUM_PARTICULAS,
+        num_iteraciones=NUM_ITERACIONES,
+        semilla=seed,
+        verbose=VERBOSE,
+        fire_fn=_make_hysteresis_fn(),
+    )
+
+
 STRATEGIES: Dict[str, dict] = {
     "vanilla_explotacion": {
         "folder": "vanilla_explotacion",
@@ -166,6 +182,16 @@ STRATEGIES: Dict[str, dict] = {
             "dtw_window": DTW_FIRE_D2.window,
         },
         "runner": _runner_binary_simple,
+    },
+    "binary_hysteresis": {
+        "folder": "binary_hysteresis",
+        "label": "Binary-Hysteresis",
+        "extra_info": {
+            "estrategia": "binary_hysteresis",
+            "decision_rule": "hysteresis on delta",
+            "dtw_window": DTW_FIRE_D2.window,
+        },
+        "runner": _runner_binary_hysteresis,
     },
 }
 
@@ -454,6 +480,7 @@ def main() -> int:
         "vanilla_exploracion": _plots_vanilla_exploracion,
         "vanilla": _plots_vanilla,
         "binary_simple": _plots_binary_simple,
+        "binary_hysteresis": _plots_binary_hysteresis,
     }
 
     saved_dirs: Dict[str, str] = {}
