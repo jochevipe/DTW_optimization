@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from mkp_common.stats import compare_versions, format_table, format_math_table
+from mkp_common.stats import compare_versions, format_table, format_math_table, format_raw_table
 
 
 try:
@@ -223,13 +223,22 @@ def main():
     math_table = format_math_table(results, title=title2)
     print(math_table)
 
-    # Save both to files
+    # Raw table (no Bonferroni correction)
+    print()
+    title3 = f"Raw Results (No Correction) — {instance_label} — Wilcoxon Signed-Rank {alt_label}"
+    raw_table = format_raw_table(results, title=title3)
+    print(raw_table)
+
+    # Save all tables to files
     table_path = output_dir / f"tabla_estadistica_{stamp}.txt"
     math_path = output_dir / f"tabla_matematica_{stamp}.txt"
+    raw_path = output_dir / f"tabla_raw_{stamp}.txt"
     table_path.write_text(table + "\n", encoding="utf-8")
     math_path.write_text(math_table + "\n", encoding="utf-8")
+    raw_path.write_text(raw_table + "\n", encoding="utf-8")
     print(f"\nSaved: {table_path}")
     print(f"Saved: {math_path}")
+    print(f"Saved: {raw_path}")
 
     if MATPLOTLIB_AVAILABLE:
         plot_path = output_dir / f"comparacion_{stamp}.pdf"

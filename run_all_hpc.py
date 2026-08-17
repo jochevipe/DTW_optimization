@@ -497,10 +497,39 @@ def main() -> int:
     print("  SAVED RESULTS")
     print("=" * 70)
     for sk, d in saved_dirs.items():
-        print(f"  {STRATEGIES[sk]['label']:<25s} → {d}")
+        print(f"  {STRATEGIES[sk]['label']:<25s} -> {d}")
     print(f"\n  Total wall time: {elapsed_str}")
     print(f"  Tasks: {completed} ok, {errors} errors")
     print("=" * 70)
+
+    # ── Statistical analysis ─────────────────────────────────────────────
+    if completed >= 1:
+        print()
+        print("=" * 70)
+        print("  STATISTICAL ANALYSIS")
+        print("=" * 70)
+
+        analysis_cmd = [
+            sys.executable, "-m", "analisis.estadistico",
+            "--instancia", instancia,
+            "--indice", str(indice),
+        ]
+        print(f"  Command: {' '.join(analysis_cmd)}")
+        print()
+
+        import subprocess
+        t_analysis = time.perf_counter()
+        result = subprocess.run(analysis_cmd, capture_output=False, text=True)
+        analysis_elapsed = time.perf_counter() - t_analysis
+        analysis_str = str(timedelta(seconds=round(analysis_elapsed)))
+
+        if result.returncode == 0:
+            print(f"\n  [OK] Statistical analysis completed in {analysis_str}")
+        else:
+            print(f"\n  [FAIL] Statistical analysis failed (code {result.returncode}) in {analysis_str}")
+            return 1
+    else:
+        print("\n  [SKIP] Statistical analysis skipped -- no successful epochs.")
 
     return 0 if errors == 0 else 1
 
