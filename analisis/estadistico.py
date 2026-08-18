@@ -207,7 +207,7 @@ def main():
         instance_dir = f"{inst_name}_{inst_idx}" if inst_name != "?" else "unknown"
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = BASE / "results" / "estadistico" / instance_dir
+    output_dir = BASE / "results" / "estadistico" / instance_dir / f"comparacion_{stamp}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     alt_label = "(one-tailed >)" if args.one_sided else "(two-sided)"
@@ -230,9 +230,9 @@ def main():
     print(raw_table)
 
     # Save all tables to files
-    table_path = output_dir / f"tabla_estadistica_{stamp}.txt"
-    math_path = output_dir / f"tabla_matematica_{stamp}.txt"
-    raw_path = output_dir / f"tabla_raw_{stamp}.txt"
+    table_path = output_dir / "tabla_estadistica.txt"
+    math_path = output_dir / "tabla_matematica.txt"
+    raw_path = output_dir / "tabla_raw.txt"
     table_path.write_text(table + "\n", encoding="utf-8")
     math_path.write_text(math_table + "\n", encoding="utf-8")
     raw_path.write_text(raw_table + "\n", encoding="utf-8")
@@ -241,7 +241,7 @@ def main():
     print(f"Saved: {raw_path}")
 
     if MATPLOTLIB_AVAILABLE:
-        plot_path = output_dir / f"comparacion_{stamp}.pdf"
+        plot_path = output_dir / "comparacion.pdf"
         optimo = results.get("summary", {}).get("optimo_conocido")
         _plot_box(results, plot_path, instance_label=instance_label, optimo=optimo)
 
