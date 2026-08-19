@@ -1,14 +1,14 @@
 """
 mkp_common.stats — Statistical helpers for comparing metaheuristic variants.
 
-Provides Wilcoxon signed-rank tests (paired by seed/epoch), Shapiro-Wilk
-normality checks on paired differences, and Holm-Bonferroni correction
-for comparing DTW adaptations against a vanilla baseline.
+Provides Wilcoxon signed-rank tests (paired by seed/epoch) and Shapiro-Wilk
+normality checks on paired differences for comparing DTW adaptations against
+a vanilla baseline.
 """
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence
 
 import numpy as np
 
@@ -53,46 +53,6 @@ def _shapiro_on_differences(
     }
 
 
-def _holm_correct(
-    p_values: List[Tuple[str, str, float]],
-    alpha: float = 0.05,
-) -> Dict[Tuple[str, str], bool]:
-    """
-    Holm-Bonferroni step-down correction.
-
-    Parameters
-    ----------
-    p_values : list of (mh_name, version_name, p_value)
-        All comparisons to correct.
-    alpha : float
-        Family-wise error rate.
-
-    Returns
-    -------
-    dict
-        Mapping ``(mh, version) -> bool`` indicating Holm-significance.
-    """
-    # Sort by p-value ascending; keep original index.
-    indexed = sorted(enumerate(p_values), key=lambda x: x[1][2])
-
-    m = len(indexed)
-    significant: Dict[Tuple[str, str], bool] = {}
-
-    # Holm step-down: for rank k (0-indexed), threshold = alpha / (m - k)
-    for k, (orig_idx, (mh, vn, p)) in enumerate(indexed):
-        threshold = alpha / (m - k)
-        if p < threshold:
-            significant[(mh, vn)] = True
-        else:
-            # First non-significant → all remaining are non-significant.
-            for _, (mh2, vn2, _) in indexed[k:]:
-                significant[(mh2, vn2)] = False
-            return significant
-
-    # All passed.
-    return significant
-
-
 def wilcoxon_test(
     baseline_fits: Sequence[float],
     version_fits: Sequence[float],
@@ -117,7 +77,8 @@ def wilcoxon_test(
     -------
     dict
         {"p_value": float, "significant": bool, "statistic": float,
-         "median_diff": float, "effect_size": float}
+         "median_diff": float, "effect_size": float}. ``median_diff`` is the
+         median of the paired per-epoch differences ``version - baseline``.
     """
     stats = _check_scipy()
     if stats is None:
@@ -159,6 +120,17 @@ def wilcoxon_test(
     }
 
 
+def _mean_verdict(mean_diff: float) -> str:
+    """Return a fitness-maximization verdict from an aggregate mean difference."""
+    if np.isnan(mean_diff):
+        return "N/A"
+    if mean_diff > 0:
+        return "BETTER"
+    if mean_diff < 0:
+        return "WORSE"
+    return "SAME"
+
+
 def _load_mh_json(directory: Optional[str], mh: str) -> Optional[dict]:
     """Load the first JSON file matching ``{mh}_*.json`` in *directory*."""
     if not directory:
@@ -189,9 +161,8 @@ def compare_versions(
     Compare every version in *version_dirs* against the vanilla baseline.
 
     Shapiro-Wilk normality is checked on paired differences for each
-    (MH, version) pair.  Holm-Bonferroni step-down correction is applied
-    across ALL comparisons (MH × version) to control the family-wise error
-    rate at *alpha*.
+    (MH, version) pair.  Wilcoxon significance is the raw result
+    ``p_value < alpha`` for each paired comparison.
 
     Parameters
     ----------
@@ -202,7 +173,7 @@ def compare_versions(
     mh_names : list[str]
         Metaheuristics to compare (e.g., ["PSO", "GA", "GWO", "DE"]).
     alpha : float, optional
-        Family-wise error rate.
+        Significance level applied to each raw Wilcoxon result.
     alternative : str, optional
         SciPy alternative hypothesis (default "greater", use "two-sided" for
         detecting both improvement and degradation).
@@ -211,18 +182,15 @@ def compare_versions(
     -------
     dict
         Structured results with summary, per-MH statistics, per-version
-        Wilcoxon outcomes, Shapiro-Wilk results, and Holm-corrected
-        significance flags.
+        Wilcoxon outcomes, Shapiro-Wilk results, the aggregate mean
+        difference, and the paired median difference.
     """
     stats_mod = _check_scipy()
     if stats_mod is None:
         raise RuntimeError("scipy is required for statistical tests. Run: pip install scipy")
 
     n_versions = len(version_dirs)
-
-    # ── Pass 1: collect all test results WITHOUT significance ────────────
     per_mh: Dict[str, Dict] = {}
-    all_p_values: List[Tuple[str, str, float]] = []  # (mh, version, p)
     optimo_conocido: Optional[float] = None
 
     for mh in mh_names:
@@ -256,7 +224,7 @@ def compare_versions(
             # Shapiro-Wilk on paired differences.
             shapiro = _shapiro_on_differences(baseline_arr, version_arr)
 
-            # Wilcoxon (raw alpha — significance overridden by Holm below).
+            # Wilcoxon on paired per-epoch differences with raw alpha.
             test_result = wilcoxon_test(
                 baseline_fits,
                 version_fits,
@@ -264,12 +232,15 @@ def compare_versions(
                 alternative=alternative,
             )
 
-            p_val = test_result["p_value"]
-            all_p_values.append((mh, version_name, p_val))
+            version_mean = float(np.mean(version_fits)) if version_fits else np.nan
+            baseline_mean = mh_entry["baseline_mean"]
+            mean_diff = version_mean - baseline_mean
 
             mh_entry["versions"][version_name] = {
-                "mean": float(np.mean(version_fits)) if version_fits else np.nan,
+                "mean": version_mean,
                 "std": float(np.std(version_fits)) if version_fits else np.nan,
+                "mean_diff": mean_diff,
+                "verdict": _mean_verdict(mean_diff),
                 "version_fitness": version_fits,
                 **test_result,
                 "shapiro": shapiro,
@@ -277,53 +248,18 @@ def compare_versions(
 
         per_mh[mh] = mh_entry
 
-    # ── Pass 2: apply Holm-Bonferroni across all comparisons ─────────────
-    n_comparisons = len(all_p_values)
-    holm_significance: Dict[Tuple[str, str], bool] = {}
-    if n_comparisons > 0:
-        holm_significance = _holm_correct(all_p_values, alpha=alpha)
-
-    # Override ``significant`` and store ``holm_significant``.
-    for mh, mh_entry in per_mh.items():
-        for vn, ventry in mh_entry.get("versions", {}).items():
-            ventry["significant"] = holm_significance.get((mh, vn), False)
-            ventry["holm_significant"] = ventry["significant"]
-            # Number of comparisons for this test's Holm rank context.
-            ventry["holm_n_comparisons"] = n_comparisons
-
     return {
         "summary": {
             "alpha": alpha,
             "n_versions": n_versions,
-            "n_comparisons": n_comparisons,
             "test": "Wilcoxon signed-rank (paired)",
             "normality_check": "Shapiro-Wilk on paired differences",
-            "correction": "Holm-Bonferroni (step-down)",
+            "significance_rule": "raw Wilcoxon p-value < alpha",
             "alternative": alternative,
             "optimo_conocido": optimo_conocido,
         },
         "mhs": per_mh,
     }
-
-
-def _marker(
-    p_value: float,
-    alpha: float,
-    significant: bool,
-    ascii_only: bool = False,
-) -> str:
-    """Return significance marker based on Holm-corrected status and raw p-value."""
-    if significant:
-        # Holm-significant: star rating by p-value magnitude.
-        if p_value < 0.001:
-            return "***"
-        if p_value < 0.01:
-            return "**"
-        return "*"
-    # Not Holm-significant, but nominally significant at raw alpha.
-    if p_value < alpha:
-        return "^" if ascii_only else "¹"
-    return ""
 
 
 def _can_encode_unicode() -> bool:
@@ -354,6 +290,11 @@ def format_table(
     """
     Format comparison results as a paper-ready table.
 
+    The visible verdict is based on the aggregate ``mean_diff`` (version mean
+    minus baseline mean).  The displayed p-value is the raw paired Wilcoxon
+    p-value; paired per-epoch differences are summarized separately by their
+    median in :func:`format_math_table`.
+
     Parameters
     ----------
     results : dict
@@ -378,8 +319,6 @@ def format_table(
     summary = results.get("summary", {})
     mhs = results.get("mhs", {})
     alpha = summary.get("alpha", 0.05)
-    n_comparisons = summary.get("n_comparisons", 0)
-    n_versions = summary.get("n_versions", 0)
 
     version_names = []
     for mh_entry in mhs.values():
@@ -406,23 +345,14 @@ def format_table(
 
             mean = v.get("mean", np.nan)
             std = v.get("std", np.nan)
-            median_diff = v.get("median_diff", np.nan)
+            mean_diff = v.get("mean_diff", mean - baseline_mean)
             p_value = v.get("p_value", np.nan)
-            sig = v.get("significant", False)
-            marker = _marker(p_value, alpha, sig, ascii_only=ascii_only)
+            verdict = _mean_verdict(mean_diff)
 
             primary_cells.append(f"{mean:.1f} {pm_symbol} {std:.1f}")
 
-            # Direction indicator: BETTER, WORSE, or ~ (similar)
-            if median_diff > 0:
-                direction = "BETTER"
-            elif median_diff < 0:
-                direction = "WORSE"
-            else:
-                direction = "~"
-
             secondary_cells.append(
-                f"p={p_value:.3f}{marker}  ({direction})"
+                f"mean diff={mean_diff:+.1f}  raw p={p_value:.4f}  ({verdict})"
             )
 
         rows.append((mh, primary_cells))
@@ -464,7 +394,6 @@ def format_table(
         LEFT_T = "╟"
         RIGHT_T = "╢"
         HBAR = "─"
-        em_dash = "—"
 
     def sep(left: str, right: str, cross: str = TS, line: str = HL) -> str:
         parts = [line * (col_widths[0] + 2)]
@@ -481,19 +410,16 @@ def format_table(
         return VL + line + VL
 
     title_text = f" {title} "
-    holm_text = (
-        f" Holm-Bonferroni alpha = {alpha:.4f} ({n_comparisons} comparison"
-        f"{'s' if n_comparisons != 1 else ''}) "
-    )
+    test_text = f" Raw Wilcoxon signed-rank p-values | alpha = {alpha:.4f} "
 
     title_width = sum(col_widths) + 3 * len(col_widths) + 1
     title_line = title_text.center(title_width)
-    holm_line = holm_text.center(title_width)
+    test_line = test_text.center(title_width)
 
     lines = [
         TL + HL * (title_width - 2) + TR,
         VL + title_line + VL,
-        VL + holm_line + VL,
+        VL + test_line + VL,
         sep(LC, RC),
         row_line(headers[0], headers[1:]),
         sep(LC, RC, cross=CROSS),
@@ -513,27 +439,11 @@ def format_table(
     lines.append(hbar * (title_width - 2))
     lines.append("INTERPRETATION GUIDE:")
     lines.append("")
-    lines.append("Holm-Bonferroni correction controls the family-wise error rate when")
-    lines.append("comparing multiple strategies against the baseline. Without correction,")
-    lines.append(f"testing {n_comparisons} hypotheses at alpha=0.05 would yield ~{n_comparisons * 0.05:.1f} false positives")
-    lines.append("on average. The Holm step-down method adjusts thresholds progressively:")
-    lines.append(f"  - Most significant comparison: alpha/1 = {alpha:.4f}")
-    lines.append(f"  - Second: alpha/2 = {alpha/2:.4f}")
-    lines.append(f"  - ...until alpha/{n_comparisons} = {alpha/n_comparisons:.4f}")
-    lines.append("")
-    lines.append("Significance markers:")
-    lines.append("  *** p < 0.001 (highly significant after Holm correction)")
-    lines.append("  **  p < 0.01  (very significant)")
-    lines.append("  *   p < 0.05  (significant after Holm correction)")
-    marker_legend = "^" if ascii_only else "1"
-    lines.append(
-        f"  {marker_legend}   p < {alpha:.3f} (nominally significant, "
-        f"but NOT after Holm correction)"
-    )
-    lines.append("")
-    lines.append(f"Note: With {n_comparisons} comparisons, a result needs p < {alpha/n_comparisons:.4f}")
-    lines.append("to be significant after correction. Results marked with ^ may be")
-    lines.append("worth investigating but do not survive multiple-testing correction.")
+    lines.append("Mean difference = version mean - baseline mean.")
+    lines.append("Positive means BETTER because fitness is maximized; negative means WORSE.")
+    lines.append("Wilcoxon uses paired per-epoch differences, not aggregate means.")
+    lines.append("Wilcoxon significance uses the raw rule p-value < alpha.")
+    lines.append("Its paired median difference (median of per-epoch differences) is shown separately.")
 
     return "\n".join(lines)
 
@@ -545,13 +455,13 @@ def format_math_table(
     """
     Format comparison results as a clean mathematical table with raw numbers.
 
-    Shows mean, std, median difference, p-value, and significance per MH per version.
-    Designed for direct inspection before paper formatting.
+    Shows mean, standard deviation, aggregate mean difference, paired median
+    difference, raw Wilcoxon p-value, Shapiro-Wilk status, and a verdict per
+    MH and version.  Shapiro-Wilk is applied to paired per-epoch differences.
     """
     summary = results.get("summary", {})
     mhs = results.get("mhs", {})
     alpha = summary.get("alpha", 0.05)
-    n_comparisons = summary.get("n_comparisons", 0)
     alternative = summary.get("alternative", "greater")
     alt_text = "(two-sided)" if alternative == "two-sided" else "(one-tailed >)"
 
@@ -563,7 +473,10 @@ def format_math_table(
     lines = []
     lines.append(f"{'=' * 90}")
     lines.append(f"  {title}")
-    lines.append(f"  Wilcoxon signed-rank {alt_text} | Holm-Bonferroni alpha = {alpha:.4f} ({n_comparisons} comparisons)")
+    lines.append(
+        f"  Raw Wilcoxon signed-rank {alt_text} | alpha = {alpha:.4f} | "
+        "Shapiro-Wilk on paired differences"
+    )
     lines.append(f"{'=' * 90}")
     lines.append("")
 
@@ -573,8 +486,15 @@ def format_math_table(
 
         lines.append(f"  [{mh}]")
         lines.append(f"    Baseline (Exploration-only): {b_mean:.1f} +/- {b_std:.1f}")
-        lines.append(f"    {'Version':<20s} {'Mean':>10s} {'Std':>10s} {'Diff':>10s} {'p-value':>10s} {'Holm?':>8s} {'Shapiro':>10s} {'Verdict'}")
-        lines.append(f"    {'-'*20} {'-'*10} {'-'*10} {'-'*10} {'-'*10} {'-'*8} {'-'*10} {'-'*12}")
+        lines.append(
+            f"    {'Version':<20s} {'Mean':>10s} {'Std':>10s} "
+            f"{'Mean diff':>11s} {'Paired median diff':>19s} {'p-value':>10s} "
+            f"{'Shapiro':>10s} {'Verdict'}"
+        )
+        lines.append(
+            f"    {'-'*20} {'-'*10} {'-'*10} {'-'*11} {'-'*19} "
+            f"{'-'*10} {'-'*10} {'-'*12}"
+        )
 
         for vn in version_names:
             v = mh_entry.get("versions", {}).get(vn)
@@ -582,41 +502,36 @@ def format_math_table(
                 continue
             mean = v["mean"]
             std = v["std"]
-            delta = v["median_diff"]
+            mean_diff = v.get("mean_diff", mean - b_mean)
+            paired_median_diff = v["median_diff"]
             p = v["p_value"]
-
-            # Holm significance.
-            sig = "YES" if v.get("significant", False) else "no"
 
             # Shapiro-Wilk normality verdict.
             shapiro = v.get("shapiro", {})
             normal = "OK" if shapiro.get("normal", False) else "NOT normal"
             if shapiro.get("note"):
                 normal = shapiro["note"][:10]
+            verdict = _mean_verdict(mean_diff)
 
-            # Verdict: better, worse, or similar
-            if delta > 0:
-                verdict = "BETTER"
-            elif delta < 0:
-                verdict = "WORSE"
-            else:
-                verdict = "SAME"
-
-            sign = "+" if delta >= 0 else ""
             lines.append(
-                f"    {vn:<20s} {mean:10.1f} {std:10.1f} {sign}{delta:9.1f} {p:10.4f}  {sig:<8s} {normal:>10s}  {verdict}"
+                f"    {vn:<20s} {mean:10.1f} {std:10.1f} "
+                f"{mean_diff:+11.1f} {paired_median_diff:+19.1f} {p:10.4f} "
+                f"{normal:>10s}  {verdict}"
             )
 
-        # Best version for this MH
+        # Best version for this MH by aggregate mean difference.
         best_v = None
-        best_delta = float("-inf")
+        best_mean_diff = float("-inf")
         for vn in version_names:
             v = mh_entry.get("versions", {}).get(vn)
-            if v and v["median_diff"] > best_delta:
-                best_delta = v["median_diff"]
-                best_v = vn
+            if v:
+                mean_diff = v.get("mean_diff", v["mean"] - b_mean)
+                if mean_diff > best_mean_diff:
+                    best_mean_diff = mean_diff
+                    best_v = vn
         if best_v:
-            lines.append(f"    -> Best: {best_v}  (diff = +{best_delta:.1f})")
+            lines.append(f"    -> Best by mean: {best_v}  (mean diff = {best_mean_diff:+.1f})")
+        lines.append("    Shapiro: normality test on paired per-epoch differences (OK = not rejected at alpha=0.05).")
         lines.append("")
 
     return "\n".join(lines)
@@ -624,175 +539,14 @@ def format_math_table(
 
 def format_raw_table(
     results: Dict,
-    title: str = "Raw Statistical Results (No Multiple-Testing Correction)",
+    title: str = "Raw Wilcoxon Results",
     ascii_only: Optional[bool] = None,
 ) -> str:
     """
-    Format comparison results WITHOUT Holm-Bonferroni correction.
+    Format the raw paired Wilcoxon results.
 
-    Shows raw p-values with standard alpha=0.05 threshold. Use this to see
-    which comparisons are nominally significant before applying correction.
-
-    WARNING: With multiple comparisons, some significant results may be
-    false positives. Use format_table() for corrected results.
+    This formatter is retained as a separate CLI/file output for compatibility;
+    it uses the same unadjusted p-values, mean-based verdicts, and explanatory
+    notes as :func:`format_table`.
     """
-    if ascii_only is None:
-        ascii_only = not _can_encode_unicode()
-
-    if ascii_only:
-        title = title.replace("—", "--").replace("–", "-")
-
-    summary = results.get("summary", {})
-    mhs = results.get("mhs", {})
-    alpha = summary.get("alpha", 0.05)
-    n_comparisons = summary.get("n_comparisons", 0)
-    alternative = summary.get("alternative", "greater")
-    alt_text = "(two-sided)" if alternative == "two-sided" else "(one-tailed >)"
-
-    version_names = []
-    for mh_entry in mhs.values():
-        version_names.extend(mh_entry.get("versions", {}).keys())
-    version_names = list(dict.fromkeys(version_names))
-
-    # Build rows: each MH has a primary row (mean ± std) and a secondary row
-    # with p-value and direction for each version.
-    rows = []
-    for mh, mh_entry in mhs.items():
-        baseline_mean = mh_entry.get("baseline_mean", np.nan)
-        baseline_std = mh_entry.get("baseline_std", np.nan)
-
-        pm_symbol = "+/-" if ascii_only else "±"
-        primary_cells = [f"{baseline_mean:.1f} {pm_symbol} {baseline_std:.1f}"]
-        secondary_cells = [""]
-
-        for version_name in version_names:
-            v = mh_entry.get("versions", {}).get(version_name)
-            if v is None:
-                primary_cells.append("-" if ascii_only else "—")
-                secondary_cells.append("-" if ascii_only else "—")
-                continue
-
-            mean = v.get("mean", np.nan)
-            std = v.get("std", np.nan)
-            median_diff = v.get("median_diff", np.nan)
-            p_value = v.get("p_value", np.nan)
-
-            # Raw significance (no Holm correction).
-            raw_sig = p_value < alpha
-
-            primary_cells.append(f"{mean:.1f} {pm_symbol} {std:.1f}")
-
-            # Direction indicator: BETTER, WORSE, or ~ (similar)
-            if median_diff > 0:
-                direction = "BETTER"
-            elif median_diff < 0:
-                direction = "WORSE"
-            else:
-                direction = "~"
-
-            marker = "*" if raw_sig else ""
-            secondary_cells.append(
-                f"p={p_value:.3f}{marker}  ({direction})"
-            )
-
-        rows.append((mh, primary_cells))
-        rows.append(("", secondary_cells))
-
-    # Column headers.
-    pm_symbol = "+/-" if ascii_only else "±"
-    headers = ["MH", f"Exploration-only (mean {pm_symbol} std)"] + version_names
-
-    # Column widths based on content.
-    col_widths = [len(h) for h in headers]
-    for _, cells in rows:
-        for i, cell in enumerate(cells):
-            col_widths[i] = max(col_widths[i], len(cell))
-
-    # Choose box-drawing charset.
-    if ascii_only:
-        HL = "="
-        VL = "|"
-        TL = TR = BL = BR = "+"
-        LC = RC = "+"
-        TS = BS = CROSS = "+"
-        CS = "|"
-        LEFT_T = RIGHT_T = "+"
-        HBAR = "-"
-    else:
-        HL = "═"
-        VL = "║"
-        TL = "╔"
-        TR = "╗"
-        BL = "╚"
-        BR = "╝"
-        LC = "╠"
-        RC = "╣"
-        TS = "╤"
-        BS = "╧"
-        CS = "│"
-        CROSS = "╪"
-        LEFT_T = "╟"
-        RIGHT_T = "╢"
-        HBAR = "─"
-
-    def sep(left: str, right: str, cross: str = TS, line: str = HL) -> str:
-        parts = [line * (col_widths[0] + 2)]
-        for w in col_widths[1:]:
-            parts.extend([cross, line * (w + 2)])
-        return left + "".join(parts) + right
-
-    def row_line(label: str, cells: List[str]) -> str:
-        parts = [f" {label:<{col_widths[0]}} "]
-        for i, cell in enumerate(cells):
-            width = col_widths[i + 1]
-            parts.append(f" {cell:>{width}} ")
-        line = CS.join(parts)
-        return VL + line + VL
-
-    title_text = f" {title} "
-    raw_text = (
-        f" Raw p-values | alpha = {alpha:.4f} | "
-        f"{alternative} | {n_comparisons} comparisons "
-    )
-
-    title_width = sum(col_widths) + 3 * len(col_widths) + 1
-    title_line = title_text.center(title_width)
-    raw_line = raw_text.center(title_width)
-
-    lines = [
-        TL + HL * (title_width - 2) + TR,
-        VL + title_line + VL,
-        VL + raw_line + VL,
-        sep(LC, RC),
-        row_line(headers[0], headers[1:]),
-        sep(LC, RC, cross=CROSS),
-    ]
-
-    for i, (label, cells) in enumerate(rows):
-        lines.append(row_line(label, cells))
-        if i < len(rows) - 1 and label == "":
-            # Separator between MH blocks.
-            lines.append(sep(LEFT_T, RIGHT_T, cross=CROSS, line=HBAR))
-
-    lines.append(sep(BL, BR, cross=BS))
-
-    # Legend.
-    lines.append("")
-    hbar = "-" if ascii_only else "─"
-    lines.append(hbar * (title_width - 2))
-    lines.append("INTERPRETATION GUIDE (RAW - NO CORRECTION):")
-    lines.append("")
-    lines.append("This table shows raw p-values from Wilcoxon signed-rank tests")
-    lines.append("WITHOUT multiple-testing correction. Use it to see which comparisons")
-    lines.append("are nominally significant at alpha=0.05.")
-    lines.append("")
-    lines.append("WARNING: With multiple comparisons, some significant results may be")
-    lines.append(f"false positives. Expected false positives: ~{n_comparisons * alpha:.1f} out of {n_comparisons}.")
-    lines.append("")
-    lines.append("For publication-ready results, use the Holm-Bonferroni corrected table.")
-    lines.append("")
-    lines.append("Significance markers:")
-    lines.append(f"  *   p < {alpha:.3f} (nominally significant, no correction)")
-    lines.append("      Empty = not significant at raw alpha")
-
-    return "\n".join(lines)
+    return format_table(results, title=title, ascii_only=ascii_only)

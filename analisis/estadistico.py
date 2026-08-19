@@ -1,6 +1,7 @@
 """
 Statistical comparison of DTW versions vs V-Exploración baseline.
-Uses Wilcoxon signed-rank test (paired by seed) with Bonferroni correction.
+Uses Shapiro-Wilk normality checks on paired per-epoch differences and raw
+paired Wilcoxon signed-rank tests.
 
 Usage:
     python -m analisis.estadistico
@@ -223,9 +224,9 @@ def main():
     math_table = format_math_table(results, title=title2)
     print(math_table)
 
-    # Raw table (no Bonferroni correction)
+    # Raw paired Wilcoxon table
     print()
-    title3 = f"Raw Results (No Correction) — {instance_label} — Wilcoxon Signed-Rank {alt_label}"
+    title3 = f"Raw Wilcoxon Results — {instance_label} — Wilcoxon Signed-Rank {alt_label}"
     raw_table = format_raw_table(results, title=title3)
     print(raw_table)
 
