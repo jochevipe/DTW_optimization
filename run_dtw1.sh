@@ -26,23 +26,14 @@ echo "Variables de hilos configuradas a: $OMP_NUM_THREADS"
 conda activate DTW_optimization
 
 # 4. Ejecutar tu script de Python
-#python run_all_hpc.py --instancia instances/mknapcb1.txt
-#python -m analisis.estadistico --instancia instances/mknapcb1.txt
-#python run_all_hpc.py --instancia instances/mknapcb2.txt
-#python -m analisis.estadistico --instancia instances/mknapcb2.txt
-#python run_all_hpc.py --instancia instances/mknapcb3.txt
-#python -m analisis.estadistico --instancia instances/mknapcb3.txt
-#python run_all_hpc.py --instancia instances/mknapcb4.txt
-#python -m analisis.estadistico --instancia instances/mknapcb4.txt
-#python run_all_hpc.py --instancia instances/mknapcb5.txt
-#python -m analisis.estadistico --instancia instances/mknapcb5.txt
+python run_all_hpc.py --instancia instances/mknapcb1.txt
+python run_all_hpc.py --instancia instances/mknapcb2.txt
+python run_all_hpc.py --instancia instances/mknapcb3.txt
+python run_all_hpc.py --instancia instances/mknapcb4.txt
+python run_all_hpc.py --instancia instances/mknapcb5.txt
 python run_all_hpc.py --instancia instances/mknapcb6.txt
-python -m analisis.estadistico --instancia instances/mknapcb6.txt
 python run_all_hpc.py --instancia instances/mknapcb7.txt
-python -m analisis.estadistico --instancia instances/mknapcb7.txt
 python run_all_hpc.py --instancia instances/mknapcb8.txt
-python -m analisis.estadistico --instancia instances/mknapcb8.txt
 python run_all_hpc.py --instancia instances/mknapcb9.txt
-python -m analisis.estadistico --instancia instances/mknapcb9.txt
 
 echo "<<Script de Trabajo terminado>>"

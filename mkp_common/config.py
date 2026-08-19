@@ -22,8 +22,8 @@ INDICE_INSTANCIA = int(os.environ.get("MKP_INDICE", "0"))
 # POPULATION & BUDGET — shared across all strategies
 # ═══════════════════════════════════════════════════════════════════════════
 NUM_PARTICULAS = 20
-NUM_ITERACIONES = 100 #1000
-EPOCHS = 5 #31
+NUM_ITERACIONES = 1000 #1000
+EPOCHS = 31 #31
 VERBOSE = False
 SEMILLA = 1   # None for real randomness across runs
 
@@ -31,10 +31,10 @@ SEMILLA = 1   # None for real randomness across runs
 # DTW — base fields shared by all DTW-enabled strategies
 # ═══════════════════════════════════════════════════════════════════════════
 _DTW_BASE = dict(
-    window=20,
+    window=50,
     band=2,
     min_slope=2.0,
-    use_ddtw=True,
+    use_ddtw=False,
     adapt_thresholds=True,
 )
 
