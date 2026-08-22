@@ -66,12 +66,16 @@ from mkp_common.config import (
 from mkp_common.runner import run_experiment as _generic_run
 from binary_simple.config import fire_d2 as _fire_d2_fn
 from binary_hysteresis.config import make_fire_fn as _make_hysteresis_fn
+from dtw_pulse.config import make_fire_fn as _make_pulse_fn, DECISION_RULE as _PULSE_RULE
+from dtw_phaselock.config import make_fire_fn as _make_phaselock_fn, DECISION_RULE as _PHASELOCK_RULE
 from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
 from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
 from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
 from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
 from binary_simple.resultados import generate_plots as _plots_binary_simple
 from binary_hysteresis.resultados import generate_plots as _plots_binary_hysteresis
+from dtw_pulse.resultados import generate_plots as _plots_dtw_pulse
+from dtw_phaselock.resultados import generate_plots as _plots_dtw_phaselock
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -146,6 +150,38 @@ def _runner_binary_hysteresis(mh_c, inst, seed):
     )
 
 
+def _runner_dtw_pulse(mh_c, inst, seed):
+    """DTW-Pulse: explore base with bounded exploit pulses (fresh controller)."""
+    return _generic_run(
+        mh_class=mh_c,
+        inst=inst,
+        monitor_cfg=DTW_FIRE_D2,
+        num_particulas=NUM_PARTICULAS,
+        num_iteraciones=NUM_ITERACIONES,
+        semilla=seed,
+        verbose=VERBOSE,
+        fire_fn=_make_pulse_fn(),
+        initial_mode="explore",
+        decision_on_early=True,
+    )
+
+
+def _runner_dtw_phaselock(mh_c, inst, seed):
+    """DTW-PhaseLock: exploit base, explore only on confirmed deep stagnation."""
+    return _generic_run(
+        mh_class=mh_c,
+        inst=inst,
+        monitor_cfg=DTW_FIRE_D2,
+        num_particulas=NUM_PARTICULAS,
+        num_iteraciones=NUM_ITERACIONES,
+        semilla=seed,
+        verbose=VERBOSE,
+        fire_fn=_make_phaselock_fn(),
+        initial_mode="exploit",
+        decision_on_early=True,
+    )
+
+
 STRATEGIES: Dict[str, dict] = {
     "vanilla_explotacion": {
         "folder": "vanilla_explotacion",
@@ -178,6 +214,26 @@ STRATEGIES: Dict[str, dict] = {
             "dtw_window": DTW_FIRE_D2.window,
         },
         "runner": _runner_binary_hysteresis,
+    },
+    "dtw_pulse": {
+        "folder": "dtw_pulse",
+        "label": "DTW-Pulse",
+        "extra_info": {
+            "estrategia": "dtw_pulse",
+            "decision_rule": _PULSE_RULE,
+            "dtw_window": DTW_FIRE_D2.window,
+        },
+        "runner": _runner_dtw_pulse,
+    },
+    "dtw_phaselock": {
+        "folder": "dtw_phaselock",
+        "label": "DTW-PhaseLock",
+        "extra_info": {
+            "estrategia": "dtw_phaselock",
+            "decision_rule": _PHASELOCK_RULE,
+            "dtw_window": DTW_FIRE_D2.window,
+        },
+        "runner": _runner_dtw_phaselock,
     },
 }
 
@@ -467,6 +523,8 @@ def main() -> int:
         "vanilla_exploracion": _plots_vanilla_exploracion,
         "binary_simple": _plots_binary_simple,
         "binary_hysteresis": _plots_binary_hysteresis,
+        "dtw_pulse": _plots_dtw_pulse,
+        "dtw_phaselock": _plots_dtw_phaselock,
     }
 
     saved_dirs: Dict[str, str] = {}

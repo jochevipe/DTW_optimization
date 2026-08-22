@@ -31,5 +31,3 @@ Thumbs.db
 /logs
 
 # Generated experiment campaigns; existing tracked research artifacts remain tracked.
-/results/*/todos/*/comparacion_mhs_*/
-/results/estadistico/*/comparacion_*/
