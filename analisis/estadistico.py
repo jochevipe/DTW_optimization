@@ -11,12 +11,20 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
-from mkp_common.stats import compare_versions, format_table, format_math_table, format_raw_table
+from mkp_common.stats import (
+    compare_versions,
+    format_math_table,
+    format_raw_table,
+    format_table,
+    format_time_table,
+)
 
 
 try:
@@ -27,25 +35,436 @@ except Exception:  # pragma: no cover
 
 
 BASE = Path(__file__).resolve().parent.parent
+MHS = ("PSO", "GA", "GWO", "DE")
+RESULT_DIR_PREFIX = "comparacion_mhs_"
+HYSTERESIS_RULE = "delta >= theta_delta -> explore; delta <= 0 -> exploit"
 
 
-def find_latest(directory, subdir: str = None):
-    """
-    Return the most recent ``comparacion_mhs_*`` directory under *directory*.
+class ResultSelectionError(RuntimeError):
+    """Raised when result directories cannot form a compatible campaign."""
 
-    If *subdir* is given (e.g. ``mknapcb1_0``), looks only inside that
-    instance subdirectory. Otherwise scans all instance subdirectories.
-    """
+
+class ResultMetadataError(ValueError):
+    """Raised when one result directory lacks safe selection metadata."""
+
+
+@dataclass(frozen=True)
+class ResultCandidate:
+    """Validated metadata for one complete strategy result directory."""
+
+    directory: Path
+    strategy: str
+    campaign_id: str
+    instance_path: str
+    instance_name: str
+    instance_index: int
+    population: int
+    iterations: int
+    epochs: int
+    decision_rule: Optional[str]
+    dtw_window: Optional[int]
+    legacy_campaign: bool
+
+
+def _result_dirs(directory, subdir: Optional[str] = None):
+    """Return result directories in newest-first order without reading data."""
+    root = Path(directory)
     if subdir:
-        target = Path(directory) / subdir
-        dirs = sorted(target.glob("comparacion_mhs_*")) if target.is_dir() else []
+        target = root / subdir
+        candidates = target.glob(f"{RESULT_DIR_PREFIX}*") if target.is_dir() else []
     else:
-        # New structure: results/{version}/todos/{instance}/comparacion_mhs_*
-        dirs = sorted(Path(directory).glob("*/comparacion_mhs_*"))
-        if not dirs:
-            # Old structure: results/{version}/todos/comparacion_mhs_*
-            dirs = sorted(Path(directory).glob("comparacion_mhs_*"))
-    return str(dirs[-1]) if dirs else None
+        candidates = list(root.glob(f"*/{RESULT_DIR_PREFIX}*"))
+        if not candidates:
+            candidates = root.glob(f"{RESULT_DIR_PREFIX}*")
+    return sorted(
+        (path for path in candidates if path.is_dir()),
+        key=lambda path: path.name,
+        reverse=True,
+    )
+
+
+def _legacy_campaign_id(directory: Path) -> Optional[str]:
+    """Infer a campaign ID from the legacy directory name when possible."""
+    if not directory.name.startswith(RESULT_DIR_PREFIX):
+        return None
+    campaign_id = directory.name[len(RESULT_DIR_PREFIX):]
+    return campaign_id or None
+
+
+def _normalise_instance_path(value: str) -> str:
+    """Use a stable, case-insensitive path form for campaign comparisons."""
+    return str(Path(value).expanduser().resolve(strict=False)).replace("\\", "/").casefold()
+
+
+def _required_int(
+    info: dict, key: str, directory: Path, minimum: int = 1
+) -> int:
+    value = info.get(key)
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise ResultMetadataError(
+            f"{directory}: info[{key!r}] must be an integer >= {minimum}"
+        )
+    return value
+
+
+def _strategy_rule(strategy: str, info: dict, directory: Path) -> Optional[str]:
+    """Validate strategy-specific metadata without changing stored fields."""
+    if strategy == "binary_simple":
+        rule = info.get("decision_rule")
+        if rule != "D2 <= theta_c":
+            raise ResultMetadataError(
+                f"{directory}: Binary-Simple decision_rule is {rule!r}, "
+                "expected 'D2 <= theta_c'"
+            )
+        return rule
+
+    if strategy == "binary_hysteresis":
+        rule = info.get("decision_rule")
+        if rule == HYSTERESIS_RULE or rule == "hysteresis on delta":
+            return HYSTERESIS_RULE
+        raise ResultMetadataError(
+            f"{directory}: Binary-Hysteresis decision_rule is {rule!r}; "
+            f"expected {HYSTERESIS_RULE!r}"
+        )
+
+    return None
+
+
+def inspect_result_directory(
+    directory,
+    expected_strategy: Optional[str] = None,
+    required_mhs: Tuple[str, ...] = MHS,
+) -> ResultCandidate:
+    """Validate all MH JSON files in a directory and return its metadata.
+
+    Legacy JSON remains usable when it contains the original instance, budget,
+    population, strategy, and epoch fields. Its campaign identity is inferred
+    only from the standard ``comparacion_mhs_*`` folder name.
+    """
+    directory = Path(directory)
+    if not directory.is_dir():
+        raise ResultMetadataError(f"{directory}: result directory does not exist")
+
+    records = []
+    for mh in required_mhs:
+        matches = sorted(directory.glob(f"{mh}_*.json"))
+        if not matches:
+            raise ResultMetadataError(f"{directory}: missing {mh} JSON result")
+        if len(matches) != 1:
+            raise ResultMetadataError(
+                f"{directory}: expected one {mh} JSON result, found {len(matches)}"
+            )
+        path = matches[0]
+        try:
+            with path.open(encoding="utf-8") as stream:
+                data = json.load(stream)
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ResultMetadataError(f"{path}: cannot read JSON ({exc})") from exc
+
+        info = data.get("info")
+        if not isinstance(info, dict):
+            raise ResultMetadataError(
+                f"{path}: missing info metadata; refusing unsafe legacy pairing"
+            )
+        strategy = info.get("estrategia")
+        if not isinstance(strategy, str) or not strategy:
+            raise ResultMetadataError(f"{path}: missing info['estrategia']")
+        if expected_strategy is not None and strategy != expected_strategy:
+            raise ResultMetadataError(
+                f"{path}: strategy {strategy!r} does not match "
+                f"expected {expected_strategy!r}"
+            )
+
+        if data.get("mh") != mh:
+            raise ResultMetadataError(
+                f"{path}: JSON mh={data.get('mh')!r} does not match filename {mh!r}"
+            )
+        epochs = data.get("epochs")
+        fitness = data.get("fitness")
+        if (
+            isinstance(epochs, bool)
+            or not isinstance(epochs, int)
+            or epochs <= 0
+            or not isinstance(fitness, list)
+            or len(fitness) != epochs
+        ):
+            raise ResultMetadataError(
+                f"{path}: epochs and fitness length are missing or inconsistent"
+            )
+
+        instance = info.get("instancia")
+        if not isinstance(instance, str) or not instance:
+            raise ResultMetadataError(f"{path}: missing info['instancia']")
+        idx = _required_int(info, "idx", directory, minimum=0)
+        population = _required_int(info, "poblacion", directory)
+        iterations = _required_int(info, "iteraciones", directory)
+        decision_rule = _strategy_rule(strategy, info, directory)
+
+        dtw_window = info.get("dtw_window")
+        if strategy in {"binary_simple", "binary_hysteresis"}:
+            if (
+                isinstance(dtw_window, bool)
+                or not isinstance(dtw_window, int)
+                or dtw_window <= 0
+            ):
+                raise ResultMetadataError(
+                    f"{path}: adaptive strategy requires a positive dtw_window"
+                )
+        elif dtw_window is not None:
+            raise ResultMetadataError(
+                f"{path}: vanilla strategy unexpectedly contains dtw_window"
+            )
+
+        explicit_campaign = info.get("campaign_id")
+        if explicit_campaign is not None and (
+            not isinstance(explicit_campaign, str) or not explicit_campaign
+        ):
+            raise ResultMetadataError(f"{path}: campaign_id must be a non-empty string")
+        campaign_id = explicit_campaign or _legacy_campaign_id(directory)
+        if campaign_id is None:
+            raise ResultMetadataError(
+                f"{directory}: missing campaign metadata and standard campaign folder name"
+            )
+
+        records.append(
+            {
+                "mh": mh,
+                "strategy": strategy,
+                "campaign_id": campaign_id,
+                "instance_path": _normalise_instance_path(instance),
+                "instance_name": Path(instance).stem,
+                "instance_index": idx,
+                "population": population,
+                "iterations": iterations,
+                "epochs": epochs,
+                "decision_rule": decision_rule,
+                "dtw_window": dtw_window,
+                "legacy_campaign": explicit_campaign is None,
+            }
+        )
+
+    reference = records[0]
+    comparable_fields = (
+        "strategy",
+        "campaign_id",
+        "instance_path",
+        "instance_name",
+        "instance_index",
+        "population",
+        "iterations",
+        "epochs",
+        "decision_rule",
+        "dtw_window",
+    )
+    for record in records[1:]:
+        differences = [
+            field
+            for field in comparable_fields
+            if record[field] != reference[field]
+        ]
+        if differences:
+            raise ResultMetadataError(
+                f"{directory}: MH metadata disagree on {', '.join(differences)}"
+            )
+
+    return ResultCandidate(directory=directory, **{
+        key: reference[key]
+        for key in (
+            "strategy",
+            "campaign_id",
+            "instance_path",
+            "instance_name",
+            "instance_index",
+            "population",
+            "iterations",
+            "epochs",
+            "decision_rule",
+            "dtw_window",
+            "legacy_campaign",
+        )
+    })
+
+
+def find_latest(directory, subdir: str = None, expected_strategy: str = None):
+    """Return the newest complete, metadata-valid result directory.
+
+    This compatibility helper no longer treats a directory name alone as a
+    valid result. Campaign-wide selection is performed by
+    :func:`select_compatible_results` below.
+    """
+    for candidate in _result_dirs(directory, subdir=subdir):
+        try:
+            inspect_result_directory(candidate, expected_strategy=expected_strategy)
+        except ResultMetadataError:
+            continue
+        return str(candidate)
+    return None
+
+
+def _validated_candidates(directory, strategy, subdir):
+    valid = {}
+    errors = []
+    raw = _result_dirs(directory, subdir=subdir)
+    for path in raw:
+        try:
+            candidate = inspect_result_directory(path, expected_strategy=strategy)
+        except ResultMetadataError as exc:
+            errors.append(str(exc))
+            continue
+        if candidate.campaign_id in valid:
+            errors.append(
+                f"{path}: duplicate campaign_id {candidate.campaign_id!r} "
+                "for this strategy"
+            )
+            continue
+        valid[candidate.campaign_id] = candidate
+    return raw, valid, errors
+
+
+def select_compatible_results(
+    sources: Dict[str, Tuple[Path, str]],
+    subdir: Optional[str] = None,
+    requested_instance: Optional[str] = None,
+    requested_campaign: Optional[str] = None,
+) -> Dict[str, str]:
+    """Select one common, metadata-compatible campaign for all available versions.
+
+    ``sources`` maps the display label used by the statistical report to a
+    ``(results_root, strategy_key)`` pair. Missing optional strategy roots are
+    allowed for compatibility with skipped experiments; existing but invalid
+    roots fail instead of being silently omitted.
+    """
+    baseline_label = "Exploration-only"
+    if baseline_label not in sources:
+        raise ResultSelectionError("Exploration-only is required as the baseline")
+
+    candidate_sets = {}
+    diagnostics = []
+    for label, (directory, strategy) in sources.items():
+        raw, valid, errors = _validated_candidates(directory, strategy, subdir)
+        if not raw:
+            if label == baseline_label:
+                raise ResultSelectionError(
+                    f"No result directories found for required baseline {directory}"
+                )
+            continue
+        if not valid:
+            diagnostics.append(
+                f"{label}: no metadata-valid campaign under {directory}"
+            )
+            diagnostics.extend(f"  - {error}" for error in errors[-3:])
+            continue
+        if errors:
+            diagnostics.append(
+                f"{label}: rejected result candidates under {directory}"
+            )
+            diagnostics.extend(f"  - {error}" for error in errors[-3:])
+        candidate_sets[label] = valid
+
+    if baseline_label not in candidate_sets:
+        detail = "\n".join(diagnostics)
+        raise ResultSelectionError(
+            "No metadata-valid Exploration-only baseline exists."
+            + (f"\n{detail}" if detail else "")
+        )
+    if diagnostics:
+        raise ResultSelectionError(
+            "Existing result candidates could not be paired safely:\n"
+            + "\n".join(diagnostics)
+        )
+
+    common_campaigns = set.intersection(
+        *(set(candidates) for candidates in candidate_sets.values())
+    )
+    if not common_campaigns:
+        available = "; ".join(
+            f"{label}={sorted(candidates)}"
+            for label, candidates in candidate_sets.items()
+        )
+        raise ResultSelectionError(
+            "No compatible campaign is shared by the available strategies "
+            f"(campaign IDs: {available})"
+        )
+
+    if requested_campaign is not None:
+        if requested_campaign not in common_campaigns:
+            raise ResultSelectionError(
+                f"Requested campaign {requested_campaign!r} is not complete and "
+                f"compatible across the available strategies "
+                f"(available: {sorted(common_campaigns)})"
+            )
+        campaign_id = requested_campaign
+    else:
+        campaign_id = max(
+            common_campaigns,
+            key=lambda campaign: max(
+                candidate_sets[label][campaign].directory.name
+                for label in candidate_sets
+            ),
+        )
+    selected = {
+        label: candidates[campaign_id]
+        for label, candidates in candidate_sets.items()
+    }
+
+    reference = selected[baseline_label]
+    for label, candidate in selected.items():
+        fields = (
+            "instance_name",
+            "instance_path",
+            "instance_index",
+            "population",
+            "iterations",
+            "epochs",
+            "campaign_id",
+        )
+        mismatches = [
+            field
+            for field in fields
+            if getattr(candidate, field) != getattr(reference, field)
+        ]
+        if mismatches:
+            raise ResultSelectionError(
+                f"Campaign {campaign_id!r} is incompatible for {label}: "
+                f"{', '.join(mismatches)} differ"
+            )
+
+    dtw_windows = {
+        candidate.dtw_window
+        for candidate in selected.values()
+        if candidate.dtw_window is not None
+    }
+    if len(dtw_windows) > 1:
+        raise ResultSelectionError(
+            f"Campaign {campaign_id!r} mixes adaptive dtw_window values: "
+            f"{sorted(dtw_windows)}"
+        )
+
+    if subdir:
+        expected_name, separator, expected_idx = subdir.rpartition("_")
+        if separator and expected_idx.isdigit():
+            if (
+                reference.instance_name != expected_name
+                or reference.instance_index != int(expected_idx)
+            ):
+                raise ResultSelectionError(
+                    f"Selected metadata identifies "
+                    f"{reference.instance_name}[{reference.instance_index}], "
+                    f"not requested {subdir}"
+                )
+
+    if requested_instance is not None:
+        requested_path = _normalise_instance_path(requested_instance)
+        if reference.instance_path != requested_path:
+            raise ResultSelectionError(
+                f"Selected metadata points to {reference.instance_path!r}, "
+                f"not requested instance {requested_path!r}"
+            )
+
+    return {
+        label: str(candidate.directory)
+        for label, candidate in selected.items()
+    }
 
 
 def _ensure_scipy() -> bool:
@@ -167,45 +586,63 @@ def main():
         print(f"  Buscando en: results/*/todos/{subdir}/")
         print()
 
-    baseline = find_latest(BASE / "results" / "vanilla_exploracion" / "todos", subdir=subdir)
-    versions = {
-        "Exploitation-only": find_latest(BASE / "results" / "vanilla_explotacion" / "todos", subdir=subdir),
-        "Binary-Simple": find_latest(BASE / "results" / "binary_simple" / "todos", subdir=subdir),
-        "Binary-Hysteresis": find_latest(BASE / "results" / "binary_hysteresis" / "todos", subdir=subdir),
+    sources = {
+        "Exploration-only": (
+            BASE / "results" / "vanilla_exploracion" / "todos",
+            "vanilla_exploracion",
+        ),
+        "Exploitation-only": (
+            BASE / "results" / "vanilla_explotacion" / "todos",
+            "vanilla_explotacion",
+        ),
+        "Binary-Simple": (
+            BASE / "results" / "binary_simple" / "todos",
+            "binary_simple",
+        ),
+        "Binary-Hysteresis": (
+            BASE / "results" / "binary_hysteresis" / "todos",
+            "binary_hysteresis",
+        ),
     }
+    try:
+        selected = select_compatible_results(
+            sources,
+            subdir=subdir,
+            requested_instance=args.instancia,
+            requested_campaign=os.environ.get("MKP_CAMPAIGN_ID"),
+        )
+    except ResultSelectionError as exc:
+        print(f"ERROR: result selection refused: {exc}")
+        return 1
 
-    # Drop versions whose directories are missing.
-    versions = {k: v for k, v in versions.items() if v is not None}
+    baseline = selected["Exploration-only"]
+    versions = {
+        label: directory
+        for label, directory in selected.items()
+        if label != "Exploration-only"
+    }
     if not versions:
-        print("No result directories found. Run the experiments first.")
+        print("No compatible comparison versions found. Run the experiments first.")
         return 1
 
-    if baseline is None:
-        print("Baseline vanilla_exploracion results not found. Run vanilla_exploracion first.")
-        return 1
-
-    mhs = ["PSO", "GA", "GWO", "DE"]
+    mhs = list(MHS)
 
     alternative = "greater" if args.one_sided else "two-sided"
     results = compare_versions(baseline, versions, mhs, alpha=0.05, alternative=alternative)
 
-    # Extract instance info from baseline JSON if not explicitly set
+    # Extract the already-validated instance metadata if not explicitly set.
     if instance_label == "?":
-        inst_name = "?"
-        inst_idx = "?"
-        try:
-            first_mh = mhs[0]
-            candidates = sorted(Path(baseline).glob(f"{first_mh}_*.json"))
-            if candidates:
-                with open(candidates[0], encoding="utf-8") as f:
-                    info = json.load(f).get("info", {})
-                    inst_path = info.get("instancia", "")
-                    inst_idx = info.get("idx", "?")
-                    inst_name = Path(inst_path).stem if inst_path else "?"
-        except Exception:
-            pass
-        instance_label = f"{inst_name}[{inst_idx}]" if inst_name != "?" else "mknapcb4[0]"
-        instance_dir = f"{inst_name}_{inst_idx}" if inst_name != "?" else "unknown"
+        baseline_metadata = inspect_result_directory(
+            baseline, expected_strategy="vanilla_exploracion"
+        )
+        instance_label = (
+            f"{baseline_metadata.instance_name}"
+            f"[{baseline_metadata.instance_index}]"
+        )
+        instance_dir = (
+            f"{baseline_metadata.instance_name}_"
+            f"{baseline_metadata.instance_index}"
+        )
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = BASE / "results" / "estadistico" / instance_dir / f"comparacion_{stamp}"
@@ -224,15 +661,24 @@ def main():
     math_table = format_math_table(results, title=title2)
     print(math_table)
 
+    # Descriptive runtime table (console + file)
+    print()
+    title4 = f"Execution Times — {instance_label} — Exploration-only vs Variants"
+    time_table = format_time_table(results, title=title4)
+    print(time_table)
+
 
 
     # Save all tables to files
     table_path = output_dir / "tabla_estadistica.txt"
     math_path = output_dir / "tabla_matematica.txt"
+    time_path = output_dir / "tabla_tiempos.txt"
     table_path.write_text(table + "\n", encoding="utf-8")
     math_path.write_text(math_table + "\n", encoding="utf-8")
+    time_path.write_text(time_table + "\n", encoding="utf-8")
     print(f"\nSaved: {table_path}")
     print(f"Saved: {math_path}")
+    print(f"Saved: {time_path}")
 
     if MATPLOTLIB_AVAILABLE:
         plot_path = output_dir / "comparacion.pdf"

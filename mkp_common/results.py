@@ -5,6 +5,7 @@ Las tareas de ploteo avanzado y para paper se delegan a los scripts de análisis
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -95,6 +96,17 @@ def save_results(
         stats["optimo_conocido"] = optimo_conocido
         stats["gap_al_optimo"] = round(100 - mejor / optimo_conocido * 100, 4)
 
+    info = dict(extra_info) if extra_info else None
+    if info is not None:
+        campaign_id = info.get("campaign_id") or os.environ.get("MKP_CAMPAIGN_ID")
+        if not campaign_id:
+            parent_name = Path(path).parent.name
+            prefix = "comparacion_mhs_"
+            if parent_name.startswith(prefix):
+                campaign_id = parent_name[len(prefix):]
+        if campaign_id:
+            info["campaign_id"] = str(campaign_id)
+
     salida = {
         "mh": mh_name,
         "epochs": len(resultados),
@@ -105,8 +117,8 @@ def save_results(
         "tiempos": tiempos,
         "stats": stats,
     }
-    if extra_info:
-        salida["info"] = extra_info
+    if info:
+        salida["info"] = info
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:

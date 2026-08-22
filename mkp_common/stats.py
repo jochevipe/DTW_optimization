@@ -131,6 +131,65 @@ def _mean_verdict(mean_diff: float) -> str:
     return "SAME"
 
 
+def _finite_float(value) -> float:
+    """Return a finite float or NaN for missing/non-numeric values."""
+    if isinstance(value, (bool, np.bool_, str, bytes)):
+        return np.nan
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return np.nan
+    return number if np.isfinite(number) else np.nan
+
+
+def _timing_stats(values, expected_length: Optional[int] = None) -> tuple:
+    """Return mean and population standard deviation for raw timing values.
+
+    A timing array is valid only when it is a one-dimensional, non-empty array
+    of finite, non-negative numeric values.  When the result metadata exposes
+    an epoch count, the array must contain exactly one value per epoch.
+    """
+    if not isinstance(values, (list, tuple, np.ndarray)):
+        return np.nan, np.nan
+
+    try:
+        if len(values) == 0:
+            return np.nan, np.nan
+        if expected_length is not None and len(values) != expected_length:
+            return np.nan, np.nan
+        if any(
+            isinstance(value, (bool, np.bool_, str, bytes))
+            or not np.isscalar(value)
+            for value in values
+        ):
+            return np.nan, np.nan
+        timings = np.asarray(values, dtype=float)
+    except (TypeError, ValueError, OverflowError):
+        return np.nan, np.nan
+
+    if (
+        timings.ndim != 1
+        or timings.size == 0
+        or not np.all(np.isfinite(timings))
+        or np.any(timings < 0)
+    ):
+        return np.nan, np.nan
+
+    return float(np.mean(timings)), float(np.std(timings))
+
+
+def _time_verdict(time_diff: float) -> str:
+    """Return a runtime verdict where a negative difference is better."""
+    time_diff = _finite_float(time_diff)
+    if np.isnan(time_diff):
+        return "N/A"
+    if time_diff < 0:
+        return "FASTER"
+    if time_diff > 0:
+        return "SLOWER"
+    return "SAME"
+
+
 def _load_mh_json(directory: Optional[str], mh: str) -> Optional[dict]:
     """Load the first JSON file matching ``{mh}_*.json`` in *directory*."""
     if not directory:
@@ -183,7 +242,8 @@ def compare_versions(
     dict
         Structured results with summary, per-MH statistics, per-version
         Wilcoxon outcomes, Shapiro-Wilk results, the aggregate mean
-        difference, and the paired median difference.
+        difference, the paired median difference, and descriptive runtime
+        statistics from the raw ``tiempos`` arrays.
     """
     stats_mod = _check_scipy()
     if stats_mod is None:
@@ -203,9 +263,17 @@ def compare_versions(
 
         baseline_fits = baseline_data.get("fitness", [])
         baseline_arr = np.asarray(baseline_fits, dtype=float)
+        baseline_epoch_count = baseline_data.get("epochs")
+        if not isinstance(baseline_epoch_count, int) or isinstance(baseline_epoch_count, bool):
+            baseline_epoch_count = len(baseline_fits) if isinstance(baseline_fits, list) else None
+        baseline_time_mean, baseline_time_std = _timing_stats(
+            baseline_data.get("tiempos"), expected_length=baseline_epoch_count
+        )
         mh_entry = {
             "baseline_mean": float(np.mean(baseline_fits)) if baseline_fits else np.nan,
             "baseline_std": float(np.std(baseline_fits)) if baseline_fits else np.nan,
+            "baseline_time_mean": baseline_time_mean,
+            "baseline_time_std": baseline_time_std,
             "baseline_fitness": baseline_fits,
             "versions": {},
         }
@@ -235,12 +303,31 @@ def compare_versions(
             version_mean = float(np.mean(version_fits)) if version_fits else np.nan
             baseline_mean = mh_entry["baseline_mean"]
             mean_diff = version_mean - baseline_mean
+            version_epoch_count = version_data.get("epochs")
+            if not isinstance(version_epoch_count, int) or isinstance(version_epoch_count, bool):
+                version_epoch_count = len(version_fits) if isinstance(version_fits, list) else None
+            version_time_mean, version_time_std = _timing_stats(
+                version_data.get("tiempos"), expected_length=version_epoch_count
+            )
+            if np.isfinite(version_time_mean) and np.isfinite(baseline_time_mean):
+                time_diff = version_time_mean - baseline_time_mean
+            else:
+                time_diff = np.nan
+            if np.isfinite(time_diff) and baseline_time_mean > 0:
+                time_percent_diff = 100.0 * time_diff / baseline_time_mean
+            else:
+                time_percent_diff = np.nan
 
             mh_entry["versions"][version_name] = {
                 "mean": version_mean,
                 "std": float(np.std(version_fits)) if version_fits else np.nan,
                 "mean_diff": mean_diff,
                 "verdict": _mean_verdict(mean_diff),
+                "time_mean": version_time_mean,
+                "time_std": version_time_std,
+                "time_diff": time_diff,
+                "time_percent_diff": time_percent_diff,
+                "time_verdict": _time_verdict(time_diff),
                 "version_fitness": version_fits,
                 **test_result,
                 "shapiro": shapiro,
@@ -535,6 +622,142 @@ def format_math_table(
         lines.append("")
 
     return "\n".join(lines)
+
+
+def format_time_table(
+    results: Dict,
+    title: str = "Descriptive Runtime Comparison vs Exploration-only",
+    ascii_only: Optional[bool] = None,
+) -> str:
+    """Format descriptive execution-time statistics separately for every MH.
+
+    The table uses only runtime statistics derived from raw JSON ``tiempos``
+    arrays.  The difference is ``version mean - baseline mean``; therefore a
+    negative value means that the version is faster.  No inferential or
+    significance claim is made for runtime.
+    """
+    if ascii_only is None:
+        ascii_only = not _can_encode_unicode()
+
+    if ascii_only:
+        title = title.replace("—", "--").replace("–", "-")
+
+    mhs = results.get("mhs", {})
+    if not isinstance(mhs, dict):
+        mhs = {}
+
+    version_names = []
+    for mh_entry in mhs.values():
+        if not isinstance(mh_entry, dict):
+            continue
+        versions = mh_entry.get("versions", {})
+        if not isinstance(versions, dict):
+            continue
+        for version_name in versions:
+            if version_name not in version_names:
+                version_names.append(version_name)
+
+    pm_symbol = "+/-" if ascii_only else "±"
+
+    def format_value(value, signed: bool = False) -> str:
+        number = _finite_float(value)
+        if np.isnan(number):
+            return "N/A"
+        return f"{number:+.3f}" if signed else f"{number:.3f}"
+
+    def format_mean_std(mean, std) -> str:
+        return f"{format_value(mean)} {pm_symbol} {format_value(std)}"
+
+    headers = [
+        "Version",
+        f"Mean {pm_symbol} Std (s)",
+        "Difference vs baseline (s)",
+        "Relative change (%)",
+        "Interpretation",
+    ]
+    display_names = [str(name) for name in version_names]
+    column_widths = [len(header) for header in headers]
+    for display_name in display_names:
+        column_widths[0] = max(column_widths[0], len(display_name))
+
+    def table_row(cells) -> str:
+        alignments = ["<", ">", ">", ">", "<"]
+        formatted = [
+            f"{cell:{alignments[index]}{column_widths[index]}}"
+            for index, cell in enumerate(cells)
+        ]
+        return "    " + " | ".join(formatted)
+
+    separator = "    " + "-+-".join("-" * width for width in column_widths)
+    table_width = max(96, sum(column_widths) + 3 * (len(headers) - 1) + 4)
+
+    lines = [
+        "=" * table_width,
+        f"  {title}",
+        "  Descriptive runtime data only; no significance claim is made.",
+        "  Difference = version mean - Exploration-only baseline mean; negative means FASTER.",
+        "  Relative change = 100 * difference / Exploration-only baseline mean.",
+        "=" * table_width,
+        "",
+    ]
+
+    if not mhs:
+        lines.append("  No runtime comparison data available.")
+        return "\n".join(lines)
+
+    for mh, mh_entry in mhs.items():
+        if not isinstance(mh_entry, dict):
+            mh_entry = {}
+
+        baseline_mean = mh_entry.get("baseline_time_mean", np.nan)
+        baseline_std = mh_entry.get("baseline_time_std", np.nan)
+        lines.append(f"  [{mh}]")
+        lines.append(
+            "    Baseline (Exploration-only): "
+            f"{format_mean_std(baseline_mean, baseline_std)} s"
+        )
+        lines.append(table_row(headers))
+        lines.append(separator)
+
+        versions = mh_entry.get("versions", {})
+        if not isinstance(versions, dict):
+            versions = {}
+
+        for version_name, display_name in zip(version_names, display_names):
+            version = versions.get(version_name)
+            if not isinstance(version, dict):
+                mean_std = f"N/A {pm_symbol} N/A"
+                time_diff = np.nan
+                time_percent_diff = np.nan
+            else:
+                mean_std = format_mean_std(
+                    version.get("time_mean", np.nan),
+                    version.get("time_std", np.nan),
+                )
+                time_diff = version.get("time_diff", np.nan)
+                time_percent_diff = version.get("time_percent_diff", np.nan)
+
+            percent_text = format_value(time_percent_diff, signed=True)
+            if percent_text != "N/A":
+                percent_text += "%"
+
+            lines.append(
+                table_row(
+                    [
+                        display_name,
+                        mean_std,
+                        format_value(time_diff, signed=True),
+                        percent_text,
+                        _time_verdict(time_diff),
+                    ]
+                )
+            )
+
+        if not display_names:
+            lines.append("    No versions with runtime data available.")
+        lines.append("")
+
+    return "\n".join(lines).rstrip()
 
 
 def format_raw_table(

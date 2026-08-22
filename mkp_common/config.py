@@ -34,7 +34,7 @@ _DTW_BASE = dict(
     window=50,
     band=2,
     min_slope=2.0,
-    use_ddtw=False,
+    use_ddtw=True,
     adapt_thresholds=True,
 )
 

@@ -18,6 +18,7 @@ from .monitor import StagnationConfig, StagnationMonitor
 # Tipo para la función de decisión: recibe el dict de salida del monitor,
 # retorna True (explorar) o False (explotar).
 FireFn = Callable[[Dict], bool]
+FireFnFactory = Callable[[], FireFn]
 
 
 def _default_fire_fn(out: Dict) -> bool:
@@ -34,6 +35,8 @@ def run_experiment(
     semilla: int = 42,
     verbose: bool = False,
     fire_fn: Optional[FireFn] = None,
+    initial_mode: Optional[str] = None,
+    decision_on_early: bool = False,
 ) -> dict:
     """
     Ejecuta UNA corrida de la MH con DTW auto-adaptativo.
@@ -48,9 +51,14 @@ def run_experiment(
         verbose:         Imprimir diagnóstico del DTW
         fire_fn:         Función de decisión. Recibe out (dict del monitor),
                          retorna bool. Default: out["fire"] (baseline A4).
+        initial_mode:    Modo inicial opcional ("exploit" o "explore").
+                         None preserva el modo por defecto de cada MH.
+        decision_on_early: Invocar fire_fn aunque el monitor todavía no
+                           tenga una ventana completa.
 
     Returns:
-        dict con resultados de la corrida
+        dict con resultados de la corrida. ``historial_modos`` is aligned with
+        ``historial_fitness`` and records the mode used by each ``step()``.
     """
     if fire_fn is None:
         fire_fn = _default_fire_fn
@@ -60,6 +68,10 @@ def run_experiment(
     monitor = StagnationMonitor(cfg=monitor_cfg)
 
     mh.initialize()
+    if initial_mode is not None:
+        if initial_mode not in {"exploit", "explore"}:
+            raise ValueError("initial_mode must be 'exploit' or 'explore'")
+        mh.adapt(initial_mode == "explore")
 
     historial_fitness: List[float] = []
     historial_dtw: List[Dict] = []
@@ -67,17 +79,20 @@ def run_experiment(
     fire_count = 0
 
     for it in range(num_iteraciones):
+        # The fitness below is produced with this mode; adaptation happens
+        # only after the monitor observes that fitness.
+        mode_used = mh.mode
         fitness = mh.step()
 
         out = monitor.update(fitness)
         historial_dtw.append(out)
 
-        prev_mode = mh.mode
-        if out.get("ready"):
+        mode_before_adaptation = mh.mode
+        if decision_on_early or out.get("ready"):
             fire = fire_fn(out)
             mh.adapt(fire)
 
-        if mh.mode == "explore" and prev_mode != "explore":
+        if mh.mode == "explore" and mode_before_adaptation != "explore":
             fire_count += 1
             if verbose:
                 print(
@@ -87,14 +102,14 @@ def run_experiment(
                     f"D2={out.get('D2_vs_const', 0):.1f} "
                     f"delta={out.get('delta', 0):+.1f} >> EXPLORE"
                 )
-        elif mh.mode == "exploit" and prev_mode == "explore":
+        elif mh.mode == "exploit" and mode_before_adaptation == "explore":
             if verbose:
                 print(
                     f"  [DTW COOL] iter={it:03d} | "
                     f"no_imp={out['no_improve_len']} >> EXPLOIT"
                 )
 
-        historial_modos.append(mh.mode)
+        historial_modos.append(mode_used)
         historial_fitness.append(fitness)
 
     sol, fit = mh.get_best()
@@ -121,6 +136,9 @@ def run_epochs(
     epochs: int = 10,
     verbose: bool = False,
     fire_fn: Optional[FireFn] = None,
+    fire_fn_factory: Optional[FireFnFactory] = None,
+    initial_mode: Optional[str] = None,
+    decision_on_early: bool = False,
 ) -> List[dict]:
     """
     Ejecuta múltiples corridas (epochs) y retorna lista de resultados.
@@ -130,13 +148,16 @@ def run_epochs(
     for ep in range(epochs):
         semilla = ep + 1
         t0 = time.perf_counter()
+        epoch_fire_fn = fire_fn_factory() if fire_fn_factory is not None else fire_fn
         res = run_experiment(
             mh_class, inst, monitor_cfg,
             num_particulas=num_particulas,
             num_iteraciones=num_iteraciones,
             semilla=semilla,
             verbose=verbose,
-            fire_fn=fire_fn,
+            fire_fn=epoch_fire_fn,
+            initial_mode=initial_mode,
+            decision_on_early=decision_on_early,
         )
         t1 = time.perf_counter()
         res["tiempo"] = t1 - t0

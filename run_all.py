@@ -58,13 +58,19 @@ def parse_args():
     return parser.parse_args()
 
 
-def build_env(instancia: str | None, indice: int | None) -> dict:
+def build_env(
+    instancia: str | None,
+    indice: int | None,
+    campaign_id: str | None = None,
+) -> dict:
     """Construye un environment dict con las variables MKP si se especificaron."""
     env = os.environ.copy()
     if instancia is not None:
         env["MKP_INSTANCIA"] = instancia
     if indice is not None:
         env["MKP_INDICE"] = str(indice)
+    if campaign_id is not None:
+        env["MKP_CAMPAIGN_ID"] = campaign_id
     return env
 
 
@@ -93,7 +99,10 @@ def run_stage(name: str, module: str, extra_args: list[str] = None, env: dict = 
 
 def main():
     args = parse_args()
-    env = build_env(args.instancia, args.indice)
+    campaign_id = os.environ.get("MKP_CAMPAIGN_ID") or datetime.now().strftime(
+        "%Y%m%d_%H%M%S"
+    )
+    env = build_env(args.instancia, args.indice, campaign_id=campaign_id)
 
     root = Path(__file__).parent
     print("=" * 70)

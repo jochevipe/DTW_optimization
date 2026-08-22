@@ -26,6 +26,8 @@ from .config import (
     RUTA_INSTANCIA,
     SEMILLA,
     VERBOSE,
+    is_entry_trigger,
+    is_exit_trigger,
 )
 from .runner import run_experiment
 
@@ -36,8 +38,8 @@ COLORS = {
     "fire_marker": "#c0392b",
     "explore_bg": "#e74c3c",
     "optimum": "#7f8c8d",
-    "d2": "#2980b9",
-    "theta_c": "#e67e22",
+    "delta": "#2980b9",
+    "theta_delta": "#e67e22",
 }
 
 
@@ -54,7 +56,7 @@ def print_iteration_table(res: dict, inst: dict) -> None:
     optimo = inst["optimo"]
 
     hdr = (
-        f"{'it':>4} | {'fitness':>10} | {'mode':>7} | {'fire':>5} | "
+        f"{'it':>4} | {'fitness':>10} | {'state':>7} | {'transition':>10} | "
         f"{'D1':>7} | {'D2':>7} | {'delta':>8} | "
         f"{'th_c':>7} | {'th_r':>7} | {'th_d':>7} | "
         f"{'noimp':>5} | {'strk':>4}"
@@ -70,7 +72,10 @@ def print_iteration_table(res: dict, inst: dict) -> None:
     )
     if optimo > 0:
         print(f"  Optimo conocido: {optimo}")
-    print(f"  Decision: fire = hysteresis(delta >= theta_delta -> explore, delta <= 0 -> exploit)")
+    print(
+        "  Decision: enter explore when delta >= theta_delta; "
+        "leave explore when delta <= 0"
+    )
     print(f"{'=' * len(hdr)}")
     print(hdr)
     print(sep)
@@ -81,11 +86,14 @@ def print_iteration_table(res: dict, inst: dict) -> None:
         dtw = hist_dtw[i]
 
         if dtw.get("ready"):
-            # Para A9, fire depende del estado del controlador (histéresis)
-            fire_a3 = dtw["D2_vs_const"] <= dtw["theta_c"]
-            fire_s = "  T  " if fire_a3 else "  F  "
+            if is_entry_trigger(dtw, hist_mode[i]):
+                transition = "ENTER"
+            elif is_exit_trigger(dtw, hist_mode[i]):
+                transition = "EXIT"
+            else:
+                transition = "---"
             row = (
-                f"{i:4d} | {fitness:10.1f} | {mode:>7} | {fire_s} | "
+                f"{i:4d} | {fitness:10.1f} | {mode:>7} | {transition:>10} | "
                 f"{dtw['D1_vs_ramp']:7.1f} | {dtw['D2_vs_const']:7.1f} | "
                 f"{dtw['delta']:+8.1f} | "
                 f"{dtw['theta_c']:7.1f} | {dtw['theta_r']:7.1f} | "
@@ -95,7 +103,7 @@ def print_iteration_table(res: dict, inst: dict) -> None:
             )
         else:
             row = (
-                f"{i:4d} | {fitness:10.1f} | {mode:>7} |  ---  | "
+                f"{i:4d} | {fitness:10.1f} | {mode:>7} | {'---':>10} | "
                 f"{'---':>7} | {'---':>7} | {'---':>8} | "
                 f"{'---':>7} | {'---':>7} | {'---':>7} | "
                 f"{dtw['no_improve_len']:5d} |  ---"
@@ -117,7 +125,7 @@ def print_iteration_table(res: dict, inst: dict) -> None:
 
 
 def _get_explore_ranges(hist_mode):
-    """Detecta rangos contiguos donde mode == 'explore'."""
+    """Return inclusive ranges where the recorded fitness used explore."""
     ranges = []
     in_explore = False
     start = 0
@@ -126,29 +134,37 @@ def _get_explore_ranges(hist_mode):
             start = i
             in_explore = True
         elif m != "explore" and in_explore:
-            ranges.append((start, i))
+            ranges.append((start, i - 1))
             in_explore = False
     if in_explore:
         ranges.append((start, len(hist_mode) - 1))
     return ranges
 
 
-def _get_fire_transitions(hist_mode):
-    """Iteraciones donde arranca un nuevo fire (exploit → explore)."""
+def _get_explore_state_entries(hist_mode):
+    """Return iterations after an actual exploit-to-explore transition."""
     transitions = []
-    for i in range(len(hist_mode)):
-        prev = hist_mode[i - 1] if i > 0 else "exploit"
-        if hist_mode[i] == "explore" and prev != "explore":
+    for i in range(1, len(hist_mode)):
+        if hist_mode[i] == "explore" and hist_mode[i - 1] != "explore":
             transitions.append(i)
     return transitions
 
 
-def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_d2"):
+def _get_entry_triggers(hist_dtw, hist_mode):
+    """Return signal iterations that trigger a future explore state."""
+    return [
+        i
+        for i, (dtw, mode) in enumerate(zip(hist_dtw, hist_mode))
+        if is_entry_trigger(dtw, mode)
+    ]
+
+
+def plot_paper(res: dict, inst: dict, save_dir: str = "results/binary_hysteresis"):
     """
     Plot de 2 paneles para paper científico.
 
-    Panel 1: Fitness + zonas explore + fire markers + óptimo
-    Panel 2: D2 vs theta_c + fire markers (señal de decisión A9)
+    Panel 1: Fitness + explore-state shading + transition markers + optimum.
+    Panel 2: delta vs theta_delta with the entry trigger highlighted.
     """
     hist_fit = res["historial_fitness"]
     hist_dtw = res["historial_dtw"]
@@ -157,15 +173,16 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_d2"):
     mh_name = MH_CLASS.__name__
 
     # --- Extraer datos DTW ---
-    ready_iters, d2_vals, theta_c_vals = [], [], []
+    ready_iters, delta_vals, theta_delta_vals = [], [], []
     for i, h in enumerate(hist_dtw):
         if h.get("ready"):
             ready_iters.append(i)
-            d2_vals.append(h["D2_vs_const"])
-            theta_c_vals.append(h["theta_c"])
+            delta_vals.append(h["delta"])
+            theta_delta_vals.append(h["theta_delta"])
 
     explore_ranges = _get_explore_ranges(hist_mode)
-    fire_transitions = _get_fire_transitions(hist_mode)
+    state_entries = _get_explore_state_entries(hist_mode)
+    entry_triggers = _get_entry_triggers(hist_dtw, hist_mode)
 
     # --- Estilo paper ---
     plt.rcParams.update({
@@ -197,13 +214,21 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_d2"):
     for s, e in explore_ranges:
         ax1.axvspan(s, e, color=COLORS["explore_bg"], alpha=0.08, zorder=1)
 
-    # Fire markers (triángulos en los puntos de transición)
-    if fire_transitions:
-        fire_fits = [hist_fit[i] for i in fire_transitions]
+    # Mark the state change separately from the signal that caused it.
+    if state_entries:
+        state_fits = [hist_fit[i] for i in state_entries]
         ax1.scatter(
-            fire_transitions, fire_fits, color=COLORS["fire_marker"],
+            state_entries, state_fits, color=COLORS["fire_marker"],
             marker="v", s=50, zorder=5,
-            label=f"Fire event ({len(fire_transitions)})",
+            label=f"Explore state entry ({len(state_entries)})",
+            edgecolors="white", linewidths=0.5,
+        )
+    if entry_triggers:
+        trigger_fits = [hist_fit[i] for i in entry_triggers]
+        ax1.scatter(
+            entry_triggers, trigger_fits, color=COLORS["theta_delta"],
+            marker="^", s=42, zorder=5,
+            label=f"Entry trigger ({len(entry_triggers)})",
             edgecolors="white", linewidths=0.5,
         )
 
@@ -221,33 +246,36 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_d2"):
     ax1.legend(loc="lower right", framealpha=0.9)
     ax1.grid(True, alpha=0.2, linestyle=":")
 
-    # ─── Panel 2: D2 vs theta_c (señal de decisión A9) ───────────────────
+    # ─── Panel 2: delta vs theta_delta (Hysteresis entry signal) ──────────
     ax2.plot(
-        ready_iters, d2_vals, color=COLORS["d2"],
-        linewidth=1.3, label=r"$D_2$ (distance to plateau)", zorder=3,
+        ready_iters, delta_vals, color=COLORS["delta"],
+        linewidth=1.3, label=r"$\delta$ (signal)", zorder=3,
     )
     ax2.plot(
-        ready_iters, theta_c_vals, color=COLORS["theta_c"],
+        ready_iters, theta_delta_vals, color=COLORS["theta_delta"],
         linewidth=1, linestyle="--", alpha=0.7,
-        label=r"$\theta_c$ (threshold)", zorder=2,
+        label=r"$\theta_\delta$ (entry threshold)", zorder=2,
     )
 
-    # Zona de fire: donde D2 <= theta_c (sombreado)
-    fire_zone = [d2 <= tc for d2, tc in zip(d2_vals, theta_c_vals)]
+    # Entry trigger zone; explore shading below represents current state.
+    entry_zone = [
+        is_entry_trigger(hist_dtw[i], hist_mode[i])
+        for i in ready_iters
+    ]
     ax2.fill_between(
-        ready_iters, d2_vals, theta_c_vals,
-        where=fire_zone,
+        ready_iters, delta_vals, theta_delta_vals,
+        where=entry_zone,
         color=COLORS["fire_marker"], alpha=0.10,
-        label="Fire zone (D2 ≤ θc)",
+        label=r"Entry trigger ($\delta \geq \theta_\delta$)",
     )
 
-    # Fire markers en D2
-    for fi in fire_transitions:
+    # Entry-trigger markers are signal observations; state shading is separate.
+    for fi in entry_triggers:
         if fi in ready_iters:
             idx = ready_iters.index(fi)
             ax2.scatter(
-                fi, d2_vals[idx], color=COLORS["fire_marker"],
-                marker="v", s=35, zorder=5,
+                fi, delta_vals[idx], color=COLORS["fire_marker"],
+                marker="^", s=35, zorder=5,
                 edgecolors="white", linewidths=0.5,
             )
 
@@ -256,9 +284,10 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/fire_d2"):
         ax2.axvspan(s, e, color=COLORS["explore_bg"], alpha=0.08, zorder=1)
 
     ax2.set_xlabel("Iteration")
-    ax2.set_ylabel(r"$D_2$ (DTW to plateau)")
+    ax2.set_ylabel(r"$\delta$")
     ax2.set_title(
-        r"DTW Stagnation Signal — Fire when $D_2 \leq \theta_c$"
+        r"Hysteresis signal — enter when $\delta \geq \theta_\delta$; "
+        r"leave when $\delta \leq 0$"
     )
     ax2.legend(loc="upper right", framealpha=0.9)
     ax2.grid(True, alpha=0.2, linestyle=":")
@@ -297,7 +326,10 @@ def main():
     print(f"  Pop: {NUM_PARTICULAS}, Iters: {NUM_ITERACIONES}")
     print(f"  DTW: window={DTW_CFG.window}, ddtw={DTW_CFG.use_ddtw}, "
           f"adapt_th={DTW_CFG.adapt_thresholds}")
-    print(f"  Decision: fire = D2 <= theta_c")
+    print(
+        "  Decision: enter explore when delta >= theta_delta; "
+        "leave explore when delta <= 0"
+    )
 
     res = run_experiment(
         mh_class=MH_CLASS,

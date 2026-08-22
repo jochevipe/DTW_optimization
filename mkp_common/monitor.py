@@ -123,9 +123,22 @@ class StagnationMonitor:
         n = len(self.best_so_far)
         W = self.cfg.window
         if n < W:
+            # Keep the data window at W points, but expose finite placeholders
+            # so strategy-specific decisions can be called during warm-up.
+            theta_c = 0.1 * W
+            theta_r = 0.5 * W
+            theta_delta = 0.3 * W
             return {
-                "ready": False, "fire": False,
+                "ready": False,
+                "fire": False,
+                "D1_vs_ramp": 0.0,
+                "D2_vs_const": 0.0,
+                "delta": 0.0,
+                "theta_c": float(theta_c),
+                "theta_r": float(theta_r),
+                "theta_delta": float(theta_delta),
                 "no_improve_len": self.no_improve_len, "n": n,
+                "trigger_streak": 0,
             }
 
         X = np.array(self.best_so_far[-W:], dtype=float)

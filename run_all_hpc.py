@@ -125,6 +125,8 @@ def _runner_binary_simple(mh_c, inst, seed):
         semilla=seed,
         verbose=VERBOSE,
         fire_fn=_fire_d2_fn,
+        initial_mode="explore",
+        decision_on_early=True,
     )
 
 
@@ -138,7 +140,9 @@ def _runner_binary_hysteresis(mh_c, inst, seed):
         num_iteraciones=NUM_ITERACIONES,
         semilla=seed,
         verbose=VERBOSE,
-        fire_fn=_make_hysteresis_fn(),
+        fire_fn=_make_hysteresis_fn(initial_mode="explore"),
+        initial_mode="explore",
+        decision_on_early=True,
     )
 
 
@@ -170,7 +174,7 @@ STRATEGIES: Dict[str, dict] = {
         "label": "Binary-Hysteresis",
         "extra_info": {
             "estrategia": "binary_hysteresis",
-            "decision_rule": "hysteresis on delta",
+            "decision_rule": "delta >= theta_delta -> explore; delta <= 0 -> exploit",
             "dtw_window": DTW_FIRE_D2.window,
         },
         "runner": _runner_binary_hysteresis,
@@ -388,6 +392,7 @@ def main() -> int:
     total_tasks = len(active_strategies) * len(MHS) * n_epochs
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    os.environ["MKP_CAMPAIGN_ID"] = run_id
     inst_name = Path(instancia).stem
     instance_label = f"{inst_name}[{indice}]"
 

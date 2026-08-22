@@ -26,6 +26,7 @@ from .config import (
     RUTA_INSTANCIA,
     EPOCHS,
     SEMILLA,
+    is_entry_trigger,
 )
 
 # MHs a comparar — agregar nuevas acá
@@ -62,11 +63,11 @@ def print_epoch_results(nombre: str, resultados: list, inst: dict):
         ready = [h for h in res["historial_dtw"] if h.get("ready")]
         if ready:
             last = ready[-1]
-            d2s = [h["D2_vs_const"] for h in ready]
+            deltas = [h["delta"] for h in ready]
             print(
-                f"    DTW  D2={np.mean(d2s):7.1f} (+-{np.std(d2s):.1f}) | "
-                f"th_c={last['theta_c']:.1f} | "
-                f"Decision: fire = hysteresis(delta >= theta_delta -> explore, delta <= 0 -> exploit)"
+                f"    DTW  delta={np.mean(deltas):7.1f} (+-{np.std(deltas):.1f}) | "
+                f"theta_delta={last['theta_delta']:.1f} | "
+                "Decision: enter when delta >= theta_delta; leave when delta <= 0"
             )
 
     fits = [r["mejor_fitness"] for r in resultados]
@@ -91,13 +92,13 @@ COLORS = {
     "fire_marker": "#c0392b",
     "explore_bg": "#e74c3c",
     "optimum": "#7f8c8d",
-    "d2": "#2980b9",
-    "theta_c": "#e67e22",
+    "delta": "#2980b9",
+    "theta_delta": "#e67e22",
 }
 
 
 def _get_explore_ranges(hist_mode):
-    """Detecta rangos contiguos donde mode == 'explore'."""
+    """Return inclusive ranges where the recorded fitness used explore."""
     ranges = []
     in_explore = False
     start = 0
@@ -106,28 +107,36 @@ def _get_explore_ranges(hist_mode):
             start = i
             in_explore = True
         elif m != "explore" and in_explore:
-            ranges.append((start, i))
+            ranges.append((start, i - 1))
             in_explore = False
     if in_explore:
         ranges.append((start, len(hist_mode) - 1))
     return ranges
 
 
-def _get_fire_transitions(hist_mode):
-    """Iteraciones donde arranca un nuevo fire (exploit → explore)."""
+def _get_explore_state_entries(hist_mode):
+    """Return iterations after an actual exploit-to-explore transition."""
     transitions = []
-    for i in range(len(hist_mode)):
-        prev = hist_mode[i - 1] if i > 0 else "exploit"
-        if hist_mode[i] == "explore" and prev != "explore":
+    for i in range(1, len(hist_mode)):
+        if hist_mode[i] == "explore" and hist_mode[i - 1] != "explore":
             transitions.append(i)
     return transitions
+
+
+def _get_entry_triggers(hist_dtw, hist_mode):
+    """Return signal iterations that trigger a future explore state."""
+    return [
+        i
+        for i, (dtw, mode) in enumerate(zip(hist_dtw, hist_mode))
+        if is_entry_trigger(dtw, mode)
+    ]
 
 
 def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
     """
     Genera 2 paneles estilo paper:
-      1. Fitness: todas las MHs superpuestas + líneas punteadas en explore + fire markers + óptimo
-      2. D2 vs theta_c: señal de decisión de cada MH + fire markers
+      1. Fitness: explore-state lines + state-entry markers + optimum.
+      2. Delta vs theta_delta: Hysteresis entry signal for each MH.
     """
     nombres = list(resultados_por_mh.keys())
 
@@ -169,7 +178,8 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
         color = MH_COLORS.get(nombre, "#666666")
 
         explore_ranges = _get_explore_ranges(hist_mode)
-        fire_transitions = _get_fire_transitions(hist_mode)
+        state_entries = _get_explore_state_entries(hist_mode)
+        entry_triggers = _get_entry_triggers(res["historial_dtw"], hist_mode)
 
         # Crear máscara de explore
         is_explore = [False] * len(hist_fit)
@@ -206,12 +216,19 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
             label=f"{nombre} (max={res['mejor_fitness']:.1f}, fires={res['fire_count']})",
         )
 
-        # Fire markers (triángulos en los puntos de transición)
-        if fire_transitions:
-            fire_fits = [hist_fit[i] for i in fire_transitions]
+        # Mark state changes separately from the signal that caused them.
+        if state_entries:
+            state_fits = [hist_fit[i] for i in state_entries]
             ax1.scatter(
-                fire_transitions, fire_fits, color=COLORS["fire_marker"],
+                state_entries, state_fits, color=COLORS["fire_marker"],
                 marker="v", s=30, zorder=5,
+                edgecolors="white", linewidths=0.3,
+            )
+        if entry_triggers:
+            trigger_fits = [hist_fit[i] for i in entry_triggers]
+            ax1.scatter(
+                entry_triggers, trigger_fits, color=COLORS["theta_delta"],
+                marker="^", s=28, zorder=5,
                 edgecolors="white", linewidths=0.3,
             )
 
@@ -232,7 +249,7 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
     ax1.grid(True, alpha=0.2, linestyle=":")
 
     # =========================================================================
-    # Panel 2: D2 vs theta_c (señal de decisión Binary-Simple)
+    # Panel 2: delta vs theta_delta (Hysteresis entry signal)
     # =========================================================================
     for mh_idx, nombre in enumerate(nombres):
         res = mejores[nombre]
@@ -240,42 +257,54 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
         hist_mode = res["historial_modos"]
         color = MH_COLORS.get(nombre, "#666666")
 
-        fire_transitions = _get_fire_transitions(hist_mode)
+        entry_triggers = _get_entry_triggers(hist_dtw, hist_mode)
 
-        ready_iters, d2_vals, theta_c_vals = [], [], []
+        ready_iters, delta_vals, theta_delta_vals = [], [], []
         for i, h in enumerate(hist_dtw):
             if h.get("ready"):
                 ready_iters.append(i)
-                d2_vals.append(h["D2_vs_const"])
-                theta_c_vals.append(h["theta_c"])
+                delta_vals.append(h["delta"])
+                theta_delta_vals.append(h["theta_delta"])
 
         if ready_iters:
-            # D2
+            # Delta signal
             ax2.plot(
-                ready_iters, d2_vals, color=color,
-                linewidth=1.3, label=rf"$D_2$ {nombre}", zorder=3,
+                ready_iters, delta_vals, color=color,
+                linewidth=1.3, label=rf"$\delta$ {nombre}", zorder=3,
             )
-            # Theta_c (línea punteada)
+            # Entry threshold (dotted line)
             ax2.plot(
-                ready_iters, theta_c_vals, color=color,
+                ready_iters, theta_delta_vals, color=color,
                 linewidth=0.8, linestyle=":", alpha=0.5,
-                label=rf"$\theta_c$ {nombre}", zorder=2,
+                label=rf"$\theta_\delta$ {nombre}", zorder=2,
             )
 
-            # Fire markers en D2
-            for fi in fire_transitions:
+            # Highlight only the entry trigger, not the current explore state.
+            entry_zone = [
+                is_entry_trigger(hist_dtw[i], hist_mode[i])
+                for i in ready_iters
+            ]
+            ax2.fill_between(
+                ready_iters, delta_vals, theta_delta_vals,
+                where=entry_zone,
+                color=COLORS["fire_marker"], alpha=0.08,
+            )
+
+            # Entry-trigger markers on delta.
+            for fi in entry_triggers:
                 if fi in ready_iters:
                     idx = ready_iters.index(fi)
                     ax2.scatter(
-                        fi, d2_vals[idx], color=color,
-                        marker="v", s=40, zorder=5,
+                        fi, delta_vals[idx], color=color,
+                        marker="^", s=35, zorder=5,
                         edgecolors="white", linewidths=0.5,
                     )
 
     ax2.set_xlabel("Iteration")
-    ax2.set_ylabel(r"$D_2$ (DTW to plateau)")
+    ax2.set_ylabel(r"$\delta$")
     ax2.set_title(
-        r"Binary-Hysteresis — Fire when $\delta \geq \theta_\delta$ (explore) and $\delta \leq 0$ (exploit)"
+        r"Binary-Hysteresis — enter when $\delta \geq \theta_\delta$; "
+        r"leave when $\delta \leq 0$"
     )
     ax2.legend(loc="upper left", framealpha=0.9, fontsize=7)
     ax2.grid(True, alpha=0.2, linestyle=":")
@@ -309,7 +338,10 @@ def main():
     print("=" * 70)
     print("  RESULTADOS MAESTRO — Binary-Hysteresis")
     print("=" * 70)
-    print(f"  Decision rule: fire = hysteresis(delta)")
+    print(
+        "  Decision rule: enter explore when delta >= theta_delta; "
+        "leave explore when delta <= 0"
+    )
     print(f"  Instancia: {RUTA_INSTANCIA}[{INDICE_INSTANCIA}]")
     print(f"  n={inst['n']}, m={inst['m']}")
     print(f"  Particulas/Pop: {NUM_PARTICULAS}, Iteraciones: {NUM_ITERACIONES}, "
@@ -346,7 +378,7 @@ def main():
             optimo_conocido=inst["optimo"] if inst["optimo"] > 0 else None,
             extra_info={
                 "estrategia": "binary_hysteresis",
-                "decision_rule": "D2 <= theta_c",
+                "decision_rule": "delta >= theta_delta -> explore; delta <= 0 -> exploit",
                 "instancia": RUTA_INSTANCIA,
                 "idx": INDICE_INSTANCIA,
                 "poblacion": NUM_PARTICULAS,

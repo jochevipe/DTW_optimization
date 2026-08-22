@@ -12,10 +12,14 @@ from .config import fire_d2
 def run_experiment(**kwargs):
     """run_experiment con estrategia A3 (D2 puro)."""
     kwargs.setdefault("fire_fn", fire_d2)
+    kwargs.setdefault("initial_mode", "explore")
+    kwargs.setdefault("decision_on_early", True)
     return _run_experiment(**kwargs)
 
 
 def run_epochs(**kwargs):
     """run_epochs con estrategia A3 (D2 puro)."""
     kwargs.setdefault("fire_fn", fire_d2)
+    kwargs.setdefault("initial_mode", "explore")
+    kwargs.setdefault("decision_on_early", True)
     return _run_epochs(**kwargs)
