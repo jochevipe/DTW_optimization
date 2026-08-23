@@ -30,9 +30,6 @@ ETAPAS = [
     # -- DTW: Binary --
     ("Binary-Simple",           "binary_simple.resultados",  []),
     ("Binary-Hysteresis",       "binary_hysteresis.resultados", []),
-    # -- DTW: MH-specific adaptive strategies --
-    ("DTW-Pulse",               "dtw_pulse.resultados",      []),
-    ("DTW-PhaseLock",           "dtw_phaselock.resultados",  []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════

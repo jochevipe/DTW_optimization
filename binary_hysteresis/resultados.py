@@ -1,5 +1,5 @@
 """
-Binary-Hysteresis — control con histéresis sobre delta.
+Binary-Hysteresis — control con histéresis asimétrica sobre la señal A4 del monitor.
 Corre todas las MHs, muestra métricas DTW en consola, y genera gráficos.
 
 Uso (desde la raíz del proyecto):
@@ -19,6 +19,7 @@ from mkp_common.results import save_results
 
 from .runner import run_epochs
 from .config import (
+    DECISION_RULE,
     DTW_CFG,
     INDICE_INSTANCIA,
     NUM_ITERACIONES,
@@ -67,7 +68,7 @@ def print_epoch_results(nombre: str, resultados: list, inst: dict):
             print(
                 f"    DTW  delta={np.mean(deltas):7.1f} (+-{np.std(deltas):.1f}) | "
                 f"theta_delta={last['theta_delta']:.1f} | "
-                "Decision: enter when delta >= theta_delta; leave when delta <= 0"
+                f"Decision: {DECISION_RULE}"
             )
 
     fits = [r["mejor_fitness"] for r in resultados]
@@ -136,7 +137,7 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
     """
     Genera 2 paneles estilo paper:
       1. Fitness: explore-state lines + state-entry markers + optimum.
-      2. Delta vs theta_delta: Hysteresis entry signal for each MH.
+      2. A4 entry signal (trigger_streak vs patience) per MH.
     """
     nombres = list(resultados_por_mh.keys())
 
@@ -249,8 +250,9 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
     ax1.grid(True, alpha=0.2, linestyle=":")
 
     # =========================================================================
-    # Panel 2: delta vs theta_delta (Hysteresis entry signal)
+    # Panel 2: A4 entry signal — trigger_streak vs patience (per MH)
     # =========================================================================
+    patience = DTW_CFG.patience
     for mh_idx, nombre in enumerate(nombres):
         res = mejores[nombre]
         hist_dtw = res["historial_dtw"]
@@ -259,52 +261,58 @@ def generate_plots(resultados_por_mh: dict, inst: dict, save_dir: str):
 
         entry_triggers = _get_entry_triggers(hist_dtw, hist_mode)
 
-        ready_iters, delta_vals, theta_delta_vals = [], [], []
+        ready_iters, streak_vals, fire_flags = [], [], []
         for i, h in enumerate(hist_dtw):
             if h.get("ready"):
                 ready_iters.append(i)
-                delta_vals.append(h["delta"])
-                theta_delta_vals.append(h["theta_delta"])
+                streak_vals.append(h["trigger_streak"])
+                fire_flags.append(bool(h["fire"]))
 
         if ready_iters:
-            # Delta signal
-            ax2.plot(
-                ready_iters, delta_vals, color=color,
-                linewidth=1.3, label=rf"$\delta$ {nombre}", zorder=3,
-            )
-            # Entry threshold (dotted line)
-            ax2.plot(
-                ready_iters, theta_delta_vals, color=color,
-                linewidth=0.8, linestyle=":", alpha=0.5,
-                label=rf"$\theta_\delta$ {nombre}", zorder=2,
+            # Sustained-trigger signal
+            ax2.step(
+                ready_iters, streak_vals, where="mid", color=color,
+                linewidth=1.3, label=rf"streak {nombre}", zorder=3,
             )
 
-            # Highlight only the entry trigger, not the current explore state.
-            entry_zone = [
-                is_entry_trigger(hist_dtw[i], hist_mode[i])
-                for i in ready_iters
+            # Fire zone: sustained A4 trigger while in exploit.
+            fire_zone = [
+                f and is_entry_trigger(hist_dtw[i], hist_mode[i])
+                for i, f in zip(ready_iters, fire_flags)
             ]
             ax2.fill_between(
-                ready_iters, delta_vals, theta_delta_vals,
-                where=entry_zone,
+                ready_iters, streak_vals, patience,
+                where=fire_zone,
+                step="mid",
                 color=COLORS["fire_marker"], alpha=0.08,
             )
 
-            # Entry-trigger markers on delta.
+            # Entry-trigger markers on the signal.
             for fi in entry_triggers:
                 if fi in ready_iters:
                     idx = ready_iters.index(fi)
                     ax2.scatter(
-                        fi, delta_vals[idx], color=color,
+                        fi, streak_vals[idx], color=color,
                         marker="^", s=35, zorder=5,
                         edgecolors="white", linewidths=0.5,
                     )
 
+    ax2.axhline(
+        y=patience, color="gray", linestyle="--",
+        linewidth=1, alpha=0.7, label=f"patience ({patience})",
+    )
     ax2.set_xlabel("Iteration")
-    ax2.set_ylabel(r"$\delta$")
+    ax2.set_ylabel(r"$\mathrm{trigger\_streak}$")
+    all_streaks = [
+        h["trigger_streak"]
+        for nombre in nombres
+        for h in mejores[nombre]["historial_dtw"]
+        if h.get("ready")
+    ]
+    ax2.set_ylim(-0.3, max(max(all_streaks, default=patience), patience) + 0.8)
     ax2.set_title(
-        r"Binary-Hysteresis — enter when $\delta \geq \theta_\delta$; "
-        r"leave when $\delta \leq 0$"
+        r"A4 entry signal — enter explore on sustained fire "
+        r"(streak $\geq$ patience); exit on improvement"
     )
     ax2.legend(loc="upper left", framealpha=0.9, fontsize=7)
     ax2.grid(True, alpha=0.2, linestyle=":")
@@ -338,10 +346,7 @@ def main():
     print("=" * 70)
     print("  RESULTADOS MAESTRO — Binary-Hysteresis")
     print("=" * 70)
-    print(
-        "  Decision rule: enter explore when delta >= theta_delta; "
-        "leave explore when delta <= 0"
-    )
+    print(f"  Decision rule: {DECISION_RULE}")
     print(f"  Instancia: {RUTA_INSTANCIA}[{INDICE_INSTANCIA}]")
     print(f"  n={inst['n']}, m={inst['m']}")
     print(f"  Particulas/Pop: {NUM_PARTICULAS}, Iteraciones: {NUM_ITERACIONES}, "
@@ -378,7 +383,7 @@ def main():
             optimo_conocido=inst["optimo"] if inst["optimo"] > 0 else None,
             extra_info={
                 "estrategia": "binary_hysteresis",
-                "decision_rule": "delta >= theta_delta -> explore; delta <= 0 -> exploit",
+                "decision_rule": DECISION_RULE,
                 "instancia": RUTA_INSTANCIA,
                 "idx": INDICE_INSTANCIA,
                 "poblacion": NUM_PARTICULAS,

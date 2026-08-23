@@ -18,6 +18,7 @@ import numpy as np
 from mkp_common import cargar_instancia
 
 from .config import (
+    DECISION_RULE,
     DTW_CFG,
     INDICE_INSTANCIA,
     MH_CLASS,
@@ -72,10 +73,7 @@ def print_iteration_table(res: dict, inst: dict) -> None:
     )
     if optimo > 0:
         print(f"  Optimo conocido: {optimo}")
-    print(
-        "  Decision: enter explore when delta >= theta_delta; "
-        "leave explore when delta <= 0"
-    )
+    print(f"  Decision: {DECISION_RULE}")
     print(f"{'=' * len(hdr)}")
     print(hdr)
     print(sep)
@@ -164,21 +162,14 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/binary_hysteresis
     Plot de 2 paneles para paper científico.
 
     Panel 1: Fitness + explore-state shading + transition markers + optimum.
-    Panel 2: delta vs theta_delta with the entry trigger highlighted.
+    Panel 2: A4 signal (trigger_streak vs patience) with the fire entry
+    trigger highlighted.
     """
     hist_fit = res["historial_fitness"]
     hist_dtw = res["historial_dtw"]
     hist_mode = res["historial_modos"]
     optimo = inst["optimo"]
     mh_name = MH_CLASS.__name__
-
-    # --- Extraer datos DTW ---
-    ready_iters, delta_vals, theta_delta_vals = [], [], []
-    for i, h in enumerate(hist_dtw):
-        if h.get("ready"):
-            ready_iters.append(i)
-            delta_vals.append(h["delta"])
-            theta_delta_vals.append(h["theta_delta"])
 
     explore_ranges = _get_explore_ranges(hist_mode)
     state_entries = _get_explore_state_entries(hist_mode)
@@ -246,27 +237,33 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/binary_hysteresis
     ax1.legend(loc="lower right", framealpha=0.9)
     ax1.grid(True, alpha=0.2, linestyle=":")
 
-    # ─── Panel 2: delta vs theta_delta (Hysteresis entry signal) ──────────
+    # ─── Panel 2: A4 entry signal — trigger_streak vs patience ────────────
+    ready_iters, streak_vals, fire_flags = [], [], []
+    for i, h in enumerate(hist_dtw):
+        if h.get("ready"):
+            ready_iters.append(i)
+            streak_vals.append(h["trigger_streak"])
+            fire_flags.append(bool(h["fire"]))
+
+    patience = DTW_CFG.patience
     ax2.plot(
-        ready_iters, delta_vals, color=COLORS["delta"],
-        linewidth=1.3, label=r"$\delta$ (signal)", zorder=3,
+        ready_iters, streak_vals, color=COLORS["delta"],
+        linewidth=1.3, label=r"$\mathrm{trigger\_streak}$ (signal)", zorder=3,
     )
-    ax2.plot(
-        ready_iters, theta_delta_vals, color=COLORS["theta_delta"],
+    ax2.axhline(
+        y=patience, color=COLORS["theta_delta"],
         linewidth=1, linestyle="--", alpha=0.7,
-        label=r"$\theta_\delta$ (entry threshold)", zorder=2,
+        label=rf"patience ({patience}, entry threshold)", zorder=2,
     )
 
-    # Entry trigger zone; explore shading below represents current state.
-    entry_zone = [
-        is_entry_trigger(hist_dtw[i], hist_mode[i])
-        for i in ready_iters
-    ]
+    # Fire zone: sustained A4 trigger while in exploit -> entry trigger.
     ax2.fill_between(
-        ready_iters, delta_vals, theta_delta_vals,
-        where=entry_zone,
+        ready_iters, streak_vals, patience,
+        where=[f and is_entry_trigger(hist_dtw[i], hist_mode[i])
+               for i, f in zip(ready_iters, fire_flags)],
+        step="mid",
         color=COLORS["fire_marker"], alpha=0.10,
-        label=r"Entry trigger ($\delta \geq \theta_\delta$)",
+        label=r"Entry trigger (fire: A4 held $\geq$ patience)",
     )
 
     # Entry-trigger markers are signal observations; state shading is separate.
@@ -274,7 +271,7 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/binary_hysteresis
         if fi in ready_iters:
             idx = ready_iters.index(fi)
             ax2.scatter(
-                fi, delta_vals[idx], color=COLORS["fire_marker"],
+                fi, streak_vals[idx], color=COLORS["fire_marker"],
                 marker="^", s=35, zorder=5,
                 edgecolors="white", linewidths=0.5,
             )
@@ -284,10 +281,11 @@ def plot_paper(res: dict, inst: dict, save_dir: str = "results/binary_hysteresis
         ax2.axvspan(s, e, color=COLORS["explore_bg"], alpha=0.08, zorder=1)
 
     ax2.set_xlabel("Iteration")
-    ax2.set_ylabel(r"$\delta$")
+    ax2.set_ylabel(r"$\mathrm{trigger\_streak}$")
+    ax2.set_ylim(-0.3, max(max(streak_vals, default=patience), patience) + 0.8)
     ax2.set_title(
-        r"Hysteresis signal — enter when $\delta \geq \theta_\delta$; "
-        r"leave when $\delta \leq 0$"
+        r"A4 entry signal — enter explore on sustained fire "
+        r"(streak $\geq$ patience); exit on improvement"
     )
     ax2.legend(loc="upper right", framealpha=0.9)
     ax2.grid(True, alpha=0.2, linestyle=":")
@@ -326,10 +324,7 @@ def main():
     print(f"  Pop: {NUM_PARTICULAS}, Iters: {NUM_ITERACIONES}")
     print(f"  DTW: window={DTW_CFG.window}, ddtw={DTW_CFG.use_ddtw}, "
           f"adapt_th={DTW_CFG.adapt_thresholds}")
-    print(
-        "  Decision: enter explore when delta >= theta_delta; "
-        "leave explore when delta <= 0"
-    )
+    print(f"  Decision: {DECISION_RULE}")
 
     res = run_experiment(
         mh_class=MH_CLASS,

@@ -37,14 +37,14 @@ except Exception:  # pragma: no cover
 BASE = Path(__file__).resolve().parent.parent
 MHS = ("PSO", "GA", "GWO", "DE")
 RESULT_DIR_PREFIX = "comparacion_mhs_"
-HYSTERESIS_RULE = "delta >= theta_delta -> explore; delta <= 0 -> exploit"
-PULSE_RULE = (
-    "improve or D2 > 2*theta_c -> exploit; "
-    "D2 <= theta_c without fresh improvement or max 10 iterations -> explore"
+HYSTERESIS_RULE = (
+    "A4 fire sustained (plateau+constant+ramp) -> explore; improvement -> exploit"
 )
-PHASELOCK_RULE = (
-    "D2 <= theta_c and no_improve_len >= 5 -> explore; "
-    "improve or D2 > 2.5*theta_c -> exploit"
+# Legacy Binary-Hysteresis rules kept for old campaigns (campaign-id
+# intersection elsewhere prevents mixing old and new runs):
+_HYSTERESIS_RULES_LEGACY = (
+    "delta >= theta_delta -> explore; delta <= 0 -> exploit",
+    "hysteresis on delta",
 )
 
 
@@ -128,30 +128,14 @@ def _strategy_rule(strategy: str, info: dict, directory: Path) -> Optional[str]:
 
     if strategy == "binary_hysteresis":
         rule = info.get("decision_rule")
-        if rule == HYSTERESIS_RULE or rule == "hysteresis on delta":
+        if rule == HYSTERESIS_RULE or rule in _HYSTERESIS_RULES_LEGACY:
+            # Normalize legacy strings to the canonical rule label; campaign
+            # identity (not the rule string) separates old from new runs.
             return HYSTERESIS_RULE
         raise ResultMetadataError(
             f"{directory}: Binary-Hysteresis decision_rule is {rule!r}; "
             f"expected {HYSTERESIS_RULE!r}"
         )
-
-    if strategy == "dtw_pulse":
-        rule = info.get("decision_rule")
-        if rule != PULSE_RULE:
-            raise ResultMetadataError(
-                f"{directory}: DTW-Pulse decision_rule is {rule!r}; "
-                f"expected {PULSE_RULE!r}"
-            )
-        return rule
-
-    if strategy == "dtw_phaselock":
-        rule = info.get("decision_rule")
-        if rule != PHASELOCK_RULE:
-            raise ResultMetadataError(
-                f"{directory}: DTW-PhaseLock decision_rule is {rule!r}; "
-                f"expected {PHASELOCK_RULE!r}"
-            )
-        return rule
 
     return None
 
@@ -227,12 +211,7 @@ def inspect_result_directory(
         decision_rule = _strategy_rule(strategy, info, directory)
 
         dtw_window = info.get("dtw_window")
-        if strategy in {
-            "binary_simple",
-            "binary_hysteresis",
-            "dtw_pulse",
-            "dtw_phaselock",
-        }:
+        if strategy in {"binary_simple", "binary_hysteresis"}:
             if (
                 isinstance(dtw_window, bool)
                 or not isinstance(dtw_window, int)
@@ -633,14 +612,6 @@ def main():
         "Binary-Hysteresis": (
             BASE / "results" / "binary_hysteresis" / "todos",
             "binary_hysteresis",
-        ),
-        "DTW-Pulse": (
-            BASE / "results" / "dtw_pulse" / "todos",
-            "dtw_pulse",
-        ),
-        "DTW-PhaseLock": (
-            BASE / "results" / "dtw_phaselock" / "todos",
-            "dtw_phaselock",
         ),
     }
     try:

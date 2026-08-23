@@ -15,7 +15,7 @@ def _make_exploring_fire_fn():
 
 
 def run_experiment(**kwargs):
-    """run_experiment con estrategia A9 (histéresis sobre delta)."""
+    """run_experiment con estrategia A9 (histéresis sobre fire A4 / mejora)."""
     kwargs.setdefault("fire_fn", _make_exploring_fire_fn())
     kwargs.setdefault("initial_mode", "explore")
     kwargs.setdefault("decision_on_early", True)
@@ -23,7 +23,7 @@ def run_experiment(**kwargs):
 
 
 def run_epochs(**kwargs):
-    """run_epochs con estrategia A9 (histéresis sobre delta)."""
+    """run_epochs con estrategia A9 (histéresis sobre fire A4 / mejora)."""
     if "fire_fn" not in kwargs and "fire_fn_factory" not in kwargs:
         kwargs["fire_fn_factory"] = _make_exploring_fire_fn
     kwargs.setdefault("initial_mode", "explore")

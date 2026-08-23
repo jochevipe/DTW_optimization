@@ -139,7 +139,7 @@ Binary-Simple cumple tres funciones en la narrativa científica del estudio:
 
 2. **Puente conceptual**: ocupa el punto medio entre la simplicidad ingenua (A1: `fire = δ > 0`) y la complejidad completa (A4). Si A3 funciona comparablemente a A4, se fortalece el argumento de que D₂ es la señal dominante.
 
-3. **Baseline para las versiones continuas**: B3 (Continuous-Simple) es esencialmente la versión continua de A3: en vez de `fire = D₂ ≤ θ_c` (booleano), usa `intensity = 1 − clip(D₂/(θ_c × scale))` (continuo). Tener A3 permite medir cuánto aporta la continuidad por sí sola, aislando el efecto de "discreto vs. continuo" del efecto de "qué señal se usa".
+3. **Ablation de señal única**: al comparar A3 contra Binary-Hysteresis (que consume la regla A4 completa del monitor con las tres métricas), se puede medir si D₂ sola es suficiente o si D₁ y Δ aportan valor discriminante adicional.
 
 ---
 
@@ -149,10 +149,10 @@ La configuración del sensor DTW para esta estrategia es:
 
 | Parámetro | Valor | Justificación |
 |---|---|---|
-| `window` | 20 | Balance entre reactividad (ventana pequeña) y estabilidad (ventana grande) |
+| `window` | 50 | Balance entre estabilidad y latencia: el warm-up consume 50 de las iteraciones del presupuesto, pero la medición es mucho menos ruidosa |
 | `band` | 2 | Banda Sakoe-Chiba que restringe el alineamiento DTW a ±2 posiciones. Reduce el costo computacional de O(W²) a O(W) y favorece comparaciones locales |
 | `min_slope` | 2.0 | Pendiente de la rampa ideal. Un valor alto hace que la rampa sea exigente (espera mejora significativa), lo que indirectamente hace que D₂ domine sobre D₁ en la detección |
-| `use_ddtw` | True | Derivative DTW: compara pendientes en vez de valores absolutos. Esencial para invarianza a la escala |
+| `use_ddtw` | False | DTW estándar sobre valores absolutos (configuración actual; DDTW queda disponible como opción) |
 | `adapt_thresholds` | True | θ_c se calcula como percentil móvil del historial de D₂, adaptándose a cada ejecución |
 | `p_low` | 30 | Percentil para θ_c: el 30% inferior del historial de D₂ se considera "plano" |
 

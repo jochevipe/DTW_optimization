@@ -31,7 +31,7 @@ SEMILLA = 1   # None for real randomness across runs
 # DTW — base fields shared by all DTW-enabled strategies
 # ═══════════════════════════════════════════════════════════════════════════
 _DTW_BASE = dict(
-    window=50,
+    window=250,
     band=2,
     min_slope=2.0,
     use_ddtw=True,
