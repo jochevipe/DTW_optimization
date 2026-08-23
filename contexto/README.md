@@ -7,11 +7,12 @@
 
 ## Estado actual del estudio
 
-- **Estrategias activas (4)**: `vanilla_explotacion`, `vanilla_exploracion` (baseline),
-  `binary_simple` (A3), `binary_hysteresis` (A9, reescrita sobre el disparo A4 sostenido).
+- **Estrategias activas (5)**: `vanilla_explotacion`, `vanilla_exploracion` (baseline),
+  `binary_simple` (A3), `binary_hysteresis` (A9, reescrita sobre el disparo A4 sostenido),
+  `binary_diversity_predictive` (A10, diversidad poblacional + detección predictiva).
 - **Metaheurísticas (4)**: BinaryPSO, GeneticAlgorithm, BinaryGWO, BinaryDE.
 - **Sensor DTW** (`mkp_common/monitor.py`, intacto): métricas D1, D2, delta=D1−D2;
-  umbrales adaptativos θc/θr/θδ; ventana 50; warm-up con placeholders finitos.
+  umbrales adaptativos θc/θr/θδ; ventana actual 50 con DDTW activado (ver `mkp_common/config.py`); warm-up con placeholders finitos.
 - **Política experimental**: las versiones adaptativas inician en explore y evalúan la
   decisión desde la iteración 1 (`decision_on_early=True`); controladores stateful aíslan
   su estado por época vía `fire_fn_factory`.
@@ -28,6 +29,7 @@
 |---|---|
 | `oficial/01_binary_simple_fire_d2.md` | Estrategia A3: fire = D2 ≤ θc. Teoría y configuración |
 | `oficial/02_binary_hysteresis_a4.md` | Estrategia A9 reescrita: histéresis sobre el disparo A4 sostenido; incluye la lección del controlador delta bloqueado |
+| `oficial/03_binary_diversity_predictive.md` | Estrategia A10: autómata explore-base con compuerta de diversidad Hamming (P20/P50 adaptativos) y rama predictiva de tendencia de delta; evidencia de la sonda y desviaciones del diseño |
 
 ### Fundamentos
 | Archivo | Contenido |
@@ -53,7 +55,14 @@
 
 - Al modificar una regla de decisión, actualizar: el string `decision_rule` en el saver de
   resultados, el registro de `run_all_hpc.py` y la validación de `analisis/estadistico.py`
-  (deben ser idénticos).
+  (deben ser idénticos). Cada estrategia exporta su string como constante canónica:
+  `DECISION_RULE` (`binary_simple` usa el literal `"D2 <= theta_c"`, `binary_hysteresis` y
+  `binary_diversity_predictive` lo exportan desde su `config.py`; `estadistico.py` replica
+  el literal de A10 en `DIVERSITY_PREDICTIVE_RULE`).
+- Las métricas de diversidad poblacional viven solo en `mkp_common/diversity.py`
+  (helper compartido por la sonda `analisis/diversidad_probe.py` y A10). Los controladores
+  que necesiten leer la población usan el hook `bind(mh)` del runner genérico: se invoca
+  exactamente una vez tras `mh.initialize()` si el `fire_fn` expone `bind`.
 - Los resultados JSON no persisten `historial_modos`; el análisis de comportamiento de
   modos requiere correr sondas ad-hoc o extender la persistencia.
 - Ninguna MH resetea población al cambiar de modo: los cambios de modo actúan solo sobre

@@ -149,10 +149,10 @@ La configuración del sensor DTW para esta estrategia es:
 
 | Parámetro | Valor | Justificación |
 |---|---|---|
-| `window` | 50 | Balance entre estabilidad y latencia: el warm-up consume 50 de las iteraciones del presupuesto, pero la medición es mucho menos ruidosa |
+| `window` | 50 | Ventana larga: medición muy estable, a cambio de un warm-up extenso; elegida durante la experimentación para reducir el ruido de la señal |
 | `band` | 2 | Banda Sakoe-Chiba que restringe el alineamiento DTW a ±2 posiciones. Reduce el costo computacional de O(W²) a O(W) y favorece comparaciones locales |
 | `min_slope` | 2.0 | Pendiente de la rampa ideal. Un valor alto hace que la rampa sea exigente (espera mejora significativa), lo que indirectamente hace que D₂ domine sobre D₁ en la detección |
-| `use_ddtw` | False | DTW estándar sobre valores absolutos (configuración actual; DDTW queda disponible como opción) |
+| `use_ddtw` | True | Derivative DTW: compara pendientes en vez de valores absolutos, dando invarianza a la escala de la curva |
 | `adapt_thresholds` | True | θ_c se calcula como percentil móvil del historial de D₂, adaptándose a cada ejecución |
 | `p_low` | 30 | Percentil para θ_c: el 30% inferior del historial de D₂ se considera "plano" |
 

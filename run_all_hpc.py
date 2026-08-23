@@ -69,12 +69,17 @@ from binary_hysteresis.config import (
     make_fire_fn as _make_hysteresis_fn,
     DECISION_RULE as _HYSTERESIS_RULE,
 )
+from binary_diversity_predictive.config import (
+    make_fire_fn as _make_diversity_fn,
+    DECISION_RULE as _DIVERSITY_RULE,
+)
 from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
 from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
 from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
 from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
 from binary_simple.resultados import generate_plots as _plots_binary_simple
 from binary_hysteresis.resultados import generate_plots as _plots_binary_hysteresis
+from binary_diversity_predictive.resultados import generate_plots as _plots_binary_diversity
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -150,6 +155,23 @@ def _runner_binary_hysteresis(mh_c, inst, seed):
     )
 
 
+def _runner_binary_diversity(mh_c, inst, seed):
+    """Binary-Diversity-Predictive: explore base; diversity-gated exploit,
+    explore on collapsed-diversity fire or rising-delta early warning."""
+    return _generic_run(
+        mh_class=mh_c,
+        inst=inst,
+        monitor_cfg=DTW_FIRE_D2,
+        num_particulas=NUM_PARTICULAS,
+        num_iteraciones=NUM_ITERACIONES,
+        semilla=seed,
+        verbose=VERBOSE,
+        fire_fn=_make_diversity_fn(initial_mode="explore"),
+        initial_mode="explore",
+        decision_on_early=True,
+    )
+
+
 STRATEGIES: Dict[str, dict] = {
     "vanilla_explotacion": {
         "folder": "vanilla_explotacion",
@@ -182,6 +204,16 @@ STRATEGIES: Dict[str, dict] = {
             "dtw_window": DTW_FIRE_D2.window,
         },
         "runner": _runner_binary_hysteresis,
+    },
+    "binary_diversity_predictive": {
+        "folder": "binary_diversity_predictive",
+        "label": "Binary-Diversity-Predictive",
+        "extra_info": {
+            "estrategia": "binary_diversity_predictive",
+            "decision_rule": _DIVERSITY_RULE,
+            "dtw_window": DTW_FIRE_D2.window,
+        },
+        "runner": _runner_binary_diversity,
     },
 }
 
@@ -471,6 +503,7 @@ def main() -> int:
         "vanilla_exploracion": _plots_vanilla_exploracion,
         "binary_simple": _plots_binary_simple,
         "binary_hysteresis": _plots_binary_hysteresis,
+        "binary_diversity_predictive": _plots_binary_diversity,
     }
 
     saved_dirs: Dict[str, str] = {}

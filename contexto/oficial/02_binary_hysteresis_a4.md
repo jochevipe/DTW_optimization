@@ -74,9 +74,9 @@ evento geométricamente raro.
 ## 5. Configuración del sensor
 
 Comparte la configuración DTW global de `mkp_common/config.py` (`DTW_FIRE_D2`):
-`window=50`, `band=2`, `min_slope=2.0`, `use_ddtw=False`, `adapt_thresholds=True`,
-`p_low=30`. Los parámetros de la regla A4 (`plateau_max`, `patience`) viven en la
-configuración del monitor.
+`window=50`, `band=2`, `min_slope=2.0`, `use_ddtw=True`, `adapt_thresholds=True`,
+`p_low=30`. Los parámetros de la regla A4 (`plateau_max=4`, `patience=2`) viven en la
+configuración del monitor (`mkp_common/config.py`).
 
 ## 6. Integración
 
