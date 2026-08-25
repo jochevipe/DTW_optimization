@@ -1,0 +1,45 @@
+==========================================================================================
+  Numerical Results — mknapcb6[0] — Exploration-only vs Variants
+  Raw Wilcoxon signed-rank (two-sided) | alpha = 0.0500 | Shapiro-Wilk on paired differences
+==========================================================================================
+
+  [PSO]
+    Baseline (Exploration-only): 114848.5 +/- 198.3
+    Version                    Mean        Std   Mean diff  Paired median diff    p-value    Shapiro Verdict
+    -------------------- ---------- ---------- ----------- ------------------- ---------- ---------- ------------
+    Exploitation-only      113745.4      344.7     -1103.1             -1081.0     0.0000         OK  WORSE
+    Binary-Simple          114800.2      276.2       -48.3               -46.0     0.5500         OK  WORSE
+    Binary-Hysteresis      114719.4      282.0      -129.2              -143.0     0.0221         OK  WORSE
+    -> Best by mean: Binary-Simple  (mean diff = -48.3)
+    Shapiro: normality test on paired per-epoch differences (OK = not rejected at alpha=0.05).
+
+  [GA]
+    Baseline (Exploration-only): 114756.7 +/- 317.8
+    Version                    Mean        Std   Mean diff  Paired median diff    p-value    Shapiro Verdict
+    -------------------- ---------- ---------- ----------- ------------------- ---------- ---------- ------------
+    Exploitation-only      117299.2      110.8     +2542.5             +2498.0     0.0000         OK  BETTER
+    Binary-Simple          116171.1      686.1     +1414.4             +1449.0     0.0000         OK  BETTER
+    Binary-Hysteresis      116939.7      367.6     +2183.0             +2245.0     0.0000 NOT normal  BETTER
+    -> Best by mean: Exploitation-only  (mean diff = +2542.5)
+    Shapiro: normality test on paired per-epoch differences (OK = not rejected at alpha=0.05).
+
+  [GWO]
+    Baseline (Exploration-only): 113825.6 +/- 225.5
+    Version                    Mean        Std   Mean diff  Paired median diff    p-value    Shapiro Verdict
+    -------------------- ---------- ---------- ----------- ------------------- ---------- ---------- ------------
+    Exploitation-only      113975.1      270.4      +149.5              +119.0     0.0164         OK  BETTER
+    Binary-Simple          113887.1      406.2       +61.5               -41.0     0.6381         OK  BETTER
+    Binary-Hysteresis      113776.1      263.3       -49.5               -39.0     0.4104         OK  WORSE
+    -> Best by mean: Exploitation-only  (mean diff = +149.5)
+    Shapiro: normality test on paired per-epoch differences (OK = not rejected at alpha=0.05).
+
+  [DE]
+    Baseline (Exploration-only): 115517.3 +/- 234.2
+    Version                    Mean        Std   Mean diff  Paired median diff    p-value    Shapiro Verdict
+    -------------------- ---------- ---------- ----------- ------------------- ---------- ---------- ------------
+    Exploitation-only      115162.9      502.9      -354.4              -214.0     0.0012         OK  WORSE
+    Binary-Simple          116179.7      284.0      +662.5              +695.0     0.0000         OK  BETTER
+    Binary-Hysteresis      116181.1      351.4      +663.8              +731.0     0.0000         OK  BETTER
+    -> Best by mean: Binary-Hysteresis  (mean diff = +663.8)
+    Shapiro: normality test on paired per-epoch differences (OK = not rejected at alpha=0.05).
+

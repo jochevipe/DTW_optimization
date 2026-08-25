@@ -51,13 +51,6 @@ def run_experiment(
         verbose:         Imprimir diagnóstico del DTW
         fire_fn:         Función de decisión. Recibe out (dict del monitor),
                          retorna bool. Default: out["fire"] (baseline A4).
-                         Observation hook: if ``fire_fn`` also exposes a
-                         callable attribute ``bind``, the runner calls
-                         ``fire_fn.bind(mh)`` EXACTLY ONCE, right after
-                         ``mh.initialize()``, so stateful strategies (e.g.
-                         binary_diversity_predictive) can observe the MH's
-                         current population. Fire functions without ``bind``
-                         are unaffected (existing strategies have none).
         initial_mode:    Modo inicial opcional ("exploit" o "explore").
                          None preserva el modo por defecto de cada MH.
         decision_on_early: Invocar fire_fn aunque el monitor todavía no
@@ -75,13 +68,6 @@ def run_experiment(
     monitor = StagnationMonitor(cfg=monitor_cfg)
 
     mh.initialize()
-
-    # Observation hook for stateful fire functions: bind the freshly
-    # initialized MH once so the strategy can read population-level signals
-    # (e.g. binary diversity). No-op for fire functions without ``bind``.
-    bind_hook = getattr(fire_fn, "bind", None)
-    if callable(bind_hook):
-        bind_hook(mh)
 
     if initial_mode is not None:
         if initial_mode not in {"exploit", "explore"}:

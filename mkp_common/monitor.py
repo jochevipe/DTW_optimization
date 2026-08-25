@@ -76,6 +76,20 @@ class StagnationConfig:
         if self.band <= 0:
             self.band = max(1, int(0.1 * self.window))
 
+    def to_dict(self) -> dict:
+        """Retorna todos los parámetros configurados del monitor para persistencia."""
+        return {
+            "dtw_window": int(self.window),
+            "dtw_band": int(self.band),
+            "dtw_min_slope": float(self.min_slope),
+            "dtw_plateau_max": int(self.plateau_max),
+            "dtw_patience": int(self.patience),
+            "dtw_use_ddtw": bool(self.use_ddtw),
+            "dtw_adapt_thresholds": bool(self.adapt_thresholds),
+            "dtw_p_low": float(self.p_low),
+            "dtw_p_high": float(self.p_high),
+        }
+
 
 @dataclass
 class StagnationMonitor:

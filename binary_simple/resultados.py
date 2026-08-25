@@ -352,7 +352,7 @@ def main():
                 "idx": INDICE_INSTANCIA,
                 "poblacion": NUM_PARTICULAS,
                 "iteraciones": NUM_ITERACIONES,
-                "dtw_window": DTW_CFG.window,
+                **DTW_CFG.to_dict(),
             },
         )
 

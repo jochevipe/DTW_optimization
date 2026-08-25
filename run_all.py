@@ -30,7 +30,6 @@ ETAPAS = [
     # -- DTW: Binary --
     ("Binary-Simple",           "binary_simple.resultados",  []),
     ("Binary-Hysteresis",       "binary_hysteresis.resultados", []),
-    ("Binary-Diversity-Predictive", "binary_diversity_predictive.resultados", []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════

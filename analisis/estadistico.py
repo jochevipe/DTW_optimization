@@ -40,13 +40,6 @@ RESULT_DIR_PREFIX = "comparacion_mhs_"
 HYSTERESIS_RULE = (
     "A4 fire sustained (plateau+constant+ramp) -> explore; improvement -> exploit"
 )
-# Canonical Binary-Diversity-Predictive rule (single source:
-# binary_diversity_predictive/config.py::DECISION_RULE; this literal must stay
-# identical — see the maintenance note in contexto/README.md).
-DIVERSITY_PREDICTIVE_RULE = (
-    "exploit if improvement AND div<=P50; "
-    "explore if (fire AND div<=P20) OR (rising delta slope>0 AND delta>=theta_delta)"
-)
 # Legacy Binary-Hysteresis rules kept for old campaigns (campaign-id
 # intersection elsewhere prevents mixing old and new runs):
 _HYSTERESIS_RULES_LEGACY = (
@@ -144,15 +137,6 @@ def _strategy_rule(strategy: str, info: dict, directory: Path) -> Optional[str]:
             f"expected {HYSTERESIS_RULE!r}"
         )
 
-    if strategy == "binary_diversity_predictive":
-        rule = info.get("decision_rule")
-        if rule != DIVERSITY_PREDICTIVE_RULE:
-            raise ResultMetadataError(
-                f"{directory}: Binary-Diversity-Predictive decision_rule is "
-                f"{rule!r}; expected {DIVERSITY_PREDICTIVE_RULE!r}"
-            )
-        return rule
-
     return None
 
 
@@ -227,8 +211,7 @@ def inspect_result_directory(
         decision_rule = _strategy_rule(strategy, info, directory)
 
         dtw_window = info.get("dtw_window")
-        if strategy in {"binary_simple", "binary_hysteresis",
-                        "binary_diversity_predictive"}:
+        if strategy in {"binary_simple", "binary_hysteresis"}:
             if (
                 isinstance(dtw_window, bool)
                 or not isinstance(dtw_window, int)
@@ -629,10 +612,6 @@ def main():
         "Binary-Hysteresis": (
             BASE / "results" / "binary_hysteresis" / "todos",
             "binary_hysteresis",
-        ),
-        "Binary-Diversity-Predictive": (
-            BASE / "results" / "binary_diversity_predictive" / "todos",
-            "binary_diversity_predictive",
         ),
     }
     try:

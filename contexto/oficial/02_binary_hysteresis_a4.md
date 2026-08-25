@@ -1,87 +1,90 @@
-# Binary-Hysteresis — Histéresis sobre el disparo A4 sostenido
+# Binary-Hysteresis — Histéresis Asimétrica sobre el Disparo A4 Sostenido
 
-> **Documento oficial de implementación** (estrategia A9)
-> Código: carpeta `binary_hysteresis/` (`config.py`, `runner.py`, `run.py`, `resultados.py`)
-> Reemplaza al diseño original basado en delta puro, que resultó no funcional (ver §4).
+> **Documento oficial de implementación y marco teórico** (estrategia A9)  
+> Código: carpeta `binary_hysteresis/` (`config.py`, `runner.py`, `run.py`, `resultados.py`)  
+> Reemplaza al diseño original basado en delta puro, que resultaba bloqueado (ver §5).
 
 ---
 
-## 1. Idea central
+## 1. Idea Central y Filosofía de Control
 
-Binary-Hysteresis es un **autómata de dos estados con histéresis asimétrica** sobre las
-señales del monitor:
+Binary-Hysteresis es un **controlador con memoria (*stateful*) y conmutación asimétrica** que regula los modos de *Exploración* y *Explotación* de las metaheurísticas:
 
-- **Entrar a exploración exige evidencia fuerte**: el disparo A4 completo del monitor,
-  sostenido durante varias iteraciones.
-- **Salir de exploración solo requiere una mejora**: en cuanto aparece progreso nuevo,
-  vuelve a explotar.
+- **Entrar a Exploración exige evidencia acumulada**: Requiere la confirmación del disparo A4 completo del monitor (meseta prolongada + planitud $D_2$ + ausencia de rampa), sostenido durante $patience$ iteraciones consecutivas.
+- **Salir de Exploración requiere un evento real de progreso**: Se mantiene explorando de manera **sostenida y protegida** hasta que la metaheurística efectivamente descubre una mejora en su mejor fitness histórico (`no_improve_len == 0`). En ese instante exacto, regresa a explotación para intensificar y refinar la nueva cuenca encontrada.
 
-Esta asimetría evita el *flickering* (alternancia iteración a iteración) sin caer en
-condiciones de salida inalcanzables.
+Esta asimetría crea un **pestillo (*latch*) temporal** que elimina por completo el *flickering* (cambios bruscos iteración a iteración) y protege la diversidad de la población.
 
-## 2. Reglas de transición
+---
+
+## 2. Reglas de Transición de Estados
 
 ```text
-                ┌──────────────────────────────────────────────────┐
-                ▼                                                  │ mejora
-        ┌──────────────┐   fire del monitor (A4 sostenido)  ┌────────┴────────┐
-        │    EXPLOIT   │   = plateau ∧ D2≤θc ∧ (D1≥θr ∨     │     EXPLORE     │
-        │              │     δ≥θδ), held ≥ patience iters    │                 │
-        └──────────────┘────────────────────────────────────►│                 │
-                ◄──────────────────────────────────────────── └─────────────────┘
-                                no_improve_len == 0 (mejora detectada)
+                  ┌────────────────────────────────────────────────────────┐
+                  │                                                        │
+                  ▼                                                        │ SE DETECTA UNA MEJORA
+         ┌─────────────────┐        ESTANCAMIENTO CONFIRMADO      ┌────────┴────────┐
+         │     EXPLORE     │◄─────────────────────────────────────┤     EXPLOIT     │
+         │ (Fase Sostenida)│       (out["fire"] == True de A4:    │ (Intensificación)│
+         └─────────────────┘       plateau ∧ D2≤θc ∧ (D1≥θr ∨     └─────────────────┘
+                                   δ≥θδ) durante patience iters)
 ```
 
-| Estado actual | Condición | Nuevo estado |
+| Estado Actual | Evento Evaluado | Nuevo Estado | Explicación Operativa |
+|---|---|---|---|
+| **Warm-up** (`ready=False`) | — | `explore` | Permanece en el modo inicial configurado hasta llenar la ventana $W$. |
+| **`exploit` $\to$ `explore`** | `out["fire"] == True` | `explore` | Disparo A4 sostenido: estancamiento severo confirmado por el monitor. |
+| **`explore` $\to$ `exploit`** | `no_improve_len == 0` | `exploit` | Salto de fitness: la exploración descubrió una solución mejor; se conmuta a refinarla. |
+| **Cualquier otro caso** | No hay disparo ni mejora | Mantiene estado | Preserva el régimen activo sin oscilaciones espurias. |
+
+---
+
+## 3. Comparación Crítica: Binary-Hysteresis Actual vs Fire Binario Original (Notebook / A4)
+
+Una duda conceptual frecuente es en qué se diferencia esta estrategia del **Fire Binario original del notebook**. La distinción es profunda:
+
+| Dimensión | Fire Binario Original (Notebook / A4) | Binary-Hysteresis Actual (A9) |
 |---|---|---|
-| Warm-up (`ready=False`) | — | Permanece en su modo inicial (`explore`) |
-| `exploit` → `explore` | `out["fire"] == True` (disparo A4 sostenido del monitor) | Exploración |
-| `explore` → `exploit` | `no_improve_len == 0` (mejora del mejor fitness) | Explotación |
+| **Naturaleza del Controlador** | **Sin memoria (*stateless*)**: Evalúa `fire` instantáneo en cada iteración. | **Con memoria (*stateful*)**: Mantiene un estado persistente (`self.mode`). |
+| **Entrada a Explore** | `out["fire"] == True` (3 condiciones $\land$ paciencia). | `out["fire"] == True` (exactamente la misma condición A4). |
+| **Salida de Explore** | **Inmediata cuando `fire == False`**: Basta con que una sola de las 3 condiciones oscile para perder el modo. | **Solo ante progreso real**: Requiere `no_improve_len == 0` ($\text{fitness}(t) > \text{fitness}(t-1)$). |
+| **Tiempo de permanencia en Explore** | **Efímero y frágil** (1 o 2 iteraciones aisladas). | **Sostenido y protegido** (todo el tiempo necesario hasta encontrar una mejor solución). |
+| **Riesgo de *Flickering*** | **Extremo**: Oscila constantemente en el borde del umbral. | **Nulo**: La histéresis bloquea el estado hasta que haya un resultado. |
+| **Impacto en MKP** | Fallaba porque la MH colapsa si pasa 95% del tiempo en exploit. | Da a la MH la diversidad necesaria para escapar de óptimos locales. |
 
-Detalles:
+---
 
-- `out["fire"]` es calculado por `StagnationMonitor` y ya incorpora la paciencia:
-  `trigger_streak >= patience` con las tres condiciones booleanas activas.
-- El controlador arranca en `explore` (`initial_mode="explore"`), consistente con la
-  política experimental de comparar contra `vanilla_exploracion`.
-- Durante el warm-up el runner invoca igualmente al controlador (`decision_on_early=True`),
-  que responde con su modo actual hasta tener datos reales.
-- Cada época recibe una instancia fresca vía `fire_fn_factory` (el controlador es stateful).
+## 4. Ejemplo Práctico Iteración a Iteración
 
-## 3. Cobertura de métricas
+Supongamos que la metaheurística cae en una meseta en la iteración 50:
 
-Con esta estrategia, el estudio cubre todo el espacio de señales del sensor:
+| Iteración | Señal del Monitor DTW | Fire Binario Original (Notebook) | Binary-Hysteresis Actual |
+|---|---|---|---|
+| **50–52** | Meseta detectada, `fire=True` | Cambia a `explore` | Cambia a `explore` |
+| **53** | La exploración generó dispersión; $D_1$ bajó levemente $\to$ `fire=False` (pero **no hubo mejora** de fitness). | ❌ **Vuelve a `exploit` prematuramente** (colapsando la población otra vez). | ✅ **Permanece en `explore`** (sigue buscando activamente). |
+| **54–58** | `fire=False`, la población sigue buscando. | ❌ Sigue atrapada en `exploit`. | ✅ Sigue buscando en `explore`. |
+| **59** | La MH encuentra un nuevo mejor fitness ($\text{fitness} \uparrow$). | Está en `exploit` por azar. | ✅ **Detecta la mejora y conmuta a `exploit`** para intensificar sobre el nuevo pico. |
 
-| Estrategia | Señal usada | Rol en el estudio |
-|---|---|---|
-| Binary-Simple (A3) | Solo `D2 ≤ θc` | Ablation de métrica única |
-| Binary-Hysteresis (A9) | `D1`, `D2`, `delta` + meseta + paciencia (regla A4 completa) | Estrategia de señal completa |
+---
 
-## 4. Por qué se reescribió (lección aprendida)
+## 5. Lección Aprendida: Por qué se descartó la versión previa con $\Delta \le 0$
 
-El diseño original usaba histéresis pura sobre delta: entrar a explore cuando
-`delta ≥ θδ`, salir cuando `delta ≤ 0`. En la curva escalera del MKP, `delta = D1 − D2`
-es **estrictamente positivo casi siempre** (la ventana se parece más a una constante que
-a una rampa), por lo que la condición de salida era inalcanzable: el controlador quedaba
-bloqueado en explore y producía resultados **bit-idénticos a `vanilla_exploracion`**
-(confirmado empíricamente en la campaña de 2026-08-22: 20/20 comparaciones con diff ±0.0
-y p=1.0).
+El primer diseño de histéresis intentó usar:
+- Entrada: $\Delta \ge \theta_\delta$
+- Salida: $\Delta \le 0$
 
-La regla A4 del monitor resuelve esto porque sus tres condiciones booleanas sí se activan
-en estancamiento real, y la salida depende de progreso observable (mejora), no de un
-evento geométricamente raro.
+**El fallo matemático**: En MKP, la curva de mejor fitness es una **función escalera monótona** (derivada 0 casi en todo punto). Tras las primeras 50 iteraciones, $D_2 \to 0$ y $D_1$ es alto, por lo que $\Delta = D_1 - D_2 > 0$ se mantiene estrictamente positivo casi el 100% del tiempo.
 
-## 5. Configuración del sensor
+La condición $\Delta \le 0$ era **geométricamente inalcanzable**, haciendo que el controlador quedara atrapado en `explore` para siempre (produciendo resultados bit-idénticos a `vanilla_exploracion`, comprobado en la campaña del 2026-08-22 con 20/20 comparaciones idénticas).
 
-Comparte la configuración DTW global de `mkp_common/config.py` (`DTW_FIRE_D2`):
-`window=50`, `band=2`, `min_slope=2.0`, `use_ddtw=True`, `adapt_thresholds=True`,
-`p_low=30`. Los parámetros de la regla A4 (`plateau_max=4`, `patience=2`) viven en la
-configuración del monitor (`mkp_common/config.py`).
+**La solución actual** resolvió esto reemplazando la condición de salida abstracta por la señal empírica directa de éxito: **la aparición de una mejora real de fitness (`no_improve_len == 0`)**.
 
-## 6. Integración
+---
 
-- Registrada como `binary_hysteresis` en `run_all_hpc.py` (`STRATEGIES`) y como etapa en `run_all.py`.
-- Metadatos guardados con `decision_rule` canónico exportado como constante desde
-  `binary_hysteresis/config.py`; ese mismo string valida `analisis/estadistico.py`.
-- Los strings legacy de campañas antiguas siguen aceptándose, pero la intersección estricta
-  de `campaign_id` impide mezclar campañas viejas (controlador muerto) con nuevas.
+## 6. Configuración e Integración en el Código
+
+- **Configuración DTW**: Comparte la configuración global en `mkp_common/config.py` (`DTW_FIRE_D2`):
+  `window=200` (o `50`), `band=2`, `min_slope=2.0`, `use_ddtw=True`, `adapt_thresholds=True`, `p_low=30`.
+- **Parámetros A4**: `plateau_max=4`, `patience=2`.
+- **Fábrica de Controladores**: Cada época recibe una instancia fresca e independiente vía `make_fire_fn(initial_mode="explore")` (`fire_fn_factory`).
+- **Registro**: Integrada en `run_all_hpc.py` y `run_all.py` bajo la clave `"binary_hysteresis"`.
