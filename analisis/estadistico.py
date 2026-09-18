@@ -40,6 +40,9 @@ RESULT_DIR_PREFIX = "comparacion_mhs_"
 HYSTERESIS_RULE = (
     "A4 fire sustained (plateau+constant+ramp) -> explore; improvement -> exploit"
 )
+PATIENT_RULE = (
+    "D2 <= theta_c sustained for patience iterations -> explore; improvement -> exploit"
+)
 # Legacy Binary-Hysteresis rules kept for old campaigns (campaign-id
 # intersection elsewhere prevents mixing old and new runs):
 _HYSTERESIS_RULES_LEGACY = (
@@ -137,6 +140,15 @@ def _strategy_rule(strategy: str, info: dict, directory: Path) -> Optional[str]:
             f"expected {HYSTERESIS_RULE!r}"
         )
 
+    if strategy == "binary_patient":
+        rule = info.get("decision_rule")
+        if rule != PATIENT_RULE:
+            raise ResultMetadataError(
+                f"{directory}: Binary-Patient decision_rule is {rule!r}; "
+                f"expected {PATIENT_RULE!r}"
+            )
+        return rule
+
     return None
 
 
@@ -211,7 +223,7 @@ def inspect_result_directory(
         decision_rule = _strategy_rule(strategy, info, directory)
 
         dtw_window = info.get("dtw_window")
-        if strategy in {"binary_simple", "binary_hysteresis"}:
+        if strategy in {"binary_simple", "binary_hysteresis", "binary_patient"}:
             if (
                 isinstance(dtw_window, bool)
                 or not isinstance(dtw_window, int)
@@ -612,6 +624,10 @@ def main():
         "Binary-Hysteresis": (
             BASE / "results" / "binary_hysteresis" / "todos",
             "binary_hysteresis",
+        ),
+        "Binary-Patient": (
+            BASE / "results" / "binary_patient" / "todos",
+            "binary_patient",
         ),
     }
     try:

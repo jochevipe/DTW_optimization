@@ -30,6 +30,7 @@ ETAPAS = [
     # -- DTW: Binary --
     ("Binary-Simple",           "binary_simple.resultados",  []),
     ("Binary-Hysteresis",       "binary_hysteresis.resultados", []),
+    ("Binary-Patient",          "binary_patient.resultados", []),
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════

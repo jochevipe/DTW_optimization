@@ -40,4 +40,4 @@ Total: 27 instancias (9 archivos × 3 índices).
 
 ## Evidencia de commits
 
-- `412d025` — feat: multi-index HPC campaign for Chu-Beasley revision (27 instances): run_benchmark_hpc.py + INSTANCIAS_SELECCIONADAS.md + este doc. Smoke test end-to-end previo: mknapcb1[0], 2 epochs, 32/32 tareas OK, análisis estadístico OK, manifiesto generado.
+- `792c099` — feat: multi-index HPC campaign for Chu-Beasley revision (27 instances): run_benchmark_hpc.py + INSTANCIAS_SELECCIONADAS.md + este doc. Smoke test end-to-end previo: mknapcb1[0], 2 epochs, 32/32 tareas OK, análisis estadístico OK, manifiesto generado.
