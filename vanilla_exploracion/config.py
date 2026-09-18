@@ -1,5 +1,5 @@
 """
-Vanilla-Exploración config — MHs forzadas a modo exploración.
+Vanilla-Exploration config — MHs forzadas a modo exploración.
 Todas las constantes vienen de mkp_common.config.
 """
 

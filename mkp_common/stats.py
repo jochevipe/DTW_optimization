@@ -371,7 +371,7 @@ def _can_encode_unicode() -> bool:
 
 def format_table(
     results: Dict,
-    title: str = "Statistical Comparison vs Exploration-only",
+    title: str = "Statistical Comparison vs Vanilla-Exploration",
     ascii_only: Optional[bool] = None,
 ) -> str:
     """
@@ -447,7 +447,7 @@ def format_table(
 
     # Column headers.
     pm_symbol = "+/-" if ascii_only else "±"
-    headers = ["MH", f"Exploration-only (mean {pm_symbol} std)"] + version_names
+    headers = ["MH", f"Vanilla-Exploration (mean {pm_symbol} std)"] + version_names
 
     # Column widths based on content.
     col_widths = [len(h) for h in headers]
@@ -572,7 +572,7 @@ def format_math_table(
         b_std = mh_entry["baseline_std"]
 
         lines.append(f"  [{mh}]")
-        lines.append(f"    Baseline (Exploration-only): {b_mean:.1f} +/- {b_std:.1f}")
+        lines.append(f"    Baseline (Vanilla-Exploration): {b_mean:.1f} +/- {b_std:.1f}")
         lines.append(
             f"    {'Version':<20s} {'Mean':>10s} {'Std':>10s} "
             f"{'Mean diff':>11s} {'Paired median diff':>19s} {'p-value':>10s} "
@@ -626,7 +626,7 @@ def format_math_table(
 
 def format_time_table(
     results: Dict,
-    title: str = "Descriptive Runtime Comparison vs Exploration-only",
+    title: str = "Descriptive Runtime Comparison vs Vanilla-Exploration",
     ascii_only: Optional[bool] = None,
 ) -> str:
     """Format descriptive execution-time statistics separately for every MH.
@@ -695,8 +695,8 @@ def format_time_table(
         "=" * table_width,
         f"  {title}",
         "  Descriptive runtime data only; no significance claim is made.",
-        "  Difference = version mean - Exploration-only baseline mean; negative means FASTER.",
-        "  Relative change = 100 * difference / Exploration-only baseline mean.",
+        "  Difference = version mean - Vanilla-Exploration baseline mean; negative means FASTER.",
+        "  Relative change = 100 * difference / Vanilla-Exploration baseline mean.",
         "=" * table_width,
         "",
     ]
@@ -713,7 +713,7 @@ def format_time_table(
         baseline_std = mh_entry.get("baseline_time_std", np.nan)
         lines.append(f"  [{mh}]")
         lines.append(
-            "    Baseline (Exploration-only): "
+            "    Baseline (Vanilla-Exploration): "
             f"{format_mean_std(baseline_mean, baseline_std)} s"
         )
         lines.append(table_row(headers))

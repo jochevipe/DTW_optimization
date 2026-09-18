@@ -1,5 +1,5 @@
 """
-Runner para Vanilla-Explotación.
+Runner para Vanilla-Exploitation.
 Reusa el runner vanilla (las MHs ya arrancan en modo exploit por defecto).
 """
 

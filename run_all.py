@@ -25,11 +25,11 @@ from pathlib import Path
 ETAPAS = [
     # (nombre, módulo_a_ejecutar, args_extra)
     # -- Líneas base sin DTW --
-    ("Vanilla-Explotación",     "vanilla_explotacion.resultados",  []),
-    ("Vanilla-Exploración",     "vanilla_exploracion.resultados",  []),
+    ("Vanilla-Exploitation",     "vanilla_explotacion.resultados",  []),
+    ("Vanilla-Exploration",     "vanilla_exploracion.resultados",  []),
     # -- DTW: Binary --
     ("Binary-Simple",           "binary_simple.resultados",  []),
-    ("Binary-Hysteresis",       "binary_hysteresis.resultados", []),
+    ("Binary-Complex",        "binary_complex.resultados", []),
     ("Binary-Patient",          "binary_patient.resultados", []),
 ]
 
