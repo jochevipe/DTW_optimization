@@ -31,3 +31,4 @@ Thumbs.db
 /logs
 
 # Generated experiment campaigns; existing tracked research artifacts remain tracked.
+.pi

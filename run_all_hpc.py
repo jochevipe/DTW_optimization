@@ -299,6 +299,11 @@ def _parse_args() -> argparse.Namespace:
         choices=list(STRATEGIES),
         help="Strategies to skip (e.g., --skip vanilla fire_d2)",
     )
+    p.add_argument(
+        "--no-stats",
+        action="store_true",
+        help="Skip the statistical analysis subprocess at the end",
+    )
     return p.parse_args()
 
 
@@ -428,7 +433,7 @@ def main() -> int:
     # Total task count
     total_tasks = len(active_strategies) * len(MHS) * n_epochs
 
-    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_id = os.environ.get("MKP_CAMPAIGN_ID") or datetime.now().strftime("%Y%m%d_%H%M%S")
     os.environ["MKP_CAMPAIGN_ID"] = run_id
     inst_name = Path(instancia).stem
     instance_label = f"{inst_name}[{indice}]"
@@ -546,7 +551,9 @@ def main() -> int:
     print("=" * 70)
 
     # ── Statistical analysis ─────────────────────────────────────────────
-    if completed >= 1:
+    if args.no_stats:
+        print("\n  [SKIP] Statistical analysis skipped (--no-stats).")
+    elif completed >= 1:
         print()
         print("=" * 70)
         print("  STATISTICAL ANALYSIS")

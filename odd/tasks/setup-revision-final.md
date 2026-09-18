@@ -23,6 +23,7 @@ Decisiones del usuario:
 
 ## Evidencia de commits
 
-- `3f9a31f` — refactor: rename binary_hysteresis to binary_complex + labels del paper unificados (verificado: imports OK, smoke idx=15 con 5 estrategias y estadística con nombres nuevos).
-- `(docs)` — actualización de INSTANCIAS_SELECCIONADAS.md a índices 0/15/29 + docs Round-1.
-- `(chore)` — limpieza de datasets viejos, resultados y zip.
+- `0f9c60b` — refactor: rename binary_hysteresis to binary_complex + labels del paper unificados.
+- `472d115` — docs: índices oficiales 0/15/29 en INSTANCIAS_SELECCIONADAS.md + docs Round-1.
+- `73379d6` — chore: limpieza de 5 datasets de sensibilidad, campañas viejas de results/, diversity-predictive v3 y mknapcb.zip (~130K líneas borradas).
+- Verificación: imports/py_compile OK, smoke run_all_hpc mknapcb1[15] con 5 estrategias → estadística con Vanilla-Exploration baseline y columna Binary-Complex.

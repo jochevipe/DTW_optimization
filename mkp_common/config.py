@@ -30,14 +30,15 @@ SEMILLA = 1   # None for real randomness across runs
 # ═══════════════════════════════════════════════════════════════════════════
 # DTW — base fields shared by all DTW-enabled strategies
 # ═══════════════════════════════════════════════════════════════════════════
+# Environment overrides are used by the OAT sensitivity runner.
 _DTW_BASE = dict(
-    window=100,
-    band=2,
-    min_slope=2.0,
+    window=int(os.environ.get("MKP_WINDOW", 100)),
+    band=int(os.environ.get("MKP_BAND", 2)),
+    min_slope=float(os.environ.get("MKP_MIN_SLOPE", 2.0)),
     use_ddtw=True,
     adapt_thresholds=True,
-    p_low=20.0,   # Percentil para theta_c (estancamiento / meseta D2)
-    p_high=80.0,  # Percentil para theta_r y theta_delta (progreso / rampa D1)
+    p_low=float(os.environ.get("MKP_P_LOW", 20.0)),   # Percentil para theta_c (estancamiento / meseta D2)
+    p_high=float(os.environ.get("MKP_P_HIGH", 80.0)),  # Percentil para theta_r y theta_delta (progreso / rampa D1)
 )
 
 # --- Fire D2 (A3) — D2-pure: fire when D2 <= theta_c ---
@@ -45,6 +46,6 @@ _DTW_BASE = dict(
 # but are NOT used in the A3 decision function.
 DTW_FIRE_D2 = StagnationConfig(
     **_DTW_BASE,
-    plateau_max=5,
-    patience=3,
+    plateau_max=int(os.environ.get("MKP_PLATEAU_MAX", 5)),
+    patience=int(os.environ.get("MKP_PATIENCE", 3)),
 )
