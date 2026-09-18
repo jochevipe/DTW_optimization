@@ -21,4 +21,4 @@ Origen: Frente 1 de `contexto/Round-1/SINTESIS_REVIEWS.md` (comparación de vari
 
 ## Evidencia de commits
 
-- (pendiente)
+- `9a20c42` — feat: add Binary-Patient (A10) strategy with D2 patience (11 files, +903): paquete binary_patient/, cableado run_all.py + run_all_hpc.py + analisis/estadistico.py, doc ESTRATEGIA_A10_BINARY_PATIENT.md. Verificaciones: unit del controlador, gentle-ai-verify VERIFIED, smoke integrado 5 estrategias 40/40 tareas con columna Binary-Patient en la estadística.
