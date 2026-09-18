@@ -21,7 +21,10 @@ it harder to attribute an observed change to a particular parameter.
 - **Metaheuristics:** PSO, GA, GWO, and DE.
 - **Epochs:** 31 per configuration, instance index, and metaheuristic.
 - **Configurations:** 1 paper base configuration plus 3 off-base values for
-  each of 7 parameters, for **22 configurations** total.
+  each of 6 parameters, for **19 configurations** total. The scope is exactly
+  the parameter set cited by Reviewer 1 (R1.4): window, Sakoe-Chiba band,
+  percentiles (p_low/p_high), tau_pat and pi_max. `min_slope` stays fixed at
+  its paper value (2.0).
 - **Execution:** every run receives all seven environment variables explicitly;
   the base configuration is therefore independent of the local configuration
   defaults.
@@ -32,11 +35,12 @@ The grid is:
 |---|---|
 | `window` | 50, 100, 200*, 400 |
 | `band` | 1, 2*, 4, 8 |
-| `min_slope` | 1.0, 2.0*, 3.0, 4.0 |
 | `p_low` | 20.0, 30.0, 40.0*, 50.0 |
 | `p_high` | 50.0, 60.0*, 70.0, 80.0 |
 | `plateau_max` | 3, 5*, 8, 12 |
 | `patience` | 1, 2, 3*, 5 |
+
+`min_slope` is fixed at 2.0 (paper value) for every configuration.
 
 The per-configuration campaign identifier is recorded in `configs.json`, so
 runs from different OAT configurations cannot overwrite one another. The

@@ -16,9 +16,12 @@ PAPER_BASE = dict(
 )
 
 GRID = {
+    # Scope: only the parameters explicitly cited by Reviewer 1 (R1.4):
+    # W (window), Sakoe-Chiba band, percentiles (p_low/p_high),
+    # tau_pat (patience) and pi_max (plateau_max).
+    # min_slope stays fixed at its paper value (see PAPER_BASE).
     "window": [50, 100, 200, 400],
     "band": [1, 2, 4, 8],
-    "min_slope": [1.0, 2.0, 3.0, 4.0],
     "p_low": [20.0, 30.0, 40.0, 50.0],
     "p_high": [50.0, 60.0, 70.0, 80.0],
     "plateau_max": [3, 5, 8, 12],
@@ -29,7 +32,7 @@ ENV_MAP = {
     "window": "MKP_WINDOW",
     "band": "MKP_BAND",
     "min_slope": "MKP_MIN_SLOPE",
-    "p_low": "MKP_P_LOW",
+"p_low": "MKP_P_LOW",
     "p_high": "MKP_P_HIGH",
     "plateau_max": "MKP_PLATEAU_MAX",
     "patience": "MKP_PATIENCE",
@@ -38,8 +41,12 @@ ENV_MAP = {
 
 def validate_oat_configs(configs: List[Dict[str, Any]]) -> None:
     """Validate the invariant shape of the generated OAT configuration list."""
-    if len(configs) != 22:
-        raise ValueError(f"Expected 22 OAT configurations, got {len(configs)}")
+    expected = 1 + sum(
+        len([value for value in values if value != PAPER_BASE[param]])
+        for param, values in GRID.items()
+    )
+    if len(configs) != expected:
+        raise ValueError(f"Expected {expected} OAT configurations, got {len(configs)}")
     config_ids = [config["config_id"] for config in configs]
     if len(set(config_ids)) != len(config_ids):
         raise ValueError("OAT configuration IDs must be unique")
@@ -83,5 +90,6 @@ def build_oat_configs() -> List[Dict[str, Any]]:
 if __name__ == "__main__":
     # A tiny executable validation keeps the invariant easy to check without
     # starting a campaign.
-    validate_oat_configs(build_oat_configs())
-    print("OAT grid OK: 22 configurations")
+    configs = build_oat_configs()
+    validate_oat_configs(configs)
+    print(f"OAT grid OK: {len(configs)} configurations")

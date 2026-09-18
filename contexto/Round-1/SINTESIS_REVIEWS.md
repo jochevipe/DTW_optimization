@@ -68,13 +68,10 @@ Estrategias del paper: Vanilla-Exploitation, Vanilla-Exploration, Binary-Simple,
 
 ### Frente 3 — Sensibilidad de hiperparámetros
 - Parámetros del paper (Tabla 4): W=200, banda=2, s_min=2.0, p_low=40, p_high=60, π_max=5, τ_pat=3, T=2000, R=31, N=20.
-- **Ya existen datasets de sensibilidad parciales** (commit `7c8e048`):
-  - `results-100-20-80` — W=100, percentiles 20/80
-  - `results-100-50-60` — W=100, percentiles 50/60
-  - `results-200-20-80` — W=200, percentiles 20/80
-  - `results-200-40-60` — W=200, percentiles 40/60 (= valores del paper)
-  - `results_base_50` — W=50, T=1000, regla delta antigua (obsoleta, NO usar)
-- Falta completar: banda Sakoe-Chiba, s_min, π_max, τ_pat (y documentar el criterio de comparación).
+- **Sistema OAT listo** (rama `OAT`, `sensibilidad/`): grid de 6 parámetros × 4 valores centrados en el paper → **19 configuraciones** (1 base + 3 off-base por parámetro). Alcance = exactamente los parámetros citados por R1.4: W, banda Sakoe-Chiba, percentiles (p_low/p_high), π_max, τ_pat. `s_min` queda fijo en 2.0.
+- Instancias del OAT: `mknapcb1[0,15,29]` (estrategia Binary-Complex, 31 epochs × 2000 iteraciones).
+- Comandos HPC: `python -m sensibilidad.run_sensitivity --cpus 40 --epochs 31` (+ `--campaign <id>` para resume) y `python -m sensibilidad.analizar --campaign <id>` para la tabla OAT.
+- Los plots de señales para R3.4/R3.8 (trayectoria best-so-far, D_R(t), D_C(t), Δ(t), estado del controlador) ya se generan por corrida con los plotters de cada estrategia y con `binary_complex/run.py` (análisis individual).
 
 ## 5. Configuración para re-experimentos (valores del paper)
 
