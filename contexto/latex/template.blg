@@ -1,0 +1,69 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: template.aux
+Reallocating 'name_of_file' (item size: 1) to 17 items.
+The style file: Definitions/mdpi.bst
+Reallocating 'name_of_file' (item size: 1) to 11 items.
+Database file #1: references.bib
+Warning--I didn't find a database entry for "dhiman2026decade"
+Warning--I didn't find a database entry for "vcrepinvsek2013exploration"
+Warning--I didn't find a database entry for "zhang2019balancing"
+Warning--I didn't find a database entry for "vega2021learning"
+Warning--I didn't find a database entry for "aleti2016systematic"
+Warning--I didn't find a database entry for "zhang2009jade"
+Warning--I didn't find a database entry for "zhan2009adaptive"
+Warning--I didn't find a database entry for "liu2024adaptive"
+Warning--I didn't find a database entry for "tatsis2023reinforcement"
+Warning--I didn't find a database entry for "eiben-1999"
+Warning--I didn't find a database entry for "talbi-2009"
+Warning--I didn't find a database entry for "talbi2021"
+Warning--I didn't find a database entry for "huang2019survey"
+Warning--I didn't find a database entry for "de2021"
+Warning--I didn't find a database entry for "karafotias2014"
+Warning--I didn't find a database entry for "tanabe2013success"
+Warning--I didn't find a database entry for "yang2022spatial"
+Warning--I didn't find a database entry for "olivares2023learning"
+Warning--I didn't find a database entry for "song2024differential"
+Warning--I didn't find a database entry for "prado2025parameter"
+You've used 11 entries,
+            2887 wiz_defined-function locations,
+            658 strings with 6241 characters,
+and the built_in function-call counts, 4526 in all, are:
+= -- 450
+> -- 179
+< -- 11
++ -- 80
+- -- 46
+* -- 335
+:= -- 662
+add.period$ -- 43
+call.type$ -- 11
+change.case$ -- 11
+chr.to.int$ -- 11
+cite$ -- 11
+duplicate$ -- 232
+empty$ -- 404
+format.name$ -- 78
+if$ -- 1004
+int.to.chr$ -- 1
+int.to.str$ -- 11
+missing$ -- 13
+newline$ -- 65
+num.names$ -- 33
+pop$ -- 97
+preamble$ -- 0
+purify$ -- 11
+quote$ -- 0
+skip$ -- 146
+stack$ -- 0
+substring$ -- 247
+swap$ -- 61
+text.length$ -- 3
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 71
+warning$ -- 0
+while$ -- 43
+width$ -- 0
+write$ -- 156
+(There were 20 warnings)

@@ -1,0 +1,77 @@
+\begin{thebibliography}{999}
+
+\bibitem[Chu and Beasley(1998)]{chu1998genetic}
+Chu, P.C.; Beasley, J.E.
+\newblock A Genetic Algorithm for the Multidimensional Knapsack Problem.
+\newblock {\em Journal of Heuristics} {\bf 1998}, {\em 4},~63--86.
+\newblock {\url{https://doi.org/10.1023/A:1009643010659}}.
+
+\bibitem[Kennedy and Eberhart(1997)]{kennedy1997discrete}
+Kennedy, J.; Eberhart, R.C.
+\newblock A Discrete Binary Version of the Particle Swarm Algorithm.
+\newblock In Proceedings of the Proceedings of the IEEE International
+  Conference on Systems, Man, and Cybernetics. IEEE,  1997, pp. 4104--4108.
+\newblock {\url{https://doi.org/10.1109/ICSMC.1997.637339}}.
+
+\bibitem[Holland(1975)]{holland1975adaptation}
+Holland, J.H.
+\newblock {\em Adaptation in Natural and Artificial Systems}; University of
+  Michigan Press,  1975.
+
+\bibitem[Goldberg(1989)]{goldberg1989genetic}
+Goldberg, D.E.
+\newblock {\em Genetic Algorithms in Search, Optimization and Machine
+  Learning}; Addison-Wesley,  1989.
+
+\bibitem[Mirjalili et~al.(2014)Mirjalili, Mirjalili, and
+  Lewis]{mirjalili2014grey}
+Mirjalili, S.; Mirjalili, S.M.; Lewis, A.
+\newblock Grey Wolf Optimizer.
+\newblock {\em Advances in Engineering Software} {\bf 2014}, {\em 69},~46--61.
+\newblock {\url{https://doi.org/10.1016/j.advengsoft.2013.12.007}}.
+
+\bibitem[Emary et~al.(2016)Emary, Zawbaa, and Hassanien]{emary2016binary}
+Emary, E.; Zawbaa, H.M.; Hassanien, A.E.
+\newblock Binary Grey Wolf Optimization Approaches for Feature Selection.
+\newblock {\em Neurocomputing} {\bf 2016}, {\em 172},~371--381.
+\newblock {\url{https://doi.org/10.1016/j.neucom.2015.06.083}}.
+
+\bibitem[Storn and Price(1997)]{storn1997differential}
+Storn, R.; Price, K.
+\newblock Differential Evolution---A Simple and Efficient Heuristic for Global
+  Optimization over Continuous Spaces.
+\newblock {\em Journal of Global Optimization} {\bf 1997}, {\em 11},~341--359.
+\newblock {\url{https://doi.org/10.1023/A:1008202821328}}.
+
+\bibitem[Pampara et~al.(2006)Pampara, Engelbrecht, and
+  Franken]{pampara2006binary}
+Pampara, G.; Engelbrecht, A.P.; Franken, N.
+\newblock Binary Differential Evolution.
+\newblock In Proceedings of the Proceedings of the IEEE Congress on
+  Evolutionary Computation. IEEE,  2006, pp. 1873--1879.
+\newblock {\url{https://doi.org/10.1109/CEC.2006.1688530}}.
+
+\bibitem[Sakoe and Chiba(1978)]{sakoe1978dynamic}
+Sakoe, H.; Chiba, S.
+\newblock Dynamic Programming Algorithm Optimization for Spoken Word
+  Recognition.
+\newblock {\em IEEE Transactions on Acoustics, Speech, and Signal Processing}
+  {\bf 1978}, {\em 26},~43--49.
+\newblock {\url{https://doi.org/10.1109/TASSP.1978.1163055}}.
+
+\bibitem[Keogh and Pazzani(2001)]{keogh2001derivative}
+Keogh, E.J.; Pazzani, M.J.
+\newblock Derivative Dynamic Time Warping.
+\newblock In Proceedings of the Proceedings of the 2001 SIAM International
+  Conference on Data Mining. SIAM,  2001, pp. 1--11.
+\newblock {\url{https://doi.org/10.1137/1.9781611972719.1}}.
+
+\bibitem[Clerc and Kennedy(2002)]{clerc2002particle}
+Clerc, M.; Kennedy, J.
+\newblock The Particle Swarm---Explosion, Stability, and Convergence in a
+  Multidimensional Complex Space.
+\newblock {\em IEEE Transactions on Evolutionary Computation} {\bf 2002}, {\em
+  6},~58--73.
+\newblock {\url{https://doi.org/10.1109/4235.985692}}.
+
+\end{thebibliography}
