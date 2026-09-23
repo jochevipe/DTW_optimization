@@ -8,7 +8,7 @@ Origen: solicitud del usuario tras el merge con la rama `OAT` (análisis de sens
 0. **Alcance ampliado (decisión posterior)**: «limpiar todo» — el repo queda en cero para los experimentos nuevos basados en los parámetros del OAT. Se autoriza borrar lo obsoleto (queda en la historia de git).
 1. **Alcance**: documentación + archivado/etiquetado de artefactos + bajas de lo obsoleto autorizadas.
 2. **Protocolo oficial de instancias**: muestreo **seed**, **3 instancias por archivo** de problema (27 en total), para responder a la petición de más experimentos de los revisores. La tabla de `frente2-multi-instancia.md` (mknapcb1: 0,18,26 …) es la autoridad; `INSTANCIAS_SELECCIONADAS.md` se reconcilia hacia ella.
-3. **Código legacy**: limpiarlo; quedan en pie las estrategias importantes `binary_simple`, `binary_patient`, `binary_complex` (más las bases vanilla: `vanilla/` es dependencia de `vanilla_explotacion` y baseline del análisis, no se toca).
+3. **Código legacy**: limpiarlo; quedan en pie las estrategias importantes `binary_simple`, `binary_patient`, `binary_complex` (más las bases vanilla: `vanilla/` es runner compartido re-exportado por `vanilla_explotacion`; la baseline del análisis estadístico es `vanilla_exploracion` / Vanilla-Exploration).
 4. **`results*`**: el usuario los borró a mano. Se registra la baja en git (sin recuperar), queda `results/` como output activo y un catálogo de las campañas que hubo.
 
 ## Tareas
@@ -21,7 +21,7 @@ Origen: solicitud del usuario tras el merge con la rama `OAT` (análisis de sens
 6. [x] Reconciliación de instancias y parámetros: `INSTANCIAS_SELECCIONADAS.md` → seed 3/file con la tabla oficial; `instancias_mkp.md` → tabla corregida desde los headers de los archivos de datos.
 7. [x] Actualización de docs de revisión Round-1: `PREGUNTAS_Y_RESPUESTAS_REVISORES.md` (R1.4 → evidencia OAT), `SINTESIS_REVIEWS.md`, `HALLAZGOS_OAT.md` (referencia a `SENSIBILIDAD_OAT.md` etiquetada como rama `OAT`), `especificacion_extraccion_datos.md` etiquetada como especificación futura.
 8. [x] Cierre de ledgers `odd/tasks/`: `binary-patient-a10.md` y `frente2-multi-instancia.md` reconciliados con el estado real; tareas verificadas marcadas.
-9. [ ] Verificación final (read-only): referencias y enlaces entre `.md`, consistencia de nombres, `git status` limpio; reporte de pendientes.
+9. [x] Verificación final (read-only): verificador independiente + remediación de sus 3 hallazgos.
 
 ## Pendientes para el usuario (post-limpieza)
 
@@ -43,8 +43,17 @@ Origen: solicitud del usuario tras el merge con la rama `OAT` (análisis de sens
 - `bcd02f3` — chore: normalize doc filenames and archive legacy notebook (`REVIEWER_1..3.md`, `02_binary_complex_a9.md`, notebook → `contexto/historico/`).
 - `8fcedd2` — docs: rebuild navigation README and context index for the post-OAT campaign.
 - `d179f8b` — docs(odd): track post-merge cleanup feature.
+- `c8eea5b` — docs: consolidate strategy docs for Binary-Simple and Binary-Complex.
+- `685778f` — docs: adopt seeded 3-per-file instance protocol as official.
+- `40920b8` — docs(round-1): refresh review record for the post-OAT state.
+- `52300e3` — docs(odd): close ledgers and catalog the removed pre-OAT campaigns.
+- Commit final de remediación de la verificación independiente (este documento lo contiene).
 
 ## Resolución TDD y RDD (por delegación)
 
 - **TDD**: desactivado. Fuente: no existe configuración TDD en proyecto/sesión (verificado en `.pi/` y `.atl/`) y el repo no tiene runner de tests (unidad solo-documentación). Runner: no aplica; check funcional = validación de links/paths.
 - **RDD**: activo (global). `gentle_review assess` sobre `08c2f29..HEAD` devolvió riesgo `unassessable` (fallos nativos: raíz de trabajo, stop por no-trackeados, `schema-incompatible`) → tratado como high según contrato: autoverificación del escritor + verificador independiente al cierre del rango. Outcome por tarea: `unavailable`.
+
+## Verificación independiente (plan de riesgo RDD)
+
+Verificador independiente (`gentle-ai-verify`) sobre `08c2f29..52300e3`: 82/82 links relativos OK; nombres obsoletos OK; tablas numéricas consistentes y confirmadas contra los headers de los datos; sin claims de Holm-Bonferroni ni baseline errónea en docs del repo; honestidad de estados OK (R1.4 y R2.2 siguen pendientes). Hallazgos remediados en el commit final: (a) dos estados desactualizados en `contexto/README.md`, (b) redacción de este doc que confundía `vanilla/` con la baseline estadística, (c) `__pycache__` residual de `binary_hysteresis/` fuera de git. Ausencias citadas (artefactos OAT en su rama, `results*` borrados, salidas generadas) quedan documentadas: no son defectos.

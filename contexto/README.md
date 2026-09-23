@@ -7,7 +7,7 @@ Material conceptual y evidencia para el estudio de controladores DDTW sobre MKP.
 | Documento | Uso y vigencia |
 |---|---|
 | [`oficial/01_binary_simple_fire_d2.md`](oficial/01_binary_simple_fire_d2.md) | Regla conceptual D2/umbral del controlador **Binary-Simple** activo. Las cifras de configuración que incluya pueden corresponder al artículo o a una etapa anterior; contrastalas con el código. |
-| [`oficial/02_binary_complex_a9.md`](oficial/02_binary_complex_a9.md) | Documento renombrado desde `02_binary_hysteresis_a4.md` para **Binary-Complex**. Contiene valores y explicaciones heredados; su actualización de contenido está pendiente. Para la regla actual, consultá [`binary_complex/config.py`](../binary_complex/config.py). |
+| [`oficial/02_binary_complex_a9.md`](oficial/02_binary_complex_a9.md) | Documento renombrado desde `02_binary_hysteresis_a4.md` para **Binary-Complex**; contenido reescrito para la identidad A9, con tablas de configuración vigente vs histórica. Para la regla efectiva, contrastá con [`binary_complex/config.py`](../binary_complex/config.py). |
 | [`oficial/09_dtw_fundamentos.md`](oficial/09_dtw_fundamentos.md) | Fundamentos del DTW/DDTW, banda, señales y umbrales; referencia teórica, no configuración ejecutable. |
 | [`oficial/mhs/05_mh_pso.md`](oficial/mhs/05_mh_pso.md) | PSO binario: representación y modos. |
 | [`oficial/mhs/06_mh_ga.md`](oficial/mhs/06_mh_ga.md) | Algoritmo genético binario. |
@@ -30,7 +30,7 @@ Los documentos de `oficial/` explican el modelo y las cuatro MH, pero **no certi
 | [`REVIEWER_1.md`](Round-1/REVIEWER_1.md), [`REVIEWER_2.md`](Round-1/REVIEWER_2.md), [`REVIEWER_3.md`](Round-1/REVIEWER_3.md) | Cartas de los revisores: contexto de las solicitudes, no instrucciones de ejecución. |
 | [`SINTESIS_REVIEWS.md`](Round-1/SINTESIS_REVIEWS.md) | Síntesis y frentes de respuesta. |
 | [`PREGUNTAS_Y_RESPUESTAS_REVISORES.md`](Round-1/PREGUNTAS_Y_RESPUESTAS_REVISORES.md) | Hoja de preguntas y respuestas en elaboración. |
-| [`INSTANCIAS_SELECCIONADAS.md`](Round-1/INSTANCIAS_SELECCIONADAS.md) | Documento de selección en reconciliación; la tabla oficial vigente está en [`odd/tasks/frente2-multi-instancia.md`](../odd/tasks/frente2-multi-instancia.md): muestreo con semilla, 3 por archivo, 27 instancias. |
+| [`INSTANCIAS_SELECCIONADAS.md`](Round-1/INSTANCIAS_SELECCIONADAS.md) | Documento de selección de instancias ya conciliado con el protocolo oficial: muestreo con semilla, 3 por archivo, 27 instancias (la tabla vive ahí y en [`odd/tasks/frente2-multi-instancia.md`](../odd/tasks/frente2-multi-instancia.md)). |
 | [`HALLAZGOS_OAT.md`](Round-1/HALLAZGOS_OAT.md) | Resultados descriptivos del OAT, 19 configuraciones de Binary-Simple y Binary-Complex sobre tres índices de `mknapcb1` con 31 épocas. Base para decidir parámetros nuevos, **no** selección definitiva ni generalización a las nueve familias. |
 | [`ESTRATEGIA_A10_BINARY_PATIENT.md`](Round-1/ESTRATEGIA_A10_BINARY_PATIENT.md) | Diseño del controlador Binary-Patient; verificá comportamiento ejecutable en [`binary_patient/config.py`](../binary_patient/config.py). |
 
