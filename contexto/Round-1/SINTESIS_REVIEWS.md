@@ -2,11 +2,16 @@
 
 Paper: DDTW-based adaptive configuration control para MKP (`contexto/latex/template.tex`).
 Estrategias del paper: Vanilla-Exploitation, Vanilla-Exploration, Binary-Simple, Binary-Complex.
+En el código actual se registran `vanilla_explotacion`, `vanilla_exploracion`, `binary_simple`, `binary_patient` (A10) y `binary_complex` (A9); `binary_hysteresis` es el nombre del módulo legado eliminado. Ver [`02_binary_complex_a9.md`](../oficial/02_binary_complex_a9.md) y [`ESTRATEGIA_A10_BINARY_PATIENT.md`](ESTRATEGIA_A10_BINARY_PATIENT.md).
 
-> **Mapeo verificado**: `Binary-Complex` del paper = `binary_complex` del código actual (antes `binary_hysteresis`).
+> **Mapeo verificado**: `Binary-Complex` del paper = `binary_complex` del código actual (sustituye al módulo legado `binary_hysteresis/`, ya eliminado).
 > La estrategia (A9) usa el disparo A4 sostenido del monitor (meseta ∧ D2≤θc ∧ (D1≥θr ∨ δ≥θδ) durante `patience`
 > iteraciones) para ENTRAR a explore, y mejora real (`no_improve_len == 0`) para SALIR.
 > Coincide exactamente con la Eq. (26) del paper (entrada con persistencia τ_pat, salida asimétrica ante mejora).
+
+## Estado del repositorio (2026-09-23)
+
+La rama `dtw_discreto` quedó sin los árboles locales anteriores de `results*` (commit `fe12f2f`): punto de partida limpio para la campaña post-OAT. Los hallazgos auditados del OAT se conservan en [`HALLAZGOS_OAT.md`](HALLAZGOS_OAT.md); sus artefactos primarios siguen en la rama OAT. El conjunto definitivo de parámetros post-OAT aún debe fijarse en `mkp_common/config.py` antes de lanzar la nueva campaña.
 
 ## 1. Calificaciones generales
 
@@ -60,16 +65,16 @@ Estrategias del paper: Vanilla-Exploitation, Vanilla-Exploration, Binary-Simple,
 ### Frente 1 — Otro approach adaptativo para comparar
 - Idea del usuario: variante D1-only (¿qué tan cerca del progreso constante?) y/o simple con capa de patience.
 - ⚠️ Ojo: una variante D1-only sigue siendo DDTW propio. Los revisores piden comparación contra approaches EXISTENTES (literatura). Recomendación: implementar también un **controlador de contador/patience SIN DTW** (clásico stagnation-switching: k iteraciones sin mejora → explore; mejora → exploit). Ese es el baseline natural de la literatura y a la vez el ablation que pide R2.2.
-- **Estado (18/09)**: ✅ variante DTW nueva implementada — **A10 Binary-Patient** (`binary_patient/`): entrada `D2 ≤ θc` sostenido `patience` iteraciones, salida con mejora. Ver `ESTRATEGIA_A10_BINARY_PATIENT.md`. ⏳ Pendiente: el controlador contador/patience SIN DTW (baseline externo + ablation R2.2).
+- **Estado (2026-09-23)**: A10 Binary-Patient (`binary_patient/`) está implementada (commit `9a20c42`): entrada `D2 ≤ θc` sostenido `patience` iteraciones, salida con mejora. Ver [`ESTRATEGIA_A10_BINARY_PATIENT.md`](ESTRATEGIA_A10_BINARY_PATIENT.md) y el seguimiento en [`odd/tasks/binary-patient-a10.md`](../../odd/tasks/binary-patient-a10.md). Sigue pendiente el controlador contador/patience **sin DTW** (baseline para la ablación R2.2); A10 no lo reemplaza.
 
 ### Frente 2 — Más instancias por grupo
 - Estructura real: 9 archivos mknapcb (m ∈ {5,10,30} × n ∈ {100,250,500}), **30 instancias cada uno** (idx 0..29). El paper solo usó idx=0.
-- Idea del usuario: 3 chicas / 3 medianas / 3 grandes por grupo. Recomendación: mantener los 9 grupos (ya cubren chicas/medianas/grandes) y muestrear K índices por grupo (ej. K=3 → 27 instancias) con índices fijos y documentados.
+- **Protocolo oficial (decisión del usuario, 2026-09-23)**: 3 índices por cada uno de los 9 archivos (27 instancias), con idx=0 y otros dos muestreados con semilla. Tabla y reproducción en [`INSTANCIAS_SELECCIONADAS.md`](INSTANCIAS_SELECCIONADAS.md) y [`odd/tasks/frente2-multi-instancia.md`](../../odd/tasks/frente2-multi-instancia.md). La selección fija 0/15/29 queda como antecedente histórico del OAT; la campaña nueva aún no se ha lanzado.
 
 ### Frente 3 — Sensibilidad de hiperparámetros
 - Parámetros del paper (Tabla 4): W=200, banda=2, s_min=2.0, p_low=40, p_high=60, π_max=5, τ_pat=3, T=2000, R=31, N=20.
-- **Sistema OAT listo** (rama `OAT`, `sensibilidad/`): grid de 6 parámetros × 4 valores centrados en el paper → **19 configuraciones** (1 base + 3 off-base por parámetro). Alcance = exactamente los parámetros citados por R1.4: W, banda Sakoe-Chiba, percentiles (p_low/p_high), π_max, τ_pat. `s_min` queda fijo en 2.0.
-- Instancias del OAT: `mknapcb1[0,15,29]` (estrategia Binary-Complex, 31 epochs × 2000 iteraciones).
+- **Campañas OAT completadas y auditadas** (rama `OAT`, módulo `sensibilidad/`): 19 configuraciones por estrategia (1 base + 3 alternativas por cada uno de 6 parámetros) para `binary_complex` y `binary_simple`. Alcance: W, banda Sakoe-Chiba, percentiles (p_low/p_high), π_max, τ_pat; `s_min` queda fijo en 2.0. Hallazgos y límites en [`HALLAZGOS_OAT.md`](HALLAZGOS_OAT.md). Aún falta el análisis pareado base–alternativa con dispersión para R1.4.
+- Instancias del OAT histórico: `mknapcb1[0,15,29]`, 31 épocas × 2000 iteraciones por configuración y estrategia; no confundir con el protocolo post-OAT de Frente 2.
 - Comandos HPC **solo en la rama OAT** (el módulo `sensibilidad/` no se trasladó a `dtw_discreto`): `python -m sensibilidad.run_sensitivity --cpus 40 --epochs 31` (+ `--campaign <id>` para resume) y `python -m sensibilidad.analizar --campaign <id>` para la tabla OAT. Los hallazgos auditados están en `HALLAZGOS_OAT.md`; no ejecutar estos comandos desde esta rama.
 - Los plots de señales para R3.4/R3.8 (trayectoria best-so-far, D_R(t), D_C(t), Δ(t), estado del controlador) ya se generan por corrida con los plotters de cada estrategia y con `binary_complex/run.py` (análisis individual).
 
@@ -84,7 +89,7 @@ Estrategias del paper: Vanilla-Exploitation, Vanilla-Exploration, Binary-Simple,
 | plateau_max (π_max) | 5 | 5 (`DTW_FIRE_D2`) |
 | patience (τ_pat) | 3 | 3 (`DTW_FIRE_D2`) |
 
-⚠️ Antes de enviar una campaña nueva, verificar **todas las estrategias que se usarán**, el manifiesto efectivo y la configuración final; la ventana y los percentiles de esta rama no coinciden con los del paper. No se cambiaron parámetros ni se enviaron jobs en este traslado.
+⚠️ Antes de enviar una campaña nueva, fijar el conjunto definitivo de parámetros post-OAT en `mkp_common/config.py` y verificar **todas las estrategias que se usarán**, el manifiesto efectivo y la configuración final; la ventana y los percentiles actuales de esta rama no coinciden con los del paper. La tabla anterior describe el estado actual, no una decisión final post-OAT. No se cambiaron parámetros ni se enviaron jobs en este traslado.
 
 ## 6. Criterios de respuesta por comentario (cómo contestar)
 
@@ -93,7 +98,7 @@ Estrategias del paper: Vanilla-Exploitation, Vanilla-Exploration, Binary-Simple,
 | R1.1 / R2.2 | Reforzar evidencia: Wilcoxon por instancia/MH ya existente + ablation con controlador contador sin DTW + reencuadrar el claim como "ganancia por condición", no superioridad universal. |
 | R1.2 / R2.4 / R3.1 / R3.2 | Agregar baseline adaptativo externo (contador/patience) + literatura de APC/fuzzy/RL en Related Work + research gap explícito. |
 | R1.4 / R2.3 / R3.5 | Hallazgos OAT sobre W, banda, percentiles, π_max y τ_pat (`s_min` fijo en 2.0); análisis pareado/dispersiones y justificación de referencias y elección de parámetros aún pendientes. No afirmar ausencia de tuning por instancia sin evidencia. |
-| R1.3 | Extender evaluación a múltiples instancias por grupo (ej. 3 índices fijos por archivo). |
+| R1.3 | Evaluar el protocolo oficial muestreado con semilla: 3 índices por archivo, 27 instancias en total; resultados pendientes. |
 | R1.5 / R3.7 | Subsección de análisis por algoritmo: por qué BDE/GA responden mejor que BPSO/BGWO. |
 | R3.3 / R3.6 / R3.4 / R3.8 | Definición completa DDTW + pseudocódigo ampliado + figuras de trayectorias/señales/estados (los datos ya se registran en `historial_dtw`/`historial_modos`). |
 | R2.5 | Publicar código en GitHub (repo ya existe). |

@@ -1,6 +1,6 @@
 # Round 1 — Preguntas y respuestas a revisores
 
-Documento de trabajo para preparar la respuesta a la revisión mayor. Fuente de este esquema: [`SINTESIS_REVIEWS.md`](SINTESIS_REVIEWS.md), sección 2. Las cartas literales están disponibles en `Reviewer 1.md`, `Reviewer 2.md` y `Reviewer 3.md` de esta carpeta: **cotejar cada respuesta con esos textos antes de enviarla**. Los 19 puntos se ordenan por revisor e identificador; las preguntas son reformulaciones de la síntesis, no citas textuales. Hay comentarios que originalmente son solicitudes o críticas, no preguntas literales. Conservar cada ID por separado aunque varios puntos se solapen.
+Documento de trabajo para preparar la respuesta a la revisión mayor. Fuente de este esquema: [`SINTESIS_REVIEWS.md`](SINTESIS_REVIEWS.md), sección 2. Las cartas literales están disponibles en [`REVIEWER_1.md`](REVIEWER_1.md), [`REVIEWER_2.md`](REVIEWER_2.md) y [`REVIEWER_3.md`](REVIEWER_3.md) de esta carpeta: **cotejar cada respuesta con esos textos antes de enviarla**. Los 19 puntos se ordenan por revisor e identificador; las preguntas son reformulaciones de la síntesis, no citas textuales. Hay comentarios que originalmente son solicitudes o críticas, no preguntas literales. Conservar cada ID por separado aunque varios puntos se solapen.
 
 ## Preguntas y solicitudes
 
@@ -46,14 +46,14 @@ Completar cada entrada con la respuesta al revisor, el cambio verificable en el 
 
 - **R1.1:** Pendiente.
 - **R1.2:** Pendiente.
-- **R1.3:** Pendiente.
-- **R1.4:** Pendiente.
+- **R1.3:** Respuesta experimental pendiente; el protocolo oficial de la nueva campaña incluye 27 instancias (3 por archivo, muestreo con semilla): [`INSTANCIAS_SELECCIONADAS.md`](INSTANCIAS_SELECCIONADAS.md) y [`odd/tasks/frente2-multi-instancia.md`](../../odd/tasks/frente2-multi-instancia.md). La selección fija 0/15/29 corresponde al OAT histórico, no a esta campaña.
+- **R1.4:** Evidencia disponible, análisis pareado pendiente: [`HALLAZGOS_OAT.md`](HALLAZGOS_OAT.md). Las campañas OAT terminaron, pero faltan diferencias base–alternativa pareadas y dispersión antes de cerrar la respuesta.
 - **R1.5:** Pendiente.
 
 ### Revisor 2
 
 - **R2.1:** Pendiente.
-- **R2.2:** Pendiente.
+- **R2.2:** Pendiente: el baseline de contador/patience sin DTW para la ablación no está implementado. A10 Binary-Patient sí está implementada, pero aún usa DTW y no sustituye esa ablación (ver [`ESTRATEGIA_A10_BINARY_PATIENT.md`](ESTRATEGIA_A10_BINARY_PATIENT.md)).
 - **R2.3:** Pendiente.
 - **R2.4:** Pendiente.
 - **R2.5:** Pendiente.
