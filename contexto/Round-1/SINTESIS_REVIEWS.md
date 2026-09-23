@@ -68,26 +68,23 @@ Estrategias del paper: Vanilla-Exploitation, Vanilla-Exploration, Binary-Simple,
 
 ### Frente 3 — Sensibilidad de hiperparámetros
 - Parámetros del paper (Tabla 4): W=200, banda=2, s_min=2.0, p_low=40, p_high=60, π_max=5, τ_pat=3, T=2000, R=31, N=20.
-- **Ya existen datasets de sensibilidad parciales** (commit `7c8e048`):
-  - `results-100-20-80` — W=100, percentiles 20/80
-  - `results-100-50-60` — W=100, percentiles 50/60
-  - `results-200-20-80` — W=200, percentiles 20/80
-  - `results-200-40-60` — W=200, percentiles 40/60 (= valores del paper)
-  - `results_base_50` — W=50, T=1000, regla delta antigua (obsoleta, NO usar)
-- Falta completar: banda Sakoe-Chiba, s_min, π_max, τ_pat (y documentar el criterio de comparación).
+- **Sistema OAT listo** (rama `OAT`, `sensibilidad/`): grid de 6 parámetros × 4 valores centrados en el paper → **19 configuraciones** (1 base + 3 off-base por parámetro). Alcance = exactamente los parámetros citados por R1.4: W, banda Sakoe-Chiba, percentiles (p_low/p_high), π_max, τ_pat. `s_min` queda fijo en 2.0.
+- Instancias del OAT: `mknapcb1[0,15,29]` (estrategia Binary-Complex, 31 epochs × 2000 iteraciones).
+- Comandos HPC **solo en la rama OAT** (el módulo `sensibilidad/` no se trasladó a `dtw_discreto`): `python -m sensibilidad.run_sensitivity --cpus 40 --epochs 31` (+ `--campaign <id>` para resume) y `python -m sensibilidad.analizar --campaign <id>` para la tabla OAT. Los hallazgos auditados están en `HALLAZGOS_OAT.md`; no ejecutar estos comandos desde esta rama.
+- Los plots de señales para R3.4/R3.8 (trayectoria best-so-far, D_R(t), D_C(t), Δ(t), estado del controlador) ya se generan por corrida con los plotters de cada estrategia y con `binary_complex/run.py` (análisis individual).
 
 ## 5. Configuración para re-experimentos (valores del paper)
 
-| Parámetro | Paper | Código actual (`mkp_common/config.py`) |
+| Parámetro | Paper | `mkp_common/config.py` en `dtw_discreto` (verificado para este traslado) |
 |---|---|---|
-| Iteraciones T | 2000 | 20 (comentado `#1000`) |
-| Epochs R | 31 | 2 (comentado `#31`) |
-| Ventana W | 200 | 20 |
-| p_low / p_high | 40 / 60 | 30 / 70 (defaults de `StagnationConfig`) |
-| plateau_max (π_max) | 5 | 4 |
-| patience (τ_pat) | 3 | 2 |
+| Iteraciones T | 2000 | 2000 |
+| Epochs R | 31 | 31 |
+| Ventana W | 200 | 100 |
+| p_low / p_high | 40 / 60 | 20 / 80 |
+| plateau_max (π_max) | 5 | 5 (`DTW_FIRE_D2`) |
+| patience (τ_pat) | 3 | 3 (`DTW_FIRE_D2`) |
 
-⚠️ Antes de correr cualquier campaña de revisión hay que alinear `mkp_common/config.py` a los valores del paper.
+⚠️ Antes de enviar una campaña nueva, verificar **todas las estrategias que se usarán**, el manifiesto efectivo y la configuración final; la ventana y los percentiles de esta rama no coinciden con los del paper. No se cambiaron parámetros ni se enviaron jobs en este traslado.
 
 ## 6. Criterios de respuesta por comentario (cómo contestar)
 
@@ -95,7 +92,7 @@ Estrategias del paper: Vanilla-Exploitation, Vanilla-Exploration, Binary-Simple,
 |---|---|
 | R1.1 / R2.2 | Reforzar evidencia: Wilcoxon por instancia/MH ya existente + ablation con controlador contador sin DTW + reencuadrar el claim como "ganancia por condición", no superioridad universal. |
 | R1.2 / R2.4 / R3.1 / R3.2 | Agregar baseline adaptativo externo (contador/patience) + literatura de APC/fuzzy/RL en Related Work + research gap explícito. |
-| R1.4 / R2.3 / R3.5 | Tabla de sensibilidad OAT (one-factor-at-a-time) sobre W, banda, s_min, percentiles, π_max, τ_pat + justificación: valores elegidos por el estudio, sin tuning por instancia. |
+| R1.4 / R2.3 / R3.5 | Hallazgos OAT sobre W, banda, percentiles, π_max y τ_pat (`s_min` fijo en 2.0); análisis pareado/dispersiones y justificación de referencias y elección de parámetros aún pendientes. No afirmar ausencia de tuning por instancia sin evidencia. |
 | R1.3 | Extender evaluación a múltiples instancias por grupo (ej. 3 índices fijos por archivo). |
 | R1.5 / R3.7 | Subsección de análisis por algoritmo: por qué BDE/GA responden mejor que BPSO/BGWO. |
 | R3.3 / R3.6 / R3.4 / R3.8 | Definición completa DDTW + pseudocódigo ampliado + figuras de trayectorias/señales/estados (los datos ya se registran en `historial_dtw`/`historial_modos`). |
