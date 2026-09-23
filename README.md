@@ -1,202 +1,161 @@
-# DTW Optimization — MKP
+# Controladores DDTW para el problema de la mochila multidimensional
 
-Comparación de adaptaciones DTW (Dynamic Time Warping) para la optimización del **Multidimensional Knapsack Problem (MKP)** usando 4 metaheurísticas binarias (PSO, GA, GWO, DE).
+Este repositorio estudia el cambio adaptativo entre exploración y explotación en cuatro
+metaheurísticas binarias (PSO, GA, GWO y DE) para el *Multidimensional Knapsack Problem*
+(MKP). Un monitor DDTW observa las trayectorias de mejor fitness acumulado y alimenta tres
+controladores de cambio de modo. Los experimentos usan las instancias Chu–Beasley de
+`instances/mknapcb{1..9}.txt` y respaldan un artículo en revisión; las observaciones de la
+primera ronda están en [`contexto/Round-1/`](contexto/Round-1/).
 
-## Versiones del estudio (6)
+> **Estado: campaña nueva post-OAT.** Se eliminaron deliberadamente los resultados de
+> campañas anteriores (1456 archivos; recuperables desde el historial de git, commit
+> `fe12f2f`). `results/` es la ruta activa de salida y se crea al ejecutar; no hay resultados
+> históricos que reutilizar allí. El catálogo de campañas anteriores se incorpora en
+> [`contexto/historico/campanas_previas.md`](contexto/historico/campanas_previas.md) durante
+> esta limpieza. Los [hallazgos OAT](contexto/Round-1/HALLAZGOS_OAT.md) son la base para
+> definir los parámetros de la próxima campaña, no evidencia de que una configuración sea
+> óptima en todas las instancias.
 
-| # | Versión | Tipo | Estrategia | Descripción |
-|---|---|---|---|---|
-| 1 | **Vanilla-Explotación** | Baseline | — | MHs forzadas a modo exploit puro durante toda la ejecución |
-| 2 | **Vanilla-Exploración** | Baseline | — | MHs forzadas a modo explore puro durante toda la ejecución |
-| 3 | **Binary-Simple** | DTW Binario | A3 — Fire D₂ | Decisión booleana: `fire = D₂ ≤ θ_c`. La pregunta más directa posible. |
-| 4 | **Binary-Complex** | DTW Binario | A4 — 3 condiciones + patience | Baseline DTW: plateau + D₂ + D₁/Δ + confirmación temporal. Máxima robustez. |
-| 5 | **Continuous-Simple** | DTW Continuo | B3 — D₂ directo | Intensidad continua: `intensity = 1 − clip(D₂/(θ_c × scale))`. El regulador más simple. |
-| 6 | **Continuous-Complex** | DTW Continuo | B1 — Sigmoid Δ | Intensidad sigmoidal sobre delta normalizado. Respuesta no lineal con zona muerta. |
+## Estrategias registradas
 
-> **Documentación conceptual**: `contexto/oficial/` contiene documentos detallados de cada estrategia, cada metaheurística, y los fundamentos del DTW.
+| Clave / nombre | Papel | Regla de cambio de modo |
+|---|---|---|
+| `binary_simple` / Binary-Simple | Controlador estudiado | Dispara exploración cuando `D2 ≤ θc` (distancia a la trayectoria constante por debajo del umbral). |
+| `binary_patient` / Binary-Patient | Controlador estudiado | Entra en exploración tras `patience` disparos consecutivos de `D2 ≤ θc`; vuelve a explotación al detectar una mejora. |
+| `binary_complex` / Binary-Complex | Controlador estudiado | Entra en exploración con el disparo A4 sostenido (meseta, D2 y rampa/delta); vuelve a explotación con una mejora. |
+| `vanilla_exploracion` / Vanilla-Exploration | Baseline | Permanece en exploración; no cambia de modo por DDTW. |
+| `vanilla_explotacion` / Vanilla-Exploitation | Baseline | Permanece en explotación; no cambia de modo por DDTW. |
 
-## Estructura del proyecto
+Son las cinco entradas de `run_all.py` y `run_all_hpc.py`. `vanilla/` es el paquete de ejecución compartido que reutilizan las variantes vanilla; **no** es una sexta estrategia registrada.
 
-```text
-DTW_optimization/
-├── mkp_common/              # Código compartido: MHs, DTW, runner, estadísticas
-│   ├── mh/                  # Metaheurísticas: BinaryPSO, GA, BinaryGWO, BinaryDE
-│   ├── config.py            # Configuración central (población, iteraciones, epochs, DTW)
-│   ├── base.py              # Interfaz BaseMH + adapt_continuous
-│   ├── monitor.py           # StagnationMonitor: DTW + 3 condiciones + umbrales adaptativos
-│   ├── problem.py           # Carga de instancias OR-Library + reparación greedy
-│   ├── runner.py            # Loop genérico con fire_fn inyectable (Strategy pattern)
-│   ├── stats.py             # Wilcoxon + Holm-Bonferroni + tablas
-│   └── results.py           # Guardado/carga de resultados JSON
-├── vanilla_explotacion/     # Versión 1: Baseline — exploit puro
-├── vanilla_exploracion/     # Versión 2: Baseline — explore puro
-├── binary_simple/           # Versión 3: A3 — Fire D₂
-├── binary_complex/          # Versión 4: A4 — 3 condiciones + patience
-├── continuous_simple/       # Versión 5: B3 — D₂ directo continuo
-├── continuous_complex/      # Versión 6: B1 — Sigmoid Δ
-├── contexto/                # Documentación y referencia
-│   ├── oficial/             # Documentos conceptuales (paper)
-│   │   ├── 01_binary_simple_fire_d2.md
-│   │   ├── 02_binary_complex_fire_binario.md
-│   │   ├── 03_continuous_simple_b3_d2.md
-│   │   ├── 04_continuous_complex_b1_sigmoid.md
-│   │   ├── 09_dtw_fundamentos.md
-│   │   └── mhs/             # Documentos de metaheurísticas
-│   │       ├── 05_mh_pso.md
-│   │       ├── 06_mh_ga.md
-│   │       ├── 07_mh_gwo.md
-│   │       └── 08_mh_de.md
-│   ├── info_dtw/            # Explicaciones del DTW como monitor
-│   ├── estrategias_dtw/     # Análisis de estrategias de adaptación
-│   ├── params_instancias/   # Parámetros de referencia e instancias MKP
-│   └── miscelaneo/          # Visualizaciones, DE, enfoque general
-├── instances/               # Instancias Chu & Beasley (OR-Library): mknapcb1..9
-├── analisis/                # Análisis estadístico y boxplots
-├── results/                 # Resultados por estrategia e instancia
-├── run_all.py               # Ejecución secuencial de todas las estrategias
-├── run_all_hpc.py           # Ejecución paralela para HPC/SLURM
-└── run_dtw.sh               # Script de envío a SLURM
-```
+## Parámetros y precondición experimental
 
-## Requisitos
+Valores **actuales del código** en [`mkp_common/config.py`](mkp_common/config.py), frente a los usados en el artículo:
 
-```bash
-pip install numpy scipy matplotlib tqdm
-```
+| Parámetro | Código actual | Artículo |
+|---|---:|---:|
+| Iteraciones (`T`) | 2000 | 2000 |
+| Épocas / semillas (`R`, 1..31) | 31 | 31 |
+| Población | 20 | 20 |
+| Ventana (`W`) | 100 | 200 |
+| Banda Sakoe–Chiba | 2 | 2 |
+| Pendiente mínima (`min_slope`) | 2.0 | 2.0 |
+| DDTW | Activado | Activado |
+| Umbrales adaptativos | Activados | Activados |
+| Percentil bajo (`p_low`) | 20 | 40 |
+| Percentil alto (`p_high`) | 80 | 60 |
+| Meseta máxima (`plateau_max`) | 5 | 5 |
+| Paciencia (`patience`) | 3 | 3 |
 
-> En el HPC Océano se usa un entorno Conda llamado `DTW_optimization`.
+**Antes de lanzar una campaña:** acordar los valores definitivos post-OAT a partir de
+[`HALLAZGOS_OAT.md`](contexto/Round-1/HALLAZGOS_OAT.md), fijarlos en `mkp_common/config.py`
+y registrar esa configuración con los resultados. No hay aquí una selección definitiva
+inventada: el OAT varió seis parámetros de uno en uno alrededor de la configuración del
+artículo, en 19 configuraciones por controlador (`binary_simple` y `binary_complex`), con
+`mknapcb1[0,15,29]` y 31 épocas. La configuración del artículo no fue superior en todos los
+casos; en Binary-Complex, por ejemplo, paciencia 1 dio Δ=−3.970 y paciencia 5, Δ=+2.038
+frente a la base (descriptivo, no prueba de significancia).
 
-## Configuración central
+## Protocolo oficial de instancias
 
-Edita `mkp_common/config.py` para cambiar la instancia, población, iteraciones y epochs:
-
-```python
-RUTA_INSTANCIA = "instances/mknapcb4.txt"   # instancia por defecto
-INDICE_INSTANCIA = 0                         # índice dentro del archivo
-NUM_PARTICULAS = 20
-NUM_ITERACIONES = 200
-EPOCHS = 20
-```
-
-También puedes sobreescribirlo por variable de entorno antes de ejecutar:
+La campaña de ampliación usa muestreo con semilla: **tres índices por cada uno de los nueve archivos**, 27 instancias en total. Incluye el índice 0 y muestrea los otros dos sin reposición. La [tabla oficial de índices](odd/tasks/frente2-multi-instancia.md) fija la selección (0/15/29 fue un protocolo anterior, no el vigente).
 
 ```bash
-export MKP_INSTANCIA=instances/mknapcb1.txt
-export MKP_INDICE=2
+# Desde la raíz del repositorio; lista predeterminada completa mknapcb1..9.
+python run_benchmark_hpc.py --k 3 --sample-seed 1000 --cpus 40 --epochs 31
+
+# Equivalente con la lista explícita de los nueve archivos, en el mismo orden.
+python run_benchmark_hpc.py --instancias instances/mknapcb1.txt instances/mknapcb2.txt instances/mknapcb3.txt instances/mknapcb4.txt instances/mknapcb5.txt instances/mknapcb6.txt instances/mknapcb7.txt instances/mknapcb8.txt instances/mknapcb9.txt --k 3 --sample-seed 1000 --cpus 40 --epochs 31
 ```
 
-## Comandos básicos
+`--sample-seed` **no activa** el muestreo por sí solo: se necesita `--k` (o bien `--indices`
+para una selección explícita). Sin `--k` ni `--indices`, el driver usa un único `--indice 0`
+por archivo. La semilla de cada archivo es `sample-seed + posición en la lista seleccionada`
+(desde 1): para reproducir la tabla oficial hay que usar la lista completa de `mknapcb1` a
+`mknapcb9` en ese orden; ejecutar solo un subconjunto cambia los índices muestreados. La
+selección queda registrada en `results/campaign_<id>/instance_selection.json`.
 
-### 1. Ejecutar una sola estrategia
+## Ejecución y análisis
+
+Las invocaciones siguientes presuponen parámetros fijados y entorno Python con las dependencias del proyecto. No envíes la campaña SLURM predeterminada como sustituto del comando oficial de 27 instancias.
 
 ```bash
-# Líneas base vanilla (sin DTW)
-python -m vanilla_explotacion.resultados
-python -m vanilla_exploracion.resultados
+# Una instancia, cinco estrategias en secuencia (flags: --instancia, --indice).
+python run_all.py --instancia instances/mknapcb1.txt --indice 0
 
-# Estrategias DTW — Binary
-python -m binary_simple.resultados
-python -m binary_complex.resultados
+# Una instancia, ejecución paralela (también: --cpus, --epochs, --skip).
+python run_all_hpc.py --instancia instances/mknapcb1.txt --indice 0 --cpus 40 --epochs 31
 
-# Estrategias DTW — Continuous
-python -m continuous_simple.resultados
-python -m continuous_complex.resultados
+# Driver de campaña: archivos secuenciales; paralelismo dentro de cada instancia.
+python run_benchmark_hpc.py --k 3 --sample-seed 1000 --cpus 40 --epochs 31
 ```
 
-Cada comando guarda resultados en `results/{strategy}/todos/{instancia}_{indice}/comparacion_mhs_{timestamp}/`.
-
-### 2. Ejecutar todas las estrategias secuencialmente
-
-```bash
-python run_all.py
-python run_all.py --instancia instances/mknapcb1.txt
-python run_all.py --instancia instances/mknapcb1.txt --indice 2
-```
-
-### 3. Ejecutar en HPC con paralelismo total (estrategia × MH × epoch)
+`run_benchmark_hpc.py` admite `--instancias` o `--desde`/`--hasta` para elegir archivos;
+`--indice`, `--indices` o `--k` para elegir índices; `--sample-seed`,
+`--include-zero`/`--no-include-zero`, `--cpus`, `--epochs`, `--skip` y `--stop-on-error`.
+`run_all_hpc.py` admite `--instancia`, `--indice`, `--cpus`, `--epochs` y `--skip`;
+`run_all.py`, solo `--instancia` y `--indice`.
 
 ```bash
-python run_all_hpc.py
-python run_all_hpc.py --instancia instances/mknapcb1.txt --indice 0
-python run_all_hpc.py --cpus 40 --epochs 30
-```
-
-### 4. Enviar a SLURM (HPC Océano)
-
-```bash
+# SLURM: solo análisis estadístico de mknapcb1[0], 10 CPU; requiere resultados previos.
 sbatch run_dtw.sh
+
+# SLURM: campaña de 40 CPU; predeterminado: nueve archivos, solo índice 0.
+sbatch run_dtw1.sh
+
+# Análisis local tras generar las cinco estrategias y las cuatro MH.
+python -m analisis.estadistico --instancia instances/mknapcb1.txt --indice 0
+# Opcional: --one-sided (versión > baseline); por defecto, bilateral.
 ```
 
-Ejemplo de `run_dtw.sh`:
+Para la campaña oficial de 27 instancias, enviá al planificador un job que invoque el comando de `run_benchmark_hpc.py` **con `--k 3 --sample-seed 1000`**; `run_dtw1.sh` sin cambios no lo hace.
 
-```bash
-#!/bin/bash
-#SBATCH --job-name=dtw_mkp
-#SBATCH --partition=CPU
-#SBATCH --qos=normal
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=40
-#SBATCH --time=24:00:00
-#SBATCH --output=dtw_%j.out
+## Salidas y estadística
 
-source $HOME/miniconda3/etc/profile.d/conda.sh
-conda activate DTW_optimization
-
-cd /work/jose.villamayor/DTW_optimization
-python run_all_hpc.py --cpus $SLURM_CPUS_PER_TASK
-```
-
-## Análisis estadístico
-
-Una vez generados los resultados, compara todas las versiones contra Vanilla-Explotación con Wilcoxon + Holm-Bonferroni:
-
-```bash
-# Usa los resultados más recientes de cualquier instancia
-python -m analisis.estadistico
-
-# Filtra por instancia específica
-python -m analisis.estadistico --instancia instances/mknapcb4.txt
-python -m analisis.estadistico --instancia instances/mknapcb4.txt --indice 0
-
-# Test one-sided: versión > vanilla
-python -m analisis.estadistico --one-sided
-```
-
-Salidas en `results/estadistico/{instancia}_{indice}/`:
-
-- `tabla_estadistica_{timestamp}.txt`
-- `tabla_matematica_{timestamp}.txt`
-- `comparacion_{timestamp}.png`  ← boxplot con línea verde punteada del óptimo conocido
-
-## Estructura de resultados
+`results/` es salida generada, no un archivo de evidencia histórica. El driver crea además el manifiesto de selección de cada campaña. Por estrategia y par archivo/índice se guardan los JSON de las cuatro MH y gráficos PNG/PDF del lote; el análisis crea tablas y gráficos separados:
 
 ```text
 results/
-├── vanilla_explotacion/
-├── vanilla_exploracion/
-├── binary_simple/
-├── binary_complex/
-├── continuous_simple/
-├── continuous_complex/
-└── estadistico/
-    └── mknapcb4_0/
-        ├── tabla_estadistica_*.txt
-        ├── tabla_matematica_*.txt
-        └── comparacion_*.png
+├── campaign_<id>/instance_selection.json
+├── <strategy>/todos/<instance_stem>_<index>/comparacion_mhs_<timestamp>/
+│   ├── <MH>_<instance_stem>_<index>.json
+│   └── ... gráficos PNG/PDF del lote
+└── estadistico/<instance_stem>_<index>/comparacion_<timestamp>/
+    ├── tabla_estadistica.txt
+    ├── tabla_matematica.txt
+    ├── tabla_tiempos.txt
+    ├── comparacion.pdf
+    └── comparacion.png
 ```
 
-Cada JSON contiene:
+`analisis/estadistico.py` y `mkp_common/stats.py` comparan cada estrategia con
+**Vanilla-Exploration**, emparejando las épocas/semillas y exigiendo las cuatro MH (PSO, GA,
+GWO, DE) con presupuestos coincidentes. Aplican Wilcoxon de rangos con signo pareado
+(`zero_method="zsplit"`), bilateral por defecto con α=0.05 (opción unilateral `--one-sided`),
+y Shapiro–Wilk sobre las diferencias pareadas. **No aplican corrección por comparaciones
+múltiples.** La prueba de suma de rangos mencionada en
+[`contexto/especificacion_extraccion_datos.md`](contexto/especificacion_extraccion_datos.md)
+es una especificación futura, no parte del análisis implementado.
 
-- `fitness`: lista de fitness por epoch
-- `fire_counts`: cantidad de fires DTW por epoch (0 en vanilla)
-- `tiempos`: tiempo de ejecución por epoch
-- `optimo_conocido`: valor óptimo teórico de la instancia
-- `stats`: mejor, promedio, peor, std y gap al óptimo
-- `info`: metadatos del experimento
+## Mapa del repositorio
 
-## Notas de uso
+```text
+mkp_common/              Configuración, monitor DDTW, MH, runner y estadística compartidos
+binary_simple/            Controlador D2 (A3)
+binary_patient/           Controlador D2 con paciencia (A10)
+binary_complex/           Controlador A4 sostenido con histéresis asimétrica
+vanilla/                  Runner compartido de las dos variantes vanilla
+vanilla_exploracion/      Baseline de exploración
+vanilla_explotacion/      Baseline de explotación
+instances/                Archivos Chu–Beasley mknapcb1..9
+analisis/                 Comparación estadística y figuras
+contexto/                 Teoría, revisión Round-1, OAT y archivo histórico
+odd/tasks/                Decisiones y seguimiento de tareas experimentales
+results/                  Salida generada de la nueva campaña (puede no existir aún)
+run_all.py                 Ejecución local de una instancia
+run_all_hpc.py             Ejecución paralela de una instancia
+run_benchmark_hpc.py       Orquestación secuencial de archivos e índices
+run_dtw.sh, run_dtw1.sh    Jobs SLURM de análisis y campaña, respectivamente
+```
 
-- El análisis estadístico empareja resultados por **semilla/epoch** (mismo orden), por lo que todos los experimentos deben usar el mismo número de epochs.
-- La línea horizontal verde en el boxplot representa el **óptimo conocido** de la instancia.
-- Si una metaheurística repite exactamente el mismo fitness en muchas epochs (por ejemplo GA + `binary_complex` en instancias difíciles), eso indica **convergencia prematura**: la población perdió diversidad y el operador de reparación determinístico `reparar()` no genera suficiente variación. Esto no es un bug del código, sino un comportamiento conocido del GA binario con reparación greedy sobre MKP. Para mitigarlo se puede aumentar `NUM_PARTICULAS`, aumentar la tasa de mutación en modo explore, o probar una inicialización más diversa.
+Consultá el [índice de contexto](contexto/README.md) para distinguir teoría, estado actual y material histórico, y [`odd/tasks/`](odd/tasks/) para el protocolo y las decisiones de campaña.
