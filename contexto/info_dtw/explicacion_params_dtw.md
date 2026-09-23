@@ -1,5 +1,7 @@
 # Parametros del DTW: Que miden y como los podes usar
 
+> **Glosario de parámetros y mecanismos, no informe de resultados.** Los números de los ejemplos (incluidos los percentiles 30/70 y las ventanas 10/20/30/50) son ilustrativos, no la configuración del estudio. Para valores vigentes y del artículo, consultá la [tabla de parámetros del README](../../README.md#parámetros-y-precondición-experimental); para sensibilidad observada en OAT, los [hallazgos OAT](../Round-1/HALLAZGOS_OAT.md).
+
 ## El DTW como termometro
 
 Imaginate que la MH es un motor y el DTW es un tablero de instrumentos.
@@ -114,7 +116,7 @@ theta_c = 0.1 * window                       # con adapt_thresholds=False
 ```
 
 Es el umbral que decide si D2 es "suficientemente bajo" para considerar que
-la curva es plana. Se calcula como el percentil 30 del historial de D2.
+la curva es plana. Por ejemplo, con `p_low=30` ilustrativo, se calcula como el percentil 30 del historial de D2 (no es el valor vigente del estudio).
 
 **Que significa**: Si theta_c = 0.5, entonces D2 <= 0.5 implica "si, esto
 es una meseta". Es adaptativo: se autocalibra al rango tipico de D2 que
@@ -135,7 +137,7 @@ theta_r = 0.5 * window                       # con adapt_thresholds=False
 ```
 
 Es el umbral que decide si D1 es "suficientemente alto" para considerar que
-la curva NO es una rampa. Se calcula como el percentil 70 del historial de D1.
+la curva NO es una rampa. Por ejemplo, con `p_high=70` ilustrativo, se calcula como el percentil 70 del historial de D1 (no es el valor vigente del estudio).
 
 **Que significa**: Si theta_r = 15.0, entonces D1 >= 15.0 implica "no, esto
 no es progreso". Es el "estandar de progreso" minimo para esta corrida.
@@ -154,7 +156,7 @@ theta_delta = 0.3 * window                         # con adapt_thresholds=False
 ```
 
 Es el umbral que decide si delta es "suficientemente positivo" para
-considerar que hay estancamiento significativo. Percentil 70 del historial.
+considerar que hay estancamiento significativo. En el ejemplo ilustrativo de `p_high=70`, usa el percentil 70 del historial; no es el valor vigente.
 
 **Que significa**: Si theta_delta = 8.0, entonces delta >= 8.0 implica
 "el estancamiento es peor que el 70% de las veces". Es relativo a la
@@ -186,9 +188,7 @@ window=50  →  mira las ultimas 50 iteraciones (muy estable, muy lento)
 **Efecto en las metricas**: Window grande suaviza D1, D2 y delta. Window
 chico los hace mas volatiles.
 
-**Tradeoff clave**: Con `max_iter=100` y `window=20`, el DTW no arranca
-hasta la iteracion 20 (warm-up). Solo 80 de 100 iteraciones son "activas".
-Si window es demasiado grande relativo a max_iter, el DTW casi no actua.
+**Tradeoff clave (ejemplo ilustrativo, no configuración vigente)**: Con `max_iter=100` y `window=20`, el monitor calcula métricas desde el valor número 20; antes devuelve valores provisionales. Si window es demasiado grande relativo a max_iter, habrá pocas mediciones DDTW válidas. El comportamiento de la decisión durante el arranque depende del controlador: Binary-Simple y Binary-Complex comienzan en exploración.
 
 **Para nuevas versiones**: Podrias usar MULTIPLES ventanas (corta + larga)
 para tener dos perspectivas: una reactiva y una estable. O hacer window
@@ -228,7 +228,7 @@ min_slope=10   →  espera mejora de 10 por iteracion (casi imposible)
 ```
 
 **Efecto critico en D1**: Si min_slope es alto (ej: 2.0 con fitness ~24000),
-la rampa ideal espera 2*20=40 unidades de mejora en la ventana. Esto es
+en una ventana ilustrativa de 20 valores, la rampa ideal espera 2*20=40 unidades de mejora. Esto es
 MUCHO para optimizacion combinatoria. Resultado: D1 es siempre alto →
 delta es siempre positivo → sin las 3 condiciones, el sistema veria
 "estancamiento" todo el tiempo.
@@ -310,7 +310,7 @@ score_progreso = D1 / (theta_r + eps)
 score_balance = delta / (theta_delta + eps)
   → < 0 = progresando
   → 0-1 = estancamiento normal
-  → > 1 = estancamiento severo (peor que el 70% de tu historia)
+  → > 1 = estancamiento severo (en el ejemplo con p_high=70, peor que el 70% de tu historia)
 ```
 
 Estos scores son auto-normalizados (los thetas se adaptan al problema) y

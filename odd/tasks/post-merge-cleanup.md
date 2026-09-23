@@ -13,11 +13,11 @@ Origen: solicitud del usuario tras el merge con la rama `OAT` (análisis de sens
 
 ## Tareas
 
-1. [ ] Verificación de suelo falso (read-only): dependencias reales de `vanilla/` y `binary_hysteresis/`, estrategias registradas en `run_all.py`/`run_all_hpc.py`, valores vigentes de config, método y baseline de `analisis/estadistico.py`, headers reales de los 9 `instances/mknapcb*.txt`.
-2. [ ] Registrar la baja de los 1456 archivos `results*` en git y crear el catálogo de campañas históricas (radiador).
-3. [ ] Operaciones git de estructura: baja del código legacy (`binary_hysteresis/`) y renombrado de archivos con espacios/paréntesis (`Reviewer N.md`, `OII464__calse_3 (1).md`, `02_binary_hysteresis_a4.md` → `02_binary_complex_a9.md`).
-4. [ ] Reescritura de la navegación: `README.md` raíz y `contexto/README.md` como autoridad única (estrategias reales, comandos reales, resultados, método estadístico real).
-5. [ ] Consolidación de docs de estrategia: `01_binary_simple_fire_d2.md` (config versionada: paper vs vigente), `02_binary_complex_a9.md` (rename + nota legacy), enlace a A10 en vez de copiar.
+1. [x] Verificación de suelo falso (read-only): deps, registros, config, stats e headers verificados (gentle-ai-verify).
+2. [x] Registrar la baja de los 1456 archivos `results*` en git (catálogo → tarea 7).
+3. [x] Operaciones git de estructura: baja de `binary_hysteresis/` y `contexto/miscelaneo/`, renombrados y notebook → `contexto/historico/`.
+4. [x] Reescritura de la navegación: `README.md` y `contexto/README.md`.
+5. [x] Consolidación de docs de estrategia: `01_binary_simple_fire_d2.md` (config versionada: paper vs vigente), `02_binary_complex_a9.md` (rename + nota legacy), enlace a A10 en vez de copiar.
 6. [ ] Reconciliación de instancias y parámetros: `INSTANCIAS_SELECCIONADAS.md` → seed 3/file con la tabla oficial; `instancias_mkp.md` → tabla corregida desde los headers de los archivos de datos.
 7. [ ] Actualización de docs de revisión Round-1: `PREGUNTAS_Y_RESPUESTAS_REVISORES.md` (R1.4 → evidencia OAT), `SINTESIS_REVIEWS.md`, `HALLAZGOS_OAT.md` (referencia a `SENSIBILIDAD_OAT.md` etiquetada como rama `OAT`), `especificacion_extraccion_datos.md` etiquetada como especificación futura.
 8. [ ] Cierre de ledgers `odd/tasks/`: `binary-patient-a10.md` y `frente2-multi-instancia.md` reconciliados con el estado real; tareas verificadas marcadas.
@@ -33,4 +33,12 @@ Origen: solicitud del usuario tras el merge con la rama `OAT` (análisis de sens
 
 ## Evidencia de commits
 
-(pendiente)
+- `fe12f2f` — chore: drop pre-OAT result sets and legacy binary_hysteresis module (1456 archivos de results* + `binary_hysteresis/` + extracción de clase malformada).
+- `bcd02f3` — chore: normalize doc filenames and archive legacy notebook (`REVIEWER_1..3.md`, `02_binary_complex_a9.md`, notebook → `contexto/historico/`).
+- `8fcedd2` — docs: rebuild navigation README and context index for the post-OAT campaign.
+- `d179f8b` — docs(odd): track post-merge cleanup feature.
+
+## Resolución TDD y RDD (por delegación)
+
+- **TDD**: desactivado. Fuente: no existe configuración TDD en proyecto/sesión (verificado en `.pi/` y `.atl/`) y el repo no tiene runner de tests (unidad solo-documentación). Runner: no aplica; check funcional = validación de links/paths.
+- **RDD**: activo (global). `gentle_review assess` sobre `08c2f29..HEAD` devolvió riesgo `unassessable` (fallos nativos: raíz de trabajo, stop por no-trackeados, `schema-incompatible`) → tratado como high según contrato: autoverificación del escritor + verificador independiente al cierre del rango. Outcome por tarea: `unavailable`.

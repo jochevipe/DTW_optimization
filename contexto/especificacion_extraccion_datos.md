@@ -1,5 +1,7 @@
 # Especificación de Extracción de Datos, Tablas LaTeX y Gráficos
 
+> **Estado: especificación de un pipeline futuro; NO implementado.** Los campos, tablas y gráficos pedidos abajo describen salidas deseadas, no el esquema JSON disponible hoy. El análisis estadístico implementado usa **Wilcoxon signed-rank pareado** por semilla contra Vanilla-Exploration (`vanilla_exploracion`), **no** Wilcoxon rank-sum; la propuesta de rank-sum de la sección 3 no describe el análisis actual. `state_history` y las métricas DTW por iteración no se persisten hoy en los JSON: `historial_dtw` y `historial_modos` existen en memoria durante cada corrida. Tampoco hay resultados de campañas previas en `results/` tras la limpieza.
+
 Este documento define la estructura requerida para los scripts de procesamiento de datos y generación de salidas (tablas LaTeX y figuras en formato PDF/PNG) a partir de los archivos `.json` de resultados.
 
 ---

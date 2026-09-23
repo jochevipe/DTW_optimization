@@ -7,7 +7,7 @@
 
 ## 1. Posición en el Espacio de Diseño
 
-Dentro de la familia de estrategias de adaptación basadas en DTW, Binary-Simple ocupa el extremo de **máxima simplicidad con señal informada**. Es más simple que la estrategia baseline de 3 condiciones (Binary-Complex, A4), pero más sofisticada que una decisión puramente basada en conteo de iteraciones sin mejora.
+Dentro de la familia de estrategias de adaptación basadas en DTW, Binary-Simple ocupa el extremo de **máxima simplicidad con señal informada**. Es más simple que Binary-Complex (A9), que usa el disparo A4 completo del monitor, pero más sofisticada que una decisión puramente basada en conteo de iteraciones sin mejora. Las baselines registradas son Vanilla-Exploration y Vanilla-Exploitation, no Binary-Complex.
 
 En el espectro de las estrategias booleanas definidas en el marco teórico del proyecto:
 
@@ -16,7 +16,7 @@ En el espectro de las estrategias booleanas definidas en el marco teórico del p
 | A1 — Delta puro | `δ > 0` | Mínima |
 | A2 — Delta + theta | `δ ≥ θ_δ` | Baja |
 | **A3 — D2 puro** | **`D₂ ≤ θ_c`** | **Baja** |
-| A4 — 3 condiciones + patience | D₂, D₁, δ, plateau, patience | Alta |
+| A4 — disparo del monitor usado por Binary-Complex (A9) | D₂, D₁, δ, plateau, patience | Alta |
 | A5 — Ratio normalizado + patience | `δ/θ_δ > 1` con patience | Media |
 
 Binary-Simple implementa la estrategia **A3**, que se distingue por hacer exactamente una pregunta: **¿la curva de fitness se parece a una meseta?**
@@ -32,7 +32,7 @@ El monitor DTW computa dos distancias fundamentales en cada iteración:
 - **D₁**: distancia DTW entre la ventana de fitness y una **rampa ideal** (progreso constante). Un D₁ alto significa que la curva NO se parece a progreso.
 - **D₂**: distancia DTW entre la ventana de fitness y una **meseta** (línea plana). Un D₂ bajo significa que la curva SÍ se parece a estancamiento.
 
-Mientras que la estrategia baseline (A4) exige evidencia simultánea de tres fenómenos distintos (meseta prolongada + curva plana + ausencia de rampa), A3 se enfoca en la señal más fundamental: **D₂ bajo**.
+Mientras que el disparo A4 del monitor exige evidencia simultánea de meseta prolongada, curva plana y ausencia de rampa, A3 se enfoca en una sola señal: **D₂ bajo**.
 
 La intuición es directa: si la curva de convergencia es indistinguible de una línea plana según la métrica DTW, la metaheurística está estancada, independientemente de cuánto tiempo lleve así o de qué tan lejos esté de una rampa ideal.
 
@@ -64,7 +64,7 @@ fire = D₂ ≤ θ_c
 
 Donde:
 - **D₂** es la distancia DTW (derivative) entre la ventana de fitness actual y una meseta ideal
-- **θ_c** es un umbral adaptativo que se auto-calibra durante la ejecución
+- **θ_c** es el umbral de D₂; pasa a ser adaptativo cuando hay suficiente historial de mediciones
 
 Cuando `fire = True`, la metaheurística recibe la señal de cambiar sus parámetros al modo **explore**. Cuando `fire = False`, retorna al modo **exploit**.
 
@@ -76,7 +76,7 @@ Cuando `fire = True`, la metaheurística recibe la señal de cambiar sus paráme
 θ_c = percentile(D₂_hist, p_low)
 ```
 
-Con `p_low = 30`, esto significa que θ_c es el valor por debajo del cual cae el 30% de las observaciones históricas de D₂. En otras palabras: **el sistema aprende qué significa "plano" en el contexto de esta ejecución específica**.
+Con el `p_low = 20` vigente, θ_c corresponde al percentil 20 del historial de D₂ una vez acumuladas 10 mediciones válidas. Antes se usa el umbral provisional `0.1 × W`. Así, durante la fase adaptativa **el sistema aprende qué significa "plano" en el contexto de esta ejecución específica**.
 
 Esta adaptación es fundamental por tres razones:
 
@@ -86,31 +86,31 @@ Esta adaptación es fundamental por tres razones:
 
 3. **Invarianza a la fase de búsqueda**: al inicio, cuando la MH explora, D₂ tiende a ser alto (la curva no es plana). En fases tardías, cuando converge, D₂ tiende a ser bajo. El percentil se ajusta dinámicamente a esta evolución.
 
-### 3.3 Período de warm-up
+### 3.3 Período de arranque
 
-El monitor DTW requiere una ventana de `W = 20` iteraciones antes de producir métricas válidas. Durante este warm-up, no se emiten señales de fire y la MH opera en su modo por defecto (exploit). Esto implica que, con un presupuesto de 50 iteraciones, solo 30 iteraciones son "activas" para el DTW. Con 200 iteraciones, 180 son activas — una relación más favorable.
+El monitor necesita `W = 100` valores de fitness para calcular DDTW (`ready=True` desde el valor número 100). El runner de Binary-Simple **inicializa en exploración** y llama a la regla A3 incluso antes de `ready`, con valores provisionales de D₂ y θ_c. Por eso no corresponde afirmar que el arranque transcurre en explotación ni que no hay decisiones hasta llenar la ventana. Las mediciones DDTW reales y los percentiles adaptativos llegan después: el percentil requiere 10 mediciones válidas.
 
 ---
 
 ## 4. Comportamiento Esperado
 
-### 4.1 Ventajas frente a la baseline (A4)
+### 4.1 Comparación conceptual con Binary-Complex (A9)
 
-| Aspecto | Binary-Simple (A3) | Binary-Complex (A4) |
+| Aspecto | Binary-Simple (A3) | Binary-Complex (A9, disparo A4) |
 |---|---|---|
 | Señales requeridas | 1 (D₂) | 3 + patience |
 | Hiperparámetros de decisión | 0 (θ_c es auto-adaptativo) | 2 (plateau_max, patience) |
 | Latencia de detección | Baja (reacciona en cuanto D₂ cruza θ_c) | Alta (necesita acumular plateau + confirmaciones) |
-| Riesgo de falsos positivos | Moderado (una fluctuación de D₂ puede disparar) | Bajo (múltiples barreras) |
-| Riesgo de falsos negativos | Bajo (detecta cualquier meseta) | Moderado (puede no disparar si plateau_max no se alcanza) |
+| Riesgo de falsos positivos (hipótesis) | Mayor: una fluctuación de D₂ puede disparar | Menor: exige más condiciones |
+| Riesgo de falsos negativos (hipótesis) | Menor ante mesetas detectadas por D₂ | Mayor si no se cumplen las condiciones adicionales |
 
-La hipótesis central es que **la simplicidad de A3 no debería sacrificar rendimiento significativo** frente a A4, porque la señal D₂ ya captura la esencia del estancamiento. Las condiciones adicionales de A4 (plateau prolongado, ramp check) son redundantes cuando D₂ ya está midiendo directamente la planitud de la curva.
+La hipótesis a contrastar es si **la simplicidad de A3 conserva rendimiento** frente a A9. El monitor A4 incorpora meseta, rampa y confirmación temporal; su aporte frente a D₂ sola debe evaluarse experimentalmente.
 
 ### 4.2 Limitaciones conocidas
 
-1. **Ignora el progreso**: A diferencia de A4, A3 no consulta D₁ (distancia a la rampa). Esto significa que no distingue entre una meseta por convergencia al óptimo y una meseta por trampa local. En teoría, podría disparar exploración innecesaria cuando la MH ya encontró el óptimo global.
+1. **Ignora el progreso**: A diferencia del disparo A4, A3 no consulta D₁ (distancia a la rampa). Esto significa que no distingue entre una meseta por convergencia al óptimo y una meseta por trampa local. En teoría, podría disparar exploración innecesaria cuando la MH ya encontró el óptimo global.
 
-2. **Sin filtro temporal**: A3 no tiene mecanismo de patience. Si D₂ fluctúa alrededor de θ_c, la MH podría oscilar entre modos exploit/explore. Sin embargo, el uso de `plateau_max=4` en el monitor interno (que opera independientemente de la regla de decisión) proporciona un amortiguamiento parcial.
+2. **Sin filtro temporal**: A3 no usa `plateau_max` ni `patience` en su decisión, aunque el monitor los configure para su disparo A4. Si D₂ fluctúa alrededor de θ_c, la MH podría oscilar entre modos exploit/explore.
 
 3. **Sensibilidad al ruido**: en problemas donde el fitness tiene varianza alta entre iteraciones, D₂ puede ser ruidoso. El DDTW mitiga parcialmente esto al operar sobre derivadas, pero no elimina el problema por completo.
 
@@ -122,7 +122,7 @@ Binary-Simple es agnóstico a la MH subyacente. La misma señal D₂ ≤ θ_c se
 
 | MH | Efecto de fire=True (→ explore) |
 |---|---|
-| **PSO** | w↑ (0.729→0.9), c₁↑ (1.49→2.5), c₂↓ (1.49→0.5). Las partículas confían más en su historia personal y menos en el enjambre. |
+| **PSO** | w↑ (0.729→0.9), c₁↑ (1.49445→2.5), c₂↓ (1.49445→0.5), con \|v\|≤6. Las partículas confían más en su historia personal y menos en el enjambre. |
 | **GA** | crossover↓ (0.9→0.6), mutación↑ (0.01→0.15). Se reduce la herencia de los padres y se aumenta la perturbación aleatoria. |
 | **GWO** | a↑ (0.5→2.0). Los lobos se alejan de los líderes alfa/beta/delta, explorando regiones más lejanas. |
 | **DE** | F↑ (0.5→0.9), CR↓ (0.9→0.3). Mayor perturbación diferencial y menor herencia del padre. |
@@ -135,32 +135,51 @@ La transición es **discreta y global**: todos los individuos de la población c
 
 Binary-Simple cumple tres funciones en la narrativa científica del estudio:
 
-1. **Validación de la señal D₂**: demuestra que una sola métrica bien elegida (D₂) puede ser suficiente para guiar la adaptación, sin necesidad de las 3 condiciones de A4.
+1. **Evaluación de la señal D₂**: permite comprobar si una sola métrica (D₂) puede guiar la adaptación sin las condiciones adicionales del disparo A4.
 
 2. **Puente conceptual**: ocupa el punto medio entre la simplicidad ingenua (A1: `fire = δ > 0`) y la complejidad completa (A4). Si A3 funciona comparablemente a A4, se fortalece el argumento de que D₂ es la señal dominante.
 
-3. **Ablation de señal única**: al comparar A3 contra Binary-Hysteresis (que consume la regla A4 completa del monitor con las tres métricas), se puede medir si D₂ sola es suficiente o si D₁ y Δ aportan valor discriminante adicional.
+3. **Ablación de señal única**: al comparar A3 con Binary-Complex (A9), que usa el disparo A4 completo del monitor, se puede medir si D₂ sola basta o si D₁, Δ y la persistencia aportan valor adicional.
 
 ---
 
-## 7. Configuración del Monitor DTW
+## 7. Configuración
 
-La configuración del sensor DTW para esta estrategia es:
+### Valores vigentes verificados
 
-| Parámetro | Valor | Justificación |
+Fuente: [`mkp_common/config.py`](../../mkp_common/config.py) y [`binary_simple/config.py`](../../binary_simple/config.py). Son los valores **actuales del código**, no resultados de una campaña nueva.
+
+| Parámetro | Valor vigente | Alcance |
+|---|---:|---|
+| Iteraciones (`T`) | 2000 | Presupuesto por corrida |
+| Épocas (`R`, semillas 1..31) | 31 | Corridas independientes |
+| Población | 20 | Individuos por MH |
+| Ventana (`W`) | 100 | Valores de fitness para calcular DDTW |
+| Banda (`band`) | 2 | Banda Sakoe–Chiba |
+| Pendiente (`min_slope`) | 2.0 | Rampa ideal |
+| DDTW (`use_ddtw`) | Activado | Comparación de pendientes |
+| Umbrales adaptativos (`adapt_thresholds`) | Activados | Percentiles tras 10 mediciones válidas |
+| Percentil bajo (`p_low`) | 20 | θ_c para D₂ |
+| Percentil alto (`p_high`) | 80 | θ_r y θ_Δ del monitor; no intervienen en la regla A3 |
+| Meseta (`plateau_max`) | 5 | Configurada en el monitor; no interviene en la regla A3 |
+| Paciencia (`patience`) | 3 | Configurada en el monitor; no interviene en la regla A3 |
+
+En ejecución individual, la MH predeterminada de Binary-Simple es DE. La configuración vigente compartida por las estrategias también figura en la [tabla del README](../../README.md#parámetros-y-precondición-experimental). Para sensibilidad de parámetros observada en la ronda OAT, ver [hallazgos OAT](../Round-1/HALLAZGOS_OAT.md); esos datos no sustituyen una evaluación post-OAT.
+
+### Valores históricos / del paper (no vigentes)
+
+| Fuente | Valor histórico | Diferencia con el código actual |
 |---|---|---|
-| `window` | 50 | Ventana larga: medición muy estable, a cambio de un warm-up extenso; elegida durante la experimentación para reducir el ruido de la señal |
-| `band` | 2 | Banda Sakoe-Chiba que restringe el alineamiento DTW a ±2 posiciones. Reduce el costo computacional de O(W²) a O(W) y favorece comparaciones locales |
-| `min_slope` | 2.0 | Pendiente de la rampa ideal. Un valor alto hace que la rampa sea exigente (espera mejora significativa), lo que indirectamente hace que D₂ domine sobre D₁ en la detección |
-| `use_ddtw` | True | Derivative DTW: compara pendientes en vez de valores absolutos, dando invarianza a la escala de la curva |
-| `adapt_thresholds` | True | θ_c se calcula como percentil móvil del historial de D₂, adaptándose a cada ejecución |
-| `p_low` | 30 | Percentil para θ_c: el 30% inferior del historial de D₂ se considera "plano" |
+| Artículo, según [tabla del README](../../README.md#parámetros-y-precondición-experimental) | `W=200`, `p_low=40`, `p_high=60`; `T=2000`, `R=31`, población=20, `band=2`, `min_slope=2.0`, DDTW/umbrales adaptativos activados, `plateau_max=5`, `patience=3` | Solo `W`, `p_low` y `p_high` difieren de la configuración vigente. |
+| Borradores anteriores de este documento | `W=20` en el texto de arranque y `W=50` en la antigua tabla; `p_low=30`, `plateau_max=4`, `patience=2` | Valores contradictorios o anteriores, **no** configuración de la campaña nueva. |
 
 ---
 
 ## 8. Preguntas Abiertas para el Análisis Experimental
 
-- ¿Es A3 más reactivo que A4? ¿Se traduce esto en más fires pero de menor duración?
-- ¿En qué MHs funciona mejor? La hipótesis es que MHs con convergencia más ruidosa (GA, por su mutación) se benefician más del filtro de A4, mientras que MHs más suaves (PSO) funcionan igual de bien con A3.
+- ¿Es A3 más reactivo que A9? ¿Se traduce esto en más entradas a exploración pero de menor duración?
+- ¿En qué MHs funciona mejor? Una hipótesis es que MHs con convergencia más ruidosa se benefician del filtro A4 usado por A9.
 - ¿El umbral adaptativo θ_c converge a un valor estable o fluctúa durante toda la ejecución?
-- ¿Hay diferencia en el gap al óptimo entre A3 y A4 que justifique la complejidad adicional de A4?
+- ¿Hay diferencia en el gap al óptimo entre A3 y A9 que justifique la complejidad adicional?
+
+Documentos de las estrategias hermanas: [Binary-Complex (A9)](02_binary_complex_a9.md) y [Binary-Patient (A10)](../Round-1/ESTRATEGIA_A10_BINARY_PATIENT.md).
