@@ -1,7 +1,10 @@
 # Feature: Frente 2 — Campaña multi-instancia (27 instancias)
 
 Fecha de creación: 2026-09-18 · Rama: `dtw_discreto`
-Origen: `contexto/Round-1/SINTESIS_REVIEWS.md` — Frente 2 (R1.3): el paper solo usó idx=0 de cada archivo Chu–Beasley; extender a 3 índices fijos por archivo (27 instancias).
+
+**Estado (2026-09-23):** por decisión del usuario, la tabla muestreada con semilla de este documento es el protocolo **OFICIAL** para la campaña post-OAT. Reemplaza la selección fija 0/15/29 del plan anterior, que permanece como protocolo histórico de las campañas OAT.
+
+Origen: `contexto/Round-1/SINTESIS_REVIEWS.md` — Frente 2 (R1.3): el paper solo usó idx=0 de cada archivo Chu–Beasley; extender a 3 índices por archivo (27 instancias). La mención de índices fijos en el plan original es histórica.
 
 ## Diseño de selección de instancias
 
@@ -27,10 +30,10 @@ Total: 27 instancias (9 archivos × 3 índices).
 
 ## Tareas
 
-1. [ ] Extender `run_benchmark_hpc.py` con modo multi-índice: flags `--k`, `--sample-seed`, `--include-zero`; generación determinista por archivo; guardado de `instance_selection.json` en la carpeta de campaña (`results/campaign_{id}/`); pasar cada par (archivo, índice) a `run_all_hpc.py` con `--indice`.
-2. [ ] Documentar la campaña en `contexto/Round-1/INSTANCIAS_SELECCIONADAS.md` (tabla oficial, criterio, comando HPC).
-3. [ ] Smoke test local reducido (1 archivo, idx=0, `--epochs 2`, estrategias acotadas) → verificar resultados + análisis estadístico por índice.
-4. [ ] Commit work-unit en `dtw_discreto` (Conventional Commit) y registrar identidad acá.
+1. [x] Extender `run_benchmark_hpc.py` con modo multi-índice: flags `--k`, `--sample-seed`, `--include-zero`; generación determinista por archivo; guardado de `instance_selection.json` en la carpeta de campaña (`results/campaign_{id}/`); pasar cada par (archivo, índice) a `run_all_hpc.py` con `--indice`. Evidencia: commit `792c099`.
+2. [x] Documentar la campaña en `contexto/Round-1/INSTANCIAS_SELECCIONADAS.md` (tabla oficial, criterio, comando HPC). Evidencia: reescritura de la selección oficial muestreada y nota histórica en esta unidad documental; pendiente de commit por el responsable de la integración.
+3. [x] Smoke test local reducido (1 archivo, idx=0, `--epochs 2`, estrategias acotadas) → verificar resultados + análisis estadístico por índice. Evidencia: registro de prueba end-to-end en la sección siguiente (32/32 tareas OK).
+4. [x] Commit work-unit en `dtw_discreto` (Conventional Commit) y registrar identidad acá. Evidencia: commit `792c099` registrado abajo; no corresponde al commit de esta unidad documental.
 
 ## No-goals
 

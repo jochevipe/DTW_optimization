@@ -2,73 +2,73 @@
 
 ## Descripción
 
-Las instancias de Chu-Beasley son el **benchmark estándar** para el Multidimensional Knapsack Problem (MKP). Fueron creadas por P. C. Chu y J. E. Beasley en 1998 y están disponibles en OR-Library.
+Las instancias de Chu-Beasley son un benchmark del Multidimensional Knapsack Problem (MKP), descrito por P. C. Chu y J. E. Beasley (1998) y disponible en OR-Library.
 
-## Instancias Disponibles
+## Instancias disponibles
 
-| Archivo | n (ítems) | m (restricciones) | Tightness (α) | Instancias | Dificultad |
-|---------|-----------|-------------------|----------------|------------|------------|
-| `mknapcb1` | 100 | 5 | 0.25 | 30 | Media |
-| `mknapcb2` | 100 | 5 | 0.50 | 30 | Media-baja |
-| `mknapcb3` | 100 | 5 | 0.75 | 30 | Baja |
-| `mknapcb4` | 100 | 10 | 0.25 | 30 | Alta |
-| `mknapcb5` | 100 | 10 | 0.50 | 30 | Media |
-| `mknapcb6` | 100 | 10 | 0.75 | 30 | Media-baja |
-| `mknapcb7` | 250 | 5 | 0.25 | 30 | Alta |
-| `mknapcb8` | 250 | 5 | 0.50 | 30 | Media |
-| `mknapcb9` | 250 | 5 | 0.75 | 30 | Media-baja |
+La cantidad y las dimensiones se comprobaron en las cabeceras de `instances/mknapcb*.txt` (primera y segunda línea de cada archivo):
 
-**Total: 270 instancias** (9 archivos × 30 instancias cada uno)
+| Archivo | n (ítems) | m (restricciones) | Instancias |
+|---------|-----------|-------------------|------------|
+| `mknapcb1` | 100 | 5 | 30 |
+| `mknapcb2` | 250 | 5 | 30 |
+| `mknapcb3` | 500 | 5 | 30 |
+| `mknapcb4` | 100 | 10 | 30 |
+| `mknapcb5` | 250 | 10 | 30 |
+| `mknapcb6` | 500 | 10 | 30 |
+| `mknapcb7` | 100 | 30 | 30 |
+| `mknapcb8` | 250 | 30 | 30 |
+| `mknapcb9` | 500 | 30 | 30 |
 
-## ¿Qué es el Tightness (α)?
+**Total: 270 instancias** (9 archivos × 30). La campaña post-OAT selecciona tres índices por archivo (27 en total): ver [selección oficial](../Round-1/INSTANCIAS_SELECCIONADAS.md).
 
-El tightness define qué tan **restrictivas** son las capacidades:
+## Tightness (α) y valores de referencia
+
+Según Chu y Beasley (1998), el *tightness* relaciona las capacidades con la suma de pesos de cada restricción:
 
 ```
 capacity[i] = α × sum(weights[i])
 ```
 
-- **α = 0.25** → Capacidad = 25% del total → MUY restrictivo → pocas soluciones factibles → MÁS DIFÍCIL
-- **α = 0.50** → Capacidad = 50% del total → Moderado
-- **α = 0.75** → Capacidad = 75% del total → Relajado → muchas soluciones factibles → MENOS DIFÍCIL
+La literatura describe niveles α = 0,25; 0,50; 0,75. Una menor capacidad restringe más el conjunto factible, pero la dificultad efectiva no se infiere solo de α. **No se verificó en los datos en esta revisión** qué nivel corresponde a cada instancia ni los valores de referencia (*best-known*/óptimos) publicados; por eso no se atribuye un α o una dificultad a cada archivo. El tercer número de la cabecera se presenta como valor de referencia en el formato descrito por Chu y Beasley (1998), sin certificar aquí su optimalidad ni cotejar todas las instancias.
 
-## Formato del Archivo
+## Formato del archivo
 
-Cada archivo contiene 30 instancias con el siguiente formato:
+Cada archivo contiene 30 instancias; el esquema ilustrativo es:
 
 ```
 30                          ← número de instancias en el archivo
 
-100 5 24381                 ← n ítems, m restricciones, óptimo conocido
+100 5 24381                 ← n ítems, m restricciones, valor de referencia (ejemplo)
  92  81  98  54 ... 42      ← profits (pueden abarcar varias líneas)
  67  23  ...                ← weights restricción 1
  45  12  ...                ← weights restricción 2
  ...                        ← weights restricción m
  2137  1546  ...            ← capacities (m valores)
 
-100 5 24274                 ← siguiente instancia
+100 5 24274                 ← siguiente instancia (ejemplo)
 ...
 ```
 
+Los números ilustran el orden del formato, no verifican los valores de referencia de esas instancias.
+
 ## Descarga
 
-Fuente oficial: [OR-Library](http://people.brunel.ac.uk/~mastjjb/jeb/orlib/mknapinfo.html)
+Fuente: [OR-Library](http://people.brunel.ac.uk/~mastjjb/jeb/orlib/mknapinfo.html).
 
 ## Referencia
 
-Chu, P. C., & Beasley, J. E. (1998). "A Genetic Algorithm for the Multidimensional Knapsack Problem." *Journal of Heuristics*, 4(1), 63-86.
+Chu, P. C., & Beasley, J. E. (1998). “A Genetic Algorithm for the Multidimensional Knapsack Problem.” *Journal of Heuristics*, 4(1), 63–86.
 
-## Métricas de Evaluación
+## Métricas de evaluación
 
-Para comparar resultados contra el óptimo conocido:
+Para comparar una solución con el valor de referencia:
 
 ```
-RPD = 100 × (óptimo - best_fitness) / óptimo
+RPD = 100 × (valor de referencia - best_fitness) / valor de referencia
 ```
 
-- **RPD = 0%** → Encontró el óptimo exacto
-- **RPD < 1%** → Solución excelente
-- **RPD < 5%** → Solución buena
-- **RPD > 10%** → Solución deficiente
+- **RPD = 0 %** → Alcanzó el valor de referencia.
+- **RPD < 1 %** → Diferencia inferior al 1 % respecto de la referencia.
 
-Se reporta el **RPD promedio** sobre las 30 instancias de cada archivo y las 30 corridas de cada instancia.
+El promedio y el número de corridas deben indicarse para la campaña evaluada; no extrapolar resultados de los tres índices seleccionados a las 30 instancias del archivo.
