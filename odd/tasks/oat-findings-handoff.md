@@ -1,5 +1,7 @@
 # OAT findings handoff to dtw_discreto
 
+**Estado: traspaso completo.** Los hallazgos quedaron transferidos a [`contexto/Round-1/HALLAZGOS_OAT.md`](../../contexto/Round-1/HALLAZGOS_OAT.md) y referenciados desde la síntesis de Round 1. Los resultados locales pre-OAT se retiraron en `fe12f2f`; el registro durable en esta rama es `HALLAZGOS_OAT.md`. El diseño y los artefactos primarios OAT permanecen en la rama OAT, no en `dtw_discreto`.
+
 ## Objective
 Record the completed OAT evidence and carry only review-facing documentation and project Engram snapshots to `dtw_discreto`, so the next full-experiment campaign can start there without merging OAT code or generated results.
 
@@ -24,5 +26,5 @@ Record the completed OAT evidence and carry only review-facing documentation and
 - T2: initial attempt blocked by unexpected transient target changes and a `reset: moving to HEAD` reflog entry (actor unknown). Following user confirmation that the destination was stable, fresh delegated readback found clean `d8d0c2c`; 13 authorized paths copied, source/target bytes matched before target-only corrections, old reviewer letters preserved. `git diff --cached --check` passed; 238 additions/43 deletions plus seven compressed chunks, no code or raw results; commit `74359f6`. Target-only synthesis corrects stale configuration and notes OAT module is absent; response sheet points to literal letters. No jobs or tests run (docs-only transfer).
 - T3: `git diff --cached --check` passed; exact changed paths from `d8d0c2c` contained docs, the ODD ledger and Engram only. Fresh `git fetch origin dtw_discreto` confirmed remote ancestor before push. Non-force push advanced `origin/dtw_discreto` from `d8d0c2c` to `0209110`; `ls-remote` returned full `0209110e56d494491d98e39060b3969ea7bbc418`, and target worktree was clean. Full test suite and Slurm jobs skipped (documentation/memory-only handoff; user owns jobs). The original unknown reset actor remains unexplained; the retried transfer was explicitly approved and verified clean beforehand.
 
-## Next step
-Next: in `dtw_discreto`, the user reviews `HALLAZGOS_OAT.md`, aligns effective run configuration with paper settings and chooses the next full-experiment campaign. Source OAT code, raw results and dirty changes remain untouched.
+## Próximo paso
+Traspaso cerrado. Para futuros experimentos en `dtw_discreto`, consultar `HALLAZGOS_OAT.md` y la síntesis de Round 1; alinear la configuración efectiva con el paper antes de elegir otra campaña. Los artefactos primarios OAT permanecen en la rama OAT. Los árboles locales pre-OAT `results*` se retiraron deliberadamente en `fe12f2f` y son recuperables desde `08c2f29`; esto no altera el traspaso completado.

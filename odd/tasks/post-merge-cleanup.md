@@ -20,8 +20,14 @@ Origen: solicitud del usuario tras el merge con la rama `OAT` (análisis de sens
 5. [x] Consolidación de docs de estrategia: `01_binary_simple_fire_d2.md` (config versionada: paper vs vigente), `02_binary_complex_a9.md` (rename + nota legacy), enlace a A10 en vez de copiar.
 6. [x] Reconciliación de instancias y parámetros: `INSTANCIAS_SELECCIONADAS.md` → seed 3/file con la tabla oficial; `instancias_mkp.md` → tabla corregida desde los headers de los archivos de datos.
 7. [x] Actualización de docs de revisión Round-1: `PREGUNTAS_Y_RESPUESTAS_REVISORES.md` (R1.4 → evidencia OAT), `SINTESIS_REVIEWS.md`, `HALLAZGOS_OAT.md` (referencia a `SENSIBILIDAD_OAT.md` etiquetada como rama `OAT`), `especificacion_extraccion_datos.md` etiquetada como especificación futura.
-8. [ ] Cierre de ledgers `odd/tasks/`: `binary-patient-a10.md` y `frente2-multi-instancia.md` reconciliados con el estado real; tareas verificadas marcadas.
+8. [x] Cierre de ledgers `odd/tasks/`: `binary-patient-a10.md` y `frente2-multi-instancia.md` reconciliados con el estado real; tareas verificadas marcadas.
 9. [ ] Verificación final (read-only): referencias y enlaces entre `.md`, consistencia de nombres, `git status` limpio; reporte de pendientes.
+
+## Pendientes para el usuario (post-limpieza)
+
+- Fijar el set definitivo de parámetros post-OAT en `mkp_common/config.py` (hoy: W=100, p_low=20, p_high=80; paper: 200, 40/60) según `HALLAZGOS_OAT.md` y el análisis pareado aún pendiente.
+- Análisis pareado base–alternativa del OAT (dispersión) pendiente antes de responder R1.4.
+- Baseline no-DTW (stagnation-switching) pendiente: R2.2.
 
 ## No-goals
 
