@@ -15,7 +15,7 @@ Origen: Frente 1 de `contexto/Round-1/SINTESIS_REVIEWS.md` (comparación de vari
 
 ## Tareas
 
-1. [x] Implementar paquete `binary_patient/` + cableado (`run_all.py`, `run_all_hpc.py`, `analisis/estadistico.py`) — delegado a gentle-ai-worker, verificación enfocada verde.
+1. [x] Implementar paquete `binary_patient/` + cableado (`run_all.py`, `run_all_hpc.py`, `analisis/estadistico.py`) — delegado a gentle-ai-worker; los checks enfocados del momento quedaron citados en el mensaje de `9a20c42`, pero sin comando/salida cruda archivada (verificable solo vía tareas 2–3).
 2. [ ] Verificación técnica independiente (gentle-ai-verify). Para cerrar: registrar el resultado y comando de la verificación independiente.
 3. [ ] Smoke integrado en `run_all_hpc.py` con las 5 estrategias (mknapcb1[0], epochs=2) + análisis estadístico con la versión nueva. Para cerrar: registrar el comando, la salida de las cinco estrategias y la columna Binary-Patient en la estadística; la mención de un smoke en el documento de estrategia no sustituye esa evidencia aquí.
 4. [x] Documentar A10 en `contexto/Round-1/ESTRATEGIA_A10_BINARY_PATIENT.md` (`9a20c42`; actualización de estado en `40920b8`).
