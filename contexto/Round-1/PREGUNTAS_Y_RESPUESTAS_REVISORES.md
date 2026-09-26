@@ -42,6 +42,16 @@ the corresponding parameter switches.
 
 Borradores para discusión, **no respuestas enviadas ni cambios al manuscrito**. “Pendiente” indica evidencia, decisión o edición todavía necesaria. Referencias `archivo:línea` corresponden al árbol actual, salvo los blobs Git históricos indicados arriba. Antes de enviar, reconciliar el protocolo publicado con la configuración actual: W=200 y percentiles 40/60 en el paper/OAT frente a W=100 y 20/80 en la configuración viva; el gap medio del paper no equivale al gap del mejor valor serializado. Los resultados del paper no se reprodujeron independientemente aquí.
 
+### Versión y procedencia
+
+La primera versión con 19 IDs de respuesta quedó en `4786d847be3e270f51029ef491085fd0084588a6`; esta hoja es una revisión posterior (sin SHA asignado aquí). Los IDs permanecen estables. Las cartas originales se consultan como blobs históricos en `b4f9ccc:contexto/Round-1/REVIEWER_{1,2,3}.md`, no como archivos locales. Esta revisión no edita el manuscrito ni prueba resultados experimentales nuevos.
+
+| Respuesta | Trazabilidad y límite |
+|---|---|
+| R1.3 | [ODD 02: protocolo de 27 instancias](../../odd/tasks/02_frente2-multi-instancia.md), planificado, no ejecutado aquí. |
+| R1.4 | [ODD 03: entrega OAT](../../odd/tasks/03_oat-findings-handoff.md) y [hallazgos OAT](HALLAZGOS_OAT.md), descriptivos, sin inferencia de robustez. |
+| R2.2 | [ODD 01: A10 Binary-Patient](../../odd/tasks/01_binary-patient-a10.md), controlador con DTW, no ablación sin DDTW. |
+
 ### Revisor 1
 
 - **R1.1**: **Draft (EN):** We agree that the reported Friedman result (χ²=4.13, p=0.2474) does not establish global superiority. We will describe the ranks as a favorable tendency and limit conclusions to the observed conditions, rather than claiming Binary-Complex is universally superior. **Estado (ES):** Pendiente revisión de claims y tablas del manuscrito; no se reprodujeron las estadísticas del paper ni se aplicó corrección de multiplicidad. Evidencia: `contexto/latex/template.tex:1278,1401-1415`; el análisis actual selecciona Vanilla-Exploration como baseline (`analisis/estadistico.py:615-616,664`) y usa Wilcoxon pareado (`mkp_common/stats.py:4,56-97`). Próximo paso: verificar datos/semillas, Friedman y comparaciones antes de reportar inferencia nueva.

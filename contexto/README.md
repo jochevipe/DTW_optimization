@@ -27,9 +27,9 @@ Los documentos de `oficial/` explican el modelo y las cuatro MH, pero **no certi
 
 | Documento | Uso y vigencia |
 |---|---|
-| [`REVIEWER_1.md`](Round-1/REVIEWER_1.md), [`REVIEWER_2.md`](Round-1/REVIEWER_2.md), [`REVIEWER_3.md`](Round-1/REVIEWER_3.md) | Cartas de los revisores: contexto de las solicitudes, no instrucciones de ejecución. |
+| `b4f9ccc:contexto/Round-1/REVIEWER_1.md`, `b4f9ccc:contexto/Round-1/REVIEWER_2.md`, `b4f9ccc:contexto/Round-1/REVIEWER_3.md` | Cartas originales en blobs históricos (`git show b4f9ccc:contexto/Round-1/REVIEWER_n.md`); no existen como archivos locales ni son instrucciones de ejecución. |
 | [`SINTESIS_REVIEWS.md`](Round-1/SINTESIS_REVIEWS.md) | Síntesis y frentes de respuesta. |
-| [`PREGUNTAS_Y_RESPUESTAS_REVISORES.md`](Round-1/PREGUNTAS_Y_RESPUESTAS_REVISORES.md) | Hoja de preguntas y respuestas en elaboración. |
+| [`PREGUNTAS_Y_RESPUESTAS_REVISORES.md`](Round-1/PREGUNTAS_Y_RESPUESTAS_REVISORES.md) | Hoja de respuestas en elaboración (19 IDs estables); seguimiento y versión en [`odd/tasks/05_round1-reviewer-responses.md`](../odd/tasks/05_round1-reviewer-responses.md). |
 | [`INSTANCIAS_SELECCIONADAS.md`](Round-1/INSTANCIAS_SELECCIONADAS.md) | Documento de selección de instancias ya conciliado con el protocolo oficial: muestreo con semilla, 3 por archivo, 27 instancias (la tabla vive ahí y en [`odd/tasks/02_frente2-multi-instancia.md`](../odd/tasks/02_frente2-multi-instancia.md)). |
 | [`HALLAZGOS_OAT.md`](Round-1/HALLAZGOS_OAT.md) | Resultados descriptivos del OAT, 19 configuraciones de Binary-Simple y Binary-Complex sobre tres índices de `mknapcb1` con 31 épocas. Base para decidir parámetros nuevos, **no** selección definitiva ni generalización a las nueve familias. |
 | [`ESTRATEGIA_A10_BINARY_PATIENT.md`](Round-1/ESTRATEGIA_A10_BINARY_PATIENT.md) | Diseño del controlador Binary-Patient; verificá comportamiento ejecutable en [`binary_patient/config.py`](../binary_patient/config.py). |
