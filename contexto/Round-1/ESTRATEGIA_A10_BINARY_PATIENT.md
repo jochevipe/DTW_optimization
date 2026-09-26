@@ -1,7 +1,7 @@
 # Estrategia A10 — Binary-Patient (D2 + patience)
 
 Nueva variante DTW agregada para la revisión (Frente 1, comparación de variantes).
-Paquete: `binary_patient/` · Label: **Binary-Patient** · Código de estrategia: **A10**. Implementada en el commit `9a20c42`. Ver el seguimiento en [`odd/tasks/binary-patient-a10.md`](../../odd/tasks/binary-patient-a10.md) y el Frente 1 en [`SINTESIS_REVIEWS.md`](SINTESIS_REVIEWS.md).
+Paquete: `binary_patient/` · Label: **Binary-Patient** · Código de estrategia: **A10**. Implementada en el commit `9a20c42`. Ver el seguimiento en [`odd/tasks/01_binary-patient-a10.md`](../../odd/tasks/01_binary-patient-a10.md) y el Frente 1 en [`SINTESIS_REVIEWS.md`](SINTESIS_REVIEWS.md).
 
 ## Motivación
 
@@ -37,5 +37,5 @@ DECISION_RULE = "D2 <= theta_c sustained for patience iterations -> explore; imp
 ## Estado
 
 - Implementada y cableada (`run_all.py`, `run_all_hpc.py`, `analisis/estadistico.py`; commit `9a20c42`).
-- Este documento registra pruebas del controlador, smoke integrado con 5 estrategias y presencia de la columna Binary-Patient en la estadística; las casillas de verificación y documentación del trabajo se cierran por separado en [`odd/tasks/binary-patient-a10.md`](../../odd/tasks/binary-patient-a10.md).
+- Este documento registra pruebas del controlador, smoke integrado con 5 estrategias y presencia de la columna Binary-Patient en la estadística; las casillas de verificación y documentación del trabajo se cierran por separado en [`odd/tasks/01_binary-patient-a10.md`](../../odd/tasks/01_binary-patient-a10.md).
 - Pendiente: corrida HPC completa (27 instancias × 31 épocas) junto con las otras 4 versiones. A10 usa DTW; el baseline sin DTW requerido para R2.2 sigue pendiente.

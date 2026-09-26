@@ -58,7 +58,7 @@ frente a la base (descriptivo, no prueba de significancia).
 
 ## Protocolo oficial de instancias
 
-La campaña de ampliación usa muestreo con semilla: **tres índices por cada uno de los nueve archivos**, 27 instancias en total. Incluye el índice 0 y muestrea los otros dos sin reposición. La [tabla oficial de índices](odd/tasks/frente2-multi-instancia.md) fija la selección (0/15/29 fue un protocolo anterior, no el vigente).
+La campaña de ampliación usa muestreo con semilla: **tres índices por cada uno de los nueve archivos**, 27 instancias en total. Incluye el índice 0 y muestrea los otros dos sin reposición. La [tabla oficial de índices](odd/tasks/02_frente2-multi-instancia.md) fija la selección (0/15/29 fue un protocolo anterior, no el vigente).
 
 ```bash
 # Desde la raíz del repositorio; lista predeterminada completa mknapcb1..9.

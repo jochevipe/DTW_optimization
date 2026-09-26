@@ -1,0 +1,32 @@
+# Round 1 reviewer response drafts
+
+## Objective
+Fill the existing 19-ID Round 1 response sheet with evidence-backed draft replies where the repository and project memory support them, keeping outstanding reviewer requests visibly open.
+
+## Context and scope
+- User asked to progressively answer in `contexto/Round-1/PREGUNTAS_Y_RESPUESTAS_REVISORES.md`.
+- Literal reviewer letters survive in Git history at `b4f9ccc:contexto/Round-1/REVIEWER_{1,2,3}.md` but were deleted by `b6b2a7a`. The sheet's current links to those files are broken. Preserve the 19 IDs and distinguish literal comments from paraphrases.
+- OAT evidence is descriptive and limited to `mknapcb1[0,15,29]`; primary JSONs are on OAT, not this branch. The 27-instance study is a plan, not results. No no-DDTW ablation, verified state-of-the-art adaptive baseline, or public-code confirmation exists here.
+- Reported paper Friedman p=0.2474 does not support global superiority. Do not treat unverified paper tables as independently reproduced. Current manuscript/code parameter, distance-cost and gap differences must be disclosed as open reconciliation, not silently resolved.
+- No code, manuscript, Slurm jobs, experiments, result data, or OAT stash changes. The user explicitly authorized documentation-only commits and a non-force push to `origin/dtw_discreto` for this follow-up.
+- Artifact language: the existing response sheet is in Spanish with English reformulations; use concise reviewer-facing English draft replies with Spanish status/evidence notes. This follows the target English review context and local bilingual document convention.
+- TDD: not applicable to documentation-only drafting; no runner established. Checks: structural readback (all 19 IDs, no fabricated completion), source/link verification, `git diff --check`, path/status diff.
+- Routing: delegated `gentle-ai-worker` for multi-file rename/link updates and response traceability; independent read-only verifier for documentation checks. Delivery strategy: ask-on-risk; forecast ~250 authored changed lines (excluding pure renames), below the ~400-line review-focus heuristic. Documentation-only commits and a non-force push are explicitly authorized by the user; verify the remote tip immediately before publishing.
+
+## Tasks
+- [x] T1: Replace placeholder answers with appropriately qualified drafts across all 19 IDs, preserving the question text and reviewer order. Verification: 19 distinct response IDs, no fabricated completion, source-qualified drafts and explicit pending actions; `git diff --check` passed. Route: delegated writer. Content complete; versioning included in the newly authorized documentation delivery.
+- [x] T2: Independently check the sheet for provenance, cross-file contradictions, broken links, ID coverage and diff hygiene; correct any findings within the authorized sheet. Verification: post-correction independent verifier passed, 19 unique IDs, existing citations/paths, no false completion claims, `git diff --check` clean. Route: read-only verifier and delegated writer correction. Content complete; versioning included in the newly authorized documentation delivery.
+- [ ] T3: Give each of the five `odd/tasks` ledgers a stable two-digit filename ID (`01` A10, `02` multi-instance, `03` OAT handoff, `04` post-merge cleanup, `05` this response ledger) and repair repository-local references without changing task identities or reviewer IDs. Verification: no stale old filename references in tracked docs, all five files readable, exact rename/link diff. Route: delegated multi-file writer. Work-unit commit required.
+- [ ] T4: Link relevant reviewer response IDs to numbered task ledgers for navigable provenance, retaining experimental and author-decision limits, and version the 19 draft responses. Verification: 19 IDs once, meaningful R1.3/R1.4/R2.2 references, no false completion claims, doc diff check. Route: delegated writer plus independent verifier. Work-unit commit required.
+- [ ] T5: Verify both work units and publish only `dtw_discreto` by non-force push after a fresh remote-tip check. Verification: remote ref equals produced local HEAD; report pending experiments and any skipped checks. Route: parent Git coordination, read-only verifier. No extra source changes.
+
+## Progress and evidence
+- Initial branch: `dtw_discreto`, clean at start of this request. Existing OAT stash `a6709547bd3a51e5d23697541027d2a546cc28be` must remain untouched.
+- Parent previously audited sheet, historical letters, OAT summary, manuscript, implementation and Engram memories; high-risk mismatches summarized above.
+- T1: delegated writer filled 19 drafts in the response sheet; historical letter links now identify Git blobs rather than absent local files. Focused `git diff --check` and 19-ID coverage passed; parent read back every answer. No experiments or tests (docs only).
+- T2: independent verifier found inaccurate plotter description, DP-boundary wording and out-of-range references. Writer corrected these and parent clarified that plotting code exists but generated figures were not verified. Final independent post-correction verifier passed: all 19 IDs unique, referenced paths exist, no false completion claims, `git diff --check` clean. Parent spot check also passed. Original experimental data and generated figures were not revalidated.
+- Review: native assessment initially failed because the new ledger was untracked; independent verification ran. After explicit intended-untracked selection, the complete documentation candidate was classified low-risk (`non_executable_only`) and native review lineage `review-43455a19c68d0536` was approved and acknowledged; authority burned. Later ledger bookkeeping is outside that frozen candidate.
+- Follow-up authorization: user requested numbered ODD task filenames, response traceability, commits and push; remote `origin/dtw_discreto` matched local `a8f9fbe` at initial read-only check. ID assignments are stable logical labels, not a claim about commit chronology. The existing answer sheet and this untracked ledger remain in the worktree for the authorized documentation delivery.
+
+## Next step
+Complete T3–T5 without touching experimental results or the OAT stash. Explicitly preserve all pending reviewer evidence and publish only the verified docs work units.
