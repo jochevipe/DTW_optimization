@@ -1,0 +1,38 @@
+==========================================================================================================
+  Execution Times — mknapcb5[0] — Exploration-only vs Variants
+  Descriptive runtime data only; no significance claim is made.
+  Difference = version mean - Exploration-only baseline mean; negative means FASTER.
+  Relative change = 100 * difference / Exploration-only baseline mean.
+==========================================================================================================
+
+  [PSO]
+    Baseline (Exploration-only): 117.598 ± 8.030 s
+    Version           | Mean ± Std (s) | Difference vs baseline (s) | Relative change (%) | Interpretation
+    ------------------+----------------+----------------------------+---------------------+---------------
+    Exploitation-only | 116.983 ± 7.910 |                     -0.615 |             -0.523% | FASTER        
+    Binary-Simple     | 120.847 ± 2.984 |                     +3.249 |             +2.763% | SLOWER        
+    Binary-Hysteresis | 119.468 ± 0.303 |                     +1.869 |             +1.590% | SLOWER        
+
+  [GA]
+    Baseline (Exploration-only): 101.763 ± 0.994 s
+    Version           | Mean ± Std (s) | Difference vs baseline (s) | Relative change (%) | Interpretation
+    ------------------+----------------+----------------------------+---------------------+---------------
+    Exploitation-only | 88.459 ± 0.439 |                    -13.304 |            -13.074% | FASTER        
+    Binary-Simple     | 106.249 ± 6.784 |                     +4.486 |             +4.408% | SLOWER        
+    Binary-Hysteresis | 105.834 ± 6.505 |                     +4.071 |             +4.001% | SLOWER        
+
+  [GWO]
+    Baseline (Exploration-only): 125.180 ± 5.290 s
+    Version           | Mean ± Std (s) | Difference vs baseline (s) | Relative change (%) | Interpretation
+    ------------------+----------------+----------------------------+---------------------+---------------
+    Exploitation-only | 126.418 ± 6.370 |                     +1.238 |             +0.989% | SLOWER        
+    Binary-Simple     | 127.916 ± 0.305 |                     +2.736 |             +2.186% | SLOWER        
+    Binary-Hysteresis | 128.825 ± 5.092 |                     +3.645 |             +2.912% | SLOWER        
+
+  [DE]
+    Baseline (Exploration-only): 122.357 ± 2.657 s
+    Version           | Mean ± Std (s) | Difference vs baseline (s) | Relative change (%) | Interpretation
+    ------------------+----------------+----------------------------+---------------------+---------------
+    Exploitation-only | 121.952 ± 1.703 |                     -0.405 |             -0.331% | FASTER        
+    Binary-Simple     | 127.482 ± 7.970 |                     +5.125 |             +4.189% | SLOWER        
+    Binary-Hysteresis | 119.040 ± 4.299 |                     -3.317 |             -2.711% | FASTER

@@ -65,22 +65,16 @@ from mkp_common.config import (
 # ---------------------------------------------------------------------------
 from mkp_common.runner import run_experiment as _generic_run
 from binary_simple.config import fire_d2 as _fire_d2_fn
-from binary_complex.config import (
-    make_fire_fn as _make_complex_fn,
-    DECISION_RULE as _COMPLEX_RULE,
+from binary_hysteresis.config import (
+    make_fire_fn as _make_hysteresis_fn,
+    DECISION_RULE as _HYSTERESIS_RULE,
 )
-from binary_patient.config import (
-    make_fire_fn as _make_patient_fn,
-    DECISION_RULE as _PATIENT_RULE,
-)
-from binary_patient.runner import run_experiment as _binary_patient_run
 from vanilla_explotacion.runner import run_experiment as _vanilla_explotacion_run
 from vanilla_exploracion.runner import run_experiment as _vanilla_exploracion_run
 from vanilla_explotacion.resultados import generate_plots as _plots_vanilla_explotacion
 from vanilla_exploracion.resultados import generate_plots as _plots_vanilla_exploracion
 from binary_simple.resultados import generate_plots as _plots_binary_simple
-from binary_complex.resultados import generate_plots as _plots_binary_complex
-from binary_patient.resultados import generate_plots as _plots_binary_patient
+from binary_hysteresis.resultados import generate_plots as _plots_binary_hysteresis
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -102,7 +96,7 @@ TaskResult = Dict[str, Any]
 
 
 def _runner_vanilla_explotacion(mh_c, inst, seed):
-    """Vanilla-Exploitation: MHs en modo exploit (igual que vanilla estándar)."""
+    """Vanilla-Explotación: MHs en modo exploit (igual que vanilla estándar)."""
     return _vanilla_explotacion_run(
         mh_class=mh_c,
         inst=inst,
@@ -113,7 +107,7 @@ def _runner_vanilla_explotacion(mh_c, inst, seed):
 
 
 def _runner_vanilla_exploracion(mh_c, inst, seed):
-    """Vanilla-Exploration: MHs forzadas a modo explore."""
+    """Vanilla-Exploración: MHs forzadas a modo explore."""
     return _vanilla_exploracion_run(
         mh_class=mh_c,
         inst=inst,
@@ -139,8 +133,8 @@ def _runner_binary_simple(mh_c, inst, seed):
     )
 
 
-def _runner_binary_complex(mh_c, inst, seed):
-    """Binary-Complex: exploit base, explore on sustained A4 fire,
+def _runner_binary_hysteresis(mh_c, inst, seed):
+    """Binary-Hysteresis: exploit base, explore on sustained A4 fire,
     back to exploit on first improvement."""
     return _generic_run(
         mh_class=mh_c,
@@ -150,24 +144,7 @@ def _runner_binary_complex(mh_c, inst, seed):
         num_iteraciones=NUM_ITERACIONES,
         semilla=seed,
         verbose=VERBOSE,
-        fire_fn=_make_complex_fn(initial_mode="explore"),
-        initial_mode="explore",
-        decision_on_early=True,
-    )
-
-
-def _runner_binary_patient(mh_c, inst, seed):
-    """Binary-Patient: explore after a sustained D2 threshold condition,
-    then return to exploit on the first improvement."""
-    return _binary_patient_run(
-        mh_class=mh_c,
-        inst=inst,
-        monitor_cfg=DTW_FIRE_D2,
-        num_particulas=NUM_PARTICULAS,
-        num_iteraciones=NUM_ITERACIONES,
-        semilla=seed,
-        verbose=VERBOSE,
-        fire_fn=_make_patient_fn(initial_mode="explore"),
+        fire_fn=_make_hysteresis_fn(initial_mode="explore"),
         initial_mode="explore",
         decision_on_early=True,
     )
@@ -176,13 +153,13 @@ def _runner_binary_patient(mh_c, inst, seed):
 STRATEGIES: Dict[str, dict] = {
     "vanilla_explotacion": {
         "folder": "vanilla_explotacion",
-        "label": "Vanilla-Exploitation",
+        "label": "Vanilla-Explotación",
         "extra_info": {"estrategia": "vanilla_explotacion"},
         "runner": _runner_vanilla_explotacion,
     },
     "vanilla_exploracion": {
         "folder": "vanilla_exploracion",
-        "label": "Vanilla-Exploration",
+        "label": "Vanilla-Exploración",
         "extra_info": {"estrategia": "vanilla_exploracion"},
         "runner": _runner_vanilla_exploracion,
     },
@@ -196,25 +173,15 @@ STRATEGIES: Dict[str, dict] = {
         },
         "runner": _runner_binary_simple,
     },
-    "binary_complex": {
-        "folder": "binary_complex",
-        "label": "Binary-Complex",
+    "binary_hysteresis": {
+        "folder": "binary_hysteresis",
+        "label": "Binary-Hysteresis",
         "extra_info": {
-            "estrategia": "binary_complex",
-            "decision_rule": _COMPLEX_RULE,
+            "estrategia": "binary_hysteresis",
+            "decision_rule": _HYSTERESIS_RULE,
             **DTW_FIRE_D2.to_dict(),
         },
-        "runner": _runner_binary_complex,
-    },
-    "binary_patient": {
-        "folder": "binary_patient",
-        "label": "Binary-Patient",
-        "extra_info": {
-            "estrategia": "binary_patient",
-            "decision_rule": _PATIENT_RULE,
-            **DTW_FIRE_D2.to_dict(),
-        },
-        "runner": _runner_binary_patient,
+        "runner": _runner_binary_hysteresis,
     },
 }
 
@@ -503,8 +470,7 @@ def main() -> int:
         "vanilla_explotacion": _plots_vanilla_explotacion,
         "vanilla_exploracion": _plots_vanilla_exploracion,
         "binary_simple": _plots_binary_simple,
-        "binary_complex": _plots_binary_complex,
-        "binary_patient": _plots_binary_patient,
+        "binary_hysteresis": _plots_binary_hysteresis,
     }
 
     saved_dirs: Dict[str, str] = {}

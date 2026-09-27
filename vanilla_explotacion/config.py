@@ -1,5 +1,5 @@
 """
-Vanilla-Exploitation config — MHs corren con parámetros de explotación por defecto.
+Vanilla-Explotación config — MHs corren con parámetros de explotación por defecto.
 Todas las constantes vienen de mkp_common.config.
 """
 

@@ -1,1 +1,0 @@
-"""Binary-Patient DTW strategy."""

@@ -1,5 +1,5 @@
 """
-Script maestro de resultados — Vanilla-Exploitation.
+Script maestro de resultados — Vanilla-Explotación.
 Corre todas las MHs sin DTW en modo exploit puro.
 """
 
@@ -44,7 +44,7 @@ COLORS = {
 }
 
 STRATEGY_KEY = "vanilla_explotacion"
-STRATEGY_LABEL = "Vanilla-Exploitation"
+STRATEGY_LABEL = "V-Explotación"
 
 
 def print_epoch_results(nombre: str, resultados: list, inst: dict):

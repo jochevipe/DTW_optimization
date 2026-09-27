@@ -1,5 +1,5 @@
 """
-Script maestro de resultados — Vanilla-Exploration.
+Script maestro de resultados — Vanilla-Exploración.
 Corre todas las MHs sin DTW, forzadas a modo exploración.
 """
 
@@ -44,7 +44,7 @@ COLORS = {
 }
 
 STRATEGY_KEY = "vanilla_exploracion"
-STRATEGY_LABEL = "Vanilla-Exploration"
+STRATEGY_LABEL = "V-Exploración"
 
 
 def print_epoch_results(nombre: str, resultados: list, inst: dict):

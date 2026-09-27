@@ -1,5 +1,5 @@
 """
-Runner para Vanilla-Exploration.
+Runner para Vanilla-Exploración.
 Fuerza a cada MH al modo explore después de initialize(),
 manteniendo parámetros de exploración durante toda la ejecución.
 """

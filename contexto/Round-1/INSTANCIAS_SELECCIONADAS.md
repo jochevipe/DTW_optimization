@@ -1,16 +1,28 @@
 # Selección de instancias — Campaña de revisión (Round 1)
 
-Responde a **R1.3**: el paper evaluó solo la primera instancia (idx=0) de cada archivo Chu–Beasley. La nueva campaña post-OAT amplía la evaluación a **27 instancias** (9 archivos × 3 índices).
+Responde a **R1.3**: el paper evaluó solo el primer problema (idx=0) de cada grupo Chu–Beasley.
+La campaña de re-experimentos extiende la evaluación a **3 instancias fijas por archivo**:
+**27 instancias en total** (9 archivos × 3 índices).
 
-## Criterio de selección oficial
+## Criterio de selección
 
-Cada `instances/mknapcb{i}.txt` contiene 30 instancias (idx 0..29). Se conserva idx=0 por comparabilidad con el paper y se muestrean otros 2 índices sin reposición de [1,29]. Para cada archivo `i` de 1 a 9, la tabla se obtuvo con `numpy.random.default_rng(1000 + i)`, `k=3` y `seed_base=1000`. Así se mantiene la grilla de tamaños m∈{5,10,30} × n∈{100,250,500} con tres instancias por par (m, n).
+1. **idx=0 siempre incluido**: conserva comparabilidad directa con todos los resultados
+   ya reportados en el paper (todas las tablas actuales usan idx=0).
+2. Los **k−1 índices restantes** se muestrean sin reposición del rango [1, 29] con
+   `numpy.random.default_rng(seed_base + nº_archivo)`, donde `seed_base = 1000`.
+   La semilla es pública y la tabla queda fija: cualquier persona puede reproducirla
+   exactamente con `python run_benchmark_hpc.py --k 3 --sample-seed 1000`.
+3. La grilla (m × n) ya está balanceada a nivel archivo: cada `mknapcb{i}.txt` contiene
+   30 instancias de un único par (m, n) — m∈{5,10,30}, n∈{100,250,500} —, así que
+   muestrear 3 índices por archivo conserva el balance por tamaño.
 
-| Archivo | m × n (restricciones × ítems) | Índices seleccionados |
+## Tabla oficial de índices
+
+| Archivo | m × n | Índices seleccionados |
 |---|---|---|
-| mknapcb1 | 5 × 100 | 0, 18, 26 |
-| mknapcb2 | 5 × 250 | 0, 12, 17 |
-| mknapcb3 | 5 × 500 | 0, 6, 9 |
+| mknapcb1 | 5 × 100  | 0, 18, 26 |
+| mknapcb2 | 5 × 250  | 0, 12, 17 |
+| mknapcb3 | 5 × 500  | 0, 6, 9 |
 | mknapcb4 | 10 × 100 | 0, 1, 21 |
 | mknapcb5 | 10 × 250 | 0, 3, 13 |
 | mknapcb6 | 10 × 500 | 0, 10, 15 |
@@ -18,24 +30,34 @@ Cada `instances/mknapcb{i}.txt` contiene 30 instancias (idx 0..29). Se conserva 
 | mknapcb8 | 30 × 250 | 0, 5, 10 |
 | mknapcb9 | 30 × 500 | 0, 2, 21 |
 
-**Total: 27 instancias.**
+Total: **27 instancias** (9 archivos × 3 índices).
 
-## Ejecución y reproducción (HPC Oceano PUCV)
+## Comandos de ejecución (HPC Oceano PUCV)
 
-Campaña completa con 31 epochs y 40 CPUs:
+Campaña completa con los parámetros del paper (31 epochs × 2000 iteraciones, 40 CPUs por instancia):
 
 ```bash
-python run_benchmark_hpc.py --desde 1 --hasta 9 --k 3 --sample-seed 1000 --cpus 40 --epochs 31
+python run_benchmark_hpc.py --k 3 --sample-seed 1000 --cpus 40 --epochs 31
 ```
 
-`--k` es obligatorio para activar el muestreo: `--sample-seed` por sí solo no lo activa. La selección tiene precedencia `--indices` → `--k` → `--indice` (por defecto 0); no combinar `--indices` con este comando si se busca reproducir la tabla. En la CLI, la semilla de cada archivo se deriva de `seed_base + posición en la lista de archivos seleccionados`, **no** del número `i` del nombre. La fórmula `1000 + i` de la tabla coincide al ejecutar la lista completa y ordenada de archivos 1..9; un rango parcial no reproduce estos índices para esos mismos archivos.
+Modos alternativos:
+
+```bash
+# Lista explícita de índices aplicada a todos los archivos
+python run_benchmark_hpc.py --indices 0 5 10 --cpus 40
+
+# Solo algunos archivos (misma semilla → misma tabla para esos archivos)
+python run_benchmark_hpc.py --desde 1 --hasta 3 --k 3 --cpus 40
+
+# Muestreo puro sin forzar idx=0
+python run_benchmark_hpc.py --k 3 --no-include-zero --cpus 40
+```
 
 ## Trazabilidad
 
-- Manifiesto de selección por campaña: `results/campaign_<id>/instance_selection.json` (modo, k, semilla, tabla y total).
-- Resultados: `results/<strategy>/todos/<instance_stem>_<index>/comparacion_mhs_<timestamp>/`; el análisis estadístico se ejecuta automáticamente por par (archivo, índice).
-- Particularidad conocida: cada proceso hijo HPC reemplaza el identificador de campaña por su propio timestamp. No asumir que el nombre de su directorio de resultados coincide con `<id>` del manifiesto.
-
-## Protocolo histórico
-
-La selección fija **0/15/29** se utilizó en las campañas de sensibilidad OAT (ver [Hallazgos OAT](HALLAZGOS_OAT.md)) y en los planes anteriores. Por decisión del usuario del **2026-09-23**, queda reemplazada por el muestreo con semilla de la tabla anterior para la nueva campaña post-OAT; sus resultados históricos no se eliminan ni se reinterpretan como muestreados.
+- Cada ejecución multi-índice guarda el manifiesto de selección en
+  `results/campaign_<id>/instance_selection.json` (semilla, k, tabla y total).
+- Los resultados se guardan por instancia e índice en la estructura existente:
+  `results/<estrategia>/todos/mknapcb{i}_{idx}/comparacion_mhs_<run_id>/`,
+  y el análisis estadístico (`analisis.estadistico.py`) se ejecuta automáticamente
+  por cada (archivo, índice).
