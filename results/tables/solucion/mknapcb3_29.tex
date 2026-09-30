@@ -1,0 +1,36 @@
+% --- Solution Quality: mknapcb3 (Instance 29) ---
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Solution quality on \textbf{mknapcb3} (inst. 29, $n=500$, $m=5$, $f^*=299\,904$).}
+  \label{tab:calidad_mknapcb3_29}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{MH -- Variant} &
+    \textbf{Best Fitness} &
+    \textbf{Average} &
+    \textbf{Std.} &
+    \textbf{Gap (\%)} \\
+    \midrule
+    BPSO -- Vanilla Exploitation &         297777 &        297378.16 & 202.32 &         0.84 \\
+    BPSO -- Vanilla Exploration  &         298529 & \textbf{298262.74} & 157.97 & \textbf{0.55} \\
+    BPSO -- Binary-Simple        &         298444 &        298151.42 & 144.18 &         0.58 \\
+    BPSO -- Binary-Complex       & \textbf{298561} &        298158.90 & 151.15 &         0.58 \\
+    \midrule
+    GA -- Vanilla Exploitation   & \textbf{299770} & \textbf{299683.35} &  47.88 & \textbf{0.07} \\
+    GA -- Vanilla Exploration    &         298118 &        297751.48 & 213.48 &         0.72 \\
+    GA -- Binary-Simple          &         299675 &        298744.39 & 641.93 &         0.39 \\
+    GA -- Binary-Complex         &         299689 &        299550.97 &  86.20 &         0.12 \\
+    \midrule
+    BGWO -- Vanilla Exploitation & \textbf{294838} &        292111.71 & 792.91 &         2.60 \\
+    BGWO -- Vanilla Exploration  & \textbf{294838} &        292182.97 & 768.34 &         2.57 \\
+    BGWO -- Binary-Simple        & \textbf{294838} & \textbf{292183.87} & 756.72 & \textbf{2.57} \\
+    BGWO -- Binary-Complex       & \textbf{294838} &        292176.81 & 762.16 &         2.58 \\
+    \midrule
+    BDE -- Vanilla Exploitation  &         299305 &        298530.13 & 370.82 &         0.46 \\
+    BDE -- Vanilla Exploration   &         299469 &        299285.19 & 106.83 &         0.21 \\
+    BDE -- Binary-Simple         & \textbf{299662} &        299412.29 & 120.30 &         0.16 \\
+    BDE -- Binary-Complex        &         299614 & \textbf{299460.77} & 100.40 & \textbf{0.15} \\
+    \bottomrule
+  \end{tabular}
+\end{table}

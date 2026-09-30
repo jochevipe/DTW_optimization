@@ -1,0 +1,57 @@
+% --- Computational Execution Time Table ---
+\begin{table*}[htbp]
+  \centering
+  \small
+  \caption{Computational Execution Time [s] (Mean $\pm$ Std) across 31 Independent Runs}
+  \label{tab:computational_cost}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccc@{}}
+    \toprule
+    \textbf{Instance} & \textbf{Algorithm} & \textbf{V-Exploit} & \textbf{V-Explore} & \textbf{Bin-Simple} & \textbf{Bin-Complex} \\
+    \midrule
+    \textbf{mknapcb1}  & BPSO  &  $\mathbf{43.6 \pm 0.3}$ &           $43.8 \pm 0.5$ &           $49.2 \pm 1.0$ &           $50.0 \pm 1.2$ \\
+                       & GA    &  $\mathbf{29.1 \pm 0.9}$ &           $38.4 \pm 1.1$ &           $43.1 \pm 1.4$ &           $43.3 \pm 1.4$ \\
+                       & BGWO  &           $47.7 \pm 0.8$ &  $\mathbf{47.6 \pm 0.4}$ &           $53.7 \pm 1.1$ &           $53.3 \pm 1.1$ \\
+                       & BDE   &  $\mathbf{46.4 \pm 1.2}$ &           $46.5 \pm 1.0$ &           $52.8 \pm 1.6$ &           $49.2 \pm 2.8$ \\
+    \midrule
+    \textbf{mknapcb2}  & BPSO  & $\mathbf{110.1 \pm 1.0}$ &          $111.1 \pm 1.3$ &          $117.4 \pm 1.9$ &          $119.0 \pm 2.7$ \\
+                       & GA    &  $\mathbf{85.1 \pm 1.3}$ &           $97.5 \pm 1.9$ &          $103.4 \pm 2.4$ &          $102.9 \pm 2.4$ \\
+                       & BGWO  &          $119.2 \pm 1.3$ & $\mathbf{118.2 \pm 1.8}$ &          $125.7 \pm 2.6$ &          $126.3 \pm 3.5$ \\
+                       & BDE   &          $118.9 \pm 1.9$ &          $118.9 \pm 1.7$ &          $126.3 \pm 3.1$ & $\mathbf{117.0 \pm 4.8}$ \\
+    \midrule
+    \textbf{mknapcb3}  & BPSO  & $\mathbf{219.1 \pm 2.1}$ &          $220.6 \pm 3.2$ &          $230.0 \pm 3.9$ &          $232.0 \pm 4.5$ \\
+                       & GA    & $\mathbf{187.7 \pm 3.3}$ &         $199.6 \pm 11.2$ &          $202.9 \pm 3.1$ &          $203.1 \pm 4.3$ \\
+                       & BGWO  &          $237.3 \pm 5.2$ & $\mathbf{236.5 \pm 7.7}$ &          $245.4 \pm 4.6$ &          $244.5 \pm 5.6$ \\
+                       & BDE   &          $234.8 \pm 5.8$ &          $234.9 \pm 5.9$ &          $246.2 \pm 4.8$ & $\mathbf{225.1 \pm 16.0}$ \\
+    \midrule
+    \textbf{mknapcb4}  & BPSO  &           $45.6 \pm 3.2$ &  $\mathbf{45.4 \pm 2.5}$ &           $50.9 \pm 1.4$ &           $51.0 \pm 3.1$ \\
+                       & GA    &  $\mathbf{29.2 \pm 0.2}$ &           $38.9 \pm 0.2$ &           $43.7 \pm 3.0$ &           $43.0 \pm 1.0$ \\
+                       & BGWO  &  $\mathbf{48.8 \pm 1.8}$ &           $49.0 \pm 3.2$ &           $54.0 \pm 0.4$ &           $54.2 \pm 2.2$ \\
+                       & BDE   &           $47.4 \pm 2.2$ &  $\mathbf{47.0 \pm 0.4}$ &           $52.5 \pm 3.2$ &           $49.6 \pm 2.1$ \\
+    \midrule
+    \textbf{mknapcb5}  & BPSO  & $\mathbf{116.7 \pm 6.2}$ &          $117.3 \pm 7.1$ &          $121.8 \pm 8.6$ &          $122.0 \pm 5.4$ \\
+                       & GA    &  $\mathbf{87.7 \pm 0.5}$ &          $101.0 \pm 1.3$ &          $104.8 \pm 0.8$ &          $104.4 \pm 0.9$ \\
+                       & BGWO  &          $125.9 \pm 8.7$ & $\mathbf{124.5 \pm 8.0}$ &          $128.0 \pm 0.4$ &          $129.5 \pm 7.0$ \\
+                       & BDE   &          $121.9 \pm 1.9$ &          $121.8 \pm 4.9$ &          $127.9 \pm 9.2$ & $\mathbf{119.2 \pm 3.6}$ \\
+    \midrule
+    \textbf{mknapcb6}  & BPSO  &          $239.2 \pm 3.6$ & $\mathbf{238.4 \pm 7.6}$ &          $241.2 \pm 0.5$ &         $244.4 \pm 15.2$ \\
+                       & GA    & $\mathbf{200.4 \pm 4.3}$ &          $208.7 \pm 5.1$ &         $215.4 \pm 13.8$ &          $212.2 \pm 0.7$ \\
+                       & BGWO  &          $254.3 \pm 6.3$ & $\mathbf{251.5 \pm 3.8}$ &         $261.2 \pm 16.4$ &         $260.9 \pm 14.5$ \\
+                       & BDE   &          $245.1 \pm 6.2$ &         $246.7 \pm 14.8$ &          $251.7 \pm 1.6$ & $\mathbf{236.2 \pm 12.0}$ \\
+    \midrule
+    \textbf{mknapcb7}  & BPSO  &  $\mathbf{49.4 \pm 1.1}$ &           $50.2 \pm 3.6$ &           $55.1 \pm 1.2$ &           $55.2 \pm 1.2$ \\
+                       & GA    &  $\mathbf{32.7 \pm 0.4}$ &           $43.8 \pm 3.1$ &           $47.1 \pm 1.3$ &           $47.4 \pm 3.2$ \\
+                       & BGWO  &           $53.5 \pm 3.7$ &  $\mathbf{52.4 \pm 0.3}$ &           $58.6 \pm 3.5$ &           $58.5 \pm 3.6$ \\
+                       & BDE   &  $\mathbf{53.6 \pm 0.6}$ &           $53.9 \pm 4.1$ &           $58.7 \pm 0.9$ &           $55.7 \pm 1.6$ \\
+    \midrule
+    \textbf{mknapcb8}  & BPSO  &          $136.6 \pm 4.0$ & $\mathbf{135.9 \pm 0.8}$ &          $142.4 \pm 8.3$ &          $142.8 \pm 8.9$ \\
+                       & GA    & $\mathbf{104.2 \pm 0.6}$ &          $119.8 \pm 7.6$ &          $123.6 \pm 2.5$ &          $122.3 \pm 1.2$ \\
+                       & BGWO  &          $145.4 \pm 9.2$ & $\mathbf{142.3 \pm 0.5}$ &          $148.5 \pm 0.7$ &          $150.0 \pm 8.5$ \\
+                       & BDE   &          $143.4 \pm 9.2$ &          $142.7 \pm 8.9$ &          $148.7 \pm 9.1$ & $\mathbf{138.8 \pm 4.8}$ \\
+    \midrule
+    \textbf{mknapcb9}  & BPSO  &         $288.8 \pm 10.2$ & $\mathbf{286.2 \pm 1.1}$ &         $293.2 \pm 17.2$ &         $294.7 \pm 17.4$ \\
+                       & GA    & $\mathbf{240.6 \pm 1.4}$ &         $252.4 \pm 14.7$ &          $255.4 \pm 1.3$ &          $255.7 \pm 2.6$ \\
+                       & BGWO  &         $304.3 \pm 18.2$ & $\mathbf{299.6 \pm 1.1}$ &          $307.1 \pm 1.8$ &         $310.7 \pm 15.9$ \\
+                       & BDE   &         $299.7 \pm 18.1$ &         $299.5 \pm 17.8$ &         $308.3 \pm 18.8$ & $\mathbf{286.8 \pm 13.4}$ \\
+    \bottomrule
+  \end{tabular*}
+\end{table*}

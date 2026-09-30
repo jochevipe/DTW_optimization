@@ -1,0 +1,36 @@
+% --- Solution Quality: mknapcb3 (Instance 0) ---
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Solution quality on \textbf{mknapcb3} (inst. 0, $n=500$, $m=5$, $f^*=120\,130$).}
+  \label{tab:calidad_mknapcb3_0}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{MH -- Variant} &
+    \textbf{Best Fitness} &
+    \textbf{Average} &
+    \textbf{Std.} &
+    \textbf{Gap (\%)} \\
+    \midrule
+    BPSO -- Vanilla Exploitation &         117152 &        116590.00 & 250.28 &         2.95 \\
+    BPSO -- Vanilla Exploration  &         118393 & \textbf{118052.35} & 210.47 & \textbf{1.73} \\
+    BPSO -- Binary-Simple        & \textbf{118421} &        117935.90 & 207.34 &         1.83 \\
+    BPSO -- Binary-Complex       &         118181 &        117890.58 & 194.54 &         1.86 \\
+    \midrule
+    GA -- Vanilla Exploitation   & \textbf{120113} & \textbf{119966.16} &  58.02 & \textbf{0.14} \\
+    GA -- Vanilla Exploration    &         118541 &        117907.84 & 301.96 &         1.85 \\
+    GA -- Binary-Simple          &         119911 &        119230.77 & 388.95 &         0.75 \\
+    GA -- Binary-Complex         &         120000 &        119870.13 &  77.47 &         0.22 \\
+    \midrule
+    BGWO -- Vanilla Exploitation &         118046 & \textbf{117610.81} & 194.98 & \textbf{2.10} \\
+    BGWO -- Vanilla Exploration  &         117961 &        117475.84 & 215.64 &         2.21 \\
+    BGWO -- Binary-Simple        &         117939 &        117502.03 & 204.21 &         2.19 \\
+    BGWO -- Binary-Complex       & \textbf{118062} &        117525.94 & 265.49 &         2.17 \\
+    \midrule
+    BDE -- Vanilla Exploitation  &         118648 &        118145.74 & 369.30 &         1.65 \\
+    BDE -- Vanilla Exploration   &         119095 &        118742.87 & 244.04 &         1.15 \\
+    BDE -- Binary-Simple         & \textbf{119714} &        119199.97 & 298.48 &         0.77 \\
+    BDE -- Binary-Complex        &         119692 & \textbf{119212.68} & 293.76 & \textbf{0.76} \\
+    \bottomrule
+  \end{tabular}
+\end{table}

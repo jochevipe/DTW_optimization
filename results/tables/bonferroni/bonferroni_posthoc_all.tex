@@ -1,0 +1,19 @@
+% --- Bonferroni-Dunn Post-Hoc Comparison Table ---
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Bonferroni-Dunn Post-Hoc Test ($N=108$, Control: \textbf{Binary-Complex}, $\alpha=0.05$, $CD=0.421$).}
+  \label{tab:bonferroni_posthoc_all}
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{Comparison} & \textbf{Rank Diff.} & \textbf{$z$-statistic} & \textbf{$p_{\text{unadj}}$} & \textbf{$p_{\text{Bonf}}$} \\
+    \midrule
+    Binary-Complex vs. Binary-Simple       &   0.26 &  1.48 &  0.1400 &  0.4200 \\
+    Binary-Complex vs. Vanilla-Exploration & \textbf{0.43} &  2.42 &  0.0153 & \textbf{0.0460} \\
+    Binary-Complex vs. Vanilla-Exploitation & \textbf{0.80} &  4.53 &  0.0000 & \textbf{0.0000} \\
+    \bottomrule
+  \end{tabular}
+  \vspace{1ex}
+
+  \footnotesize Standard Error: $SE=0.1757$, Critical Difference: $CD=0.421$.
+\end{table}

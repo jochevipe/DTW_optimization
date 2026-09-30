@@ -1,0 +1,36 @@
+% --- Solution Quality: mknapcb8 (Instance 15) ---
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Solution quality on \textbf{mknapcb8} (inst. 15, $n=250$, $m=30$, $f^*=107\,246$).}
+  \label{tab:calidad_mknapcb8_15}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{MH -- Variant} &
+    \textbf{Best Fitness} &
+    \textbf{Average} &
+    \textbf{Std.} &
+    \textbf{Gap (\%)} \\
+    \midrule
+    BPSO -- Vanilla Exploitation &         102880 &        102137.61 & 262.54 &         4.76 \\
+    BPSO -- Vanilla Exploration  & \textbf{104541} & \textbf{103739.87} & 247.21 & \textbf{3.27} \\
+    BPSO -- Binary-Simple        &         104192 &        103605.94 & 226.54 &         3.39 \\
+    BPSO -- Binary-Complex       &         104159 &        103620.48 & 279.37 &         3.38 \\
+    \midrule
+    GA -- Vanilla Exploitation   & \textbf{106934} & \textbf{106602.03} & 138.89 & \textbf{0.60} \\
+    GA -- Vanilla Exploration    &         104486 &        103703.52 & 338.62 &         3.30 \\
+    GA -- Binary-Simple          &         106131 &        105140.61 & 473.65 &         1.96 \\
+    GA -- Binary-Complex         &         106657 &        106355.84 & 197.22 &         0.83 \\
+    \midrule
+    BGWO -- Vanilla Exploitation &         103269 &        102876.97 & 219.55 &         4.07 \\
+    BGWO -- Vanilla Exploration  &         103447 &        102770.00 & 296.97 &         4.17 \\
+    BGWO -- Binary-Simple        &         103417 &        102824.06 & 274.93 &         4.12 \\
+    BGWO -- Binary-Complex       & \textbf{103654} & \textbf{102879.39} & 273.08 & \textbf{4.07} \\
+    \midrule
+    BDE -- Vanilla Exploitation  &         105228 &        104170.32 & 663.05 &         2.87 \\
+    BDE -- Vanilla Exploration   &         106091 &        105268.71 & 298.59 &         1.84 \\
+    BDE -- Binary-Simple         &         106202 &        105609.87 & 315.00 &         1.53 \\
+    BDE -- Binary-Complex        & \textbf{106259} & \textbf{105647.29} & 252.66 & \textbf{1.49} \\
+    \bottomrule
+  \end{tabular}
+\end{table}

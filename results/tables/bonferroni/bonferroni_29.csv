@@ -1,0 +1,16 @@
+Section,Item,Value,Notes
+Friedman,Statistic_Chi2,25.8000,
+Friedman,p_value,1.0503e-05,
+Friedman,N_blocks,36,
+Friedman,k_strategies,4,
+
+Ranking,Placement,Strategy,Mean_Rank
+Ranking,1,Binary-Complex,1.9722
+Ranking,2,Vanilla-Exploration,2.3056
+Ranking,3,Binary-Simple,2.3056
+Ranking,4,Vanilla-Exploitation,3.4167
+
+PostHoc,Comparison,Rank_Diff,z_value,p_unadjusted,p_bonferroni,Significant
+PostHoc,Binary-Complex vs. Vanilla-Exploration,0.3333,1.0954,2.7332e-01,8.1997e-01,No
+PostHoc,Binary-Complex vs. Binary-Simple,0.3333,1.0954,2.7332e-01,8.1997e-01,No
+PostHoc,Binary-Complex vs. Vanilla-Exploitation,1.4444,4.7469,2.0653e-06,6.1959e-06,Yes

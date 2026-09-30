@@ -1,0 +1,36 @@
+% --- Solution Quality: mknapcb9 (Instance 15) ---
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Solution quality on \textbf{mknapcb9} (inst. 15, $n=500$, $m=30$, $f^*=215\,762$).}
+  \label{tab:calidad_mknapcb9_15}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{MH -- Variant} &
+    \textbf{Best Fitness} &
+    \textbf{Average} &
+    \textbf{Std.} &
+    \textbf{Gap (\%)} \\
+    \midrule
+    BPSO -- Vanilla Exploitation &         201843 &        200709.52 & 647.97 &         6.98 \\
+    BPSO -- Vanilla Exploration  & \textbf{205451} & \textbf{204132.68} & 641.15 & \textbf{5.39} \\
+    BPSO -- Binary-Simple        &         204784 &        203873.71 & 441.56 &         5.51 \\
+    BPSO -- Binary-Complex       &         204890 &        203637.90 & 584.08 &         5.62 \\
+    \midrule
+    GA -- Vanilla Exploitation   & \textbf{215101} & \textbf{214781.45} & 181.33 & \textbf{0.45} \\
+    GA -- Vanilla Exploration    &         204940 &        203765.06 & 664.82 &         5.56 \\
+    GA -- Binary-Simple          &         214929 &        212189.71 & 2543.54 &         1.66 \\
+    GA -- Binary-Complex         &         214741 &        214209.94 & 395.18 &         0.72 \\
+    \midrule
+    BGWO -- Vanilla Exploitation &         205869 & \textbf{204880.65} & 443.83 & \textbf{5.04} \\
+    BGWO -- Vanilla Exploration  & \textbf{205981} &        204306.42 & 442.42 &         5.31 \\
+    BGWO -- Binary-Simple        &         205758 &        204364.74 & 507.83 &         5.28 \\
+    BGWO -- Binary-Complex       &         205483 &        204369.65 & 414.54 &         5.28 \\
+    \midrule
+    BDE -- Vanilla Exploitation  &         209597 &        205982.87 & 1535.50 &         4.53 \\
+    BDE -- Vanilla Exploration   &         210659 &        209327.00 & 692.37 &         2.98 \\
+    BDE -- Binary-Simple         &         212450 & \textbf{211331.74} & 624.61 & \textbf{2.05} \\
+    BDE -- Binary-Complex        & \textbf{212826} &        210918.19 & 1043.15 &         2.24 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

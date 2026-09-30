@@ -1,0 +1,36 @@
+% --- Solution Quality: mknapcb7 (Instance 15) ---
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Solution quality on \textbf{mknapcb7} (inst. 15, $n=100$, $m=30$, $f^*=41\,058$).}
+  \label{tab:calidad_mknapcb7_15}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{MH -- Variant} &
+    \textbf{Best Fitness} &
+    \textbf{Average} &
+    \textbf{Std.} &
+    \textbf{Gap (\%)} \\
+    \midrule
+    BPSO -- Vanilla Exploitation &          40249 &         39968.16 & 147.87 &         2.65 \\
+    BPSO -- Vanilla Exploration  &          40813 & \textbf{40451.39} & 101.87 & \textbf{1.48} \\
+    BPSO -- Binary-Simple        &          40742 &         40406.94 & 113.48 &         1.59 \\
+    BPSO -- Binary-Complex       & \textbf{40840} &         40403.94 & 166.20 &         1.59 \\
+    \midrule
+    GA -- Vanilla Exploitation   & \textbf{40954} & \textbf{40783.97} & 104.79 & \textbf{0.67} \\
+    GA -- Vanilla Exploration    &          40550 &         40392.61 & 107.00 &         1.62 \\
+    GA -- Binary-Simple          &          40912 &         40645.00 & 175.47 &         1.01 \\
+    GA -- Binary-Complex         &          40834 &         40608.42 & 164.51 &         1.09 \\
+    \midrule
+    BGWO -- Vanilla Exploitation & \textbf{40016} & \textbf{39776.06} & 132.17 & \textbf{3.12} \\
+    BGWO -- Vanilla Exploration  &          40006 &         39684.26 & 153.00 &         3.35 \\
+    BGWO -- Binary-Simple        &          39952 &         39697.19 & 136.36 &         3.31 \\
+    BGWO -- Binary-Complex       &          39990 &         39667.19 & 129.03 &         3.39 \\
+    \midrule
+    BDE -- Vanilla Exploitation  &          40723 &         40417.58 & 190.67 &         1.56 \\
+    BDE -- Vanilla Exploration   &          40912 &         40700.58 & 143.41 &         0.87 \\
+    BDE -- Binary-Simple         &          40912 &         40715.68 & 113.34 &         0.83 \\
+    BDE -- Binary-Complex        & \textbf{40925} & \textbf{40761.58} & 115.02 & \textbf{0.72} \\
+    \bottomrule
+  \end{tabular}
+\end{table}

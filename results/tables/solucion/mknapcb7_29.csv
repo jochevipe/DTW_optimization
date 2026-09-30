@@ -1,0 +1,17 @@
+Problem,Dim_m,Dim_n,Instance_Idx,Optimum,Algorithm,Strategy,Best_Fitness,Average,Std,Gap_Pct
+mknapcb7,30,100,29,60603.0,BPSO,Vanilla Exploitation,60414,60270.97,80.42,0.5479
+mknapcb7,30,100,29,60603.0,BPSO,Vanilla Exploration,60533,60429.52,54.19,0.2863
+mknapcb7,30,100,29,60603.0,BPSO,Binary-Simple,60533,60415.81,50.91,0.3089
+mknapcb7,30,100,29,60603.0,BPSO,Binary-Complex,60533,60431.26,56.75,0.2834
+mknapcb7,30,100,29,60603.0,GA,Vanilla Exploitation,60508,60354.71,90.81,0.4097
+mknapcb7,30,100,29,60603.0,GA,Vanilla Exploration,60508,60341.26,97.09,0.4319
+mknapcb7,30,100,29,60603.0,GA,Binary-Simple,60508,60369.16,75.76,0.3859
+mknapcb7,30,100,29,60603.0,GA,Binary-Complex,60508,60362.45,70.99,0.3969
+mknapcb7,30,100,29,60603.0,BGWO,Vanilla Exploitation,59568,59192.48,145.81,2.3275
+mknapcb7,30,100,29,60603.0,BGWO,Vanilla Exploration,59800,59237.10,194.78,2.2539
+mknapcb7,30,100,29,60603.0,BGWO,Binary-Simple,59464,59173.77,149.93,2.3583
+mknapcb7,30,100,29,60603.0,BGWO,Binary-Complex,59800,59251.58,205.40,2.2300
+mknapcb7,30,100,29,60603.0,BDE,Vanilla Exploitation,60533,60339.23,102.85,0.4352
+mknapcb7,30,100,29,60603.0,BDE,Vanilla Exploration,60533,60477.10,44.35,0.2078
+mknapcb7,30,100,29,60603.0,BDE,Binary-Simple,60533,60489.45,38.19,0.1874
+mknapcb7,30,100,29,60603.0,BDE,Binary-Complex,60533,60475.77,45.03,0.2099

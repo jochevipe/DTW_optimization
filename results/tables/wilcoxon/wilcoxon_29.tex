@@ -1,0 +1,62 @@
+% --- Non-Parametric Wilcoxon Signed-Rank Test Table ---
+\begin{table*}[htbp]
+  \centering
+  \small
+  \caption{Pairwise Wilcoxon Signed-Rank Test: Proposed \textbf{Binary-Complex} vs. Baselines ($\alpha=0.05$, $R=31$, Representative Instance 29). Verdict signs: $+$ indicates Binary-Complex is statistically superior ($p < 0.05$); $\approx$ indicates no significant difference ($p \ge 0.05$); $-$ indicates baseline is superior.}
+  \label{tab:wilcoxon_inst29}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccccc@{}}
+    \toprule
+    & & \multicolumn{2}{c}{\textbf{vs. Vanilla (Exploit)}} & \multicolumn{2}{c}{\textbf{vs. Vanilla (Explore)}} & \multicolumn{2}{c}{\textbf{vs. Binary-Simple}} \\
+    \cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+    \textbf{Instance} & \textbf{Algorithm} & $p$-value & Sign & $p$-value & Sign & $p$-value & Sign \\
+    \midrule
+    \textbf{mknapcb1}  & BPSO  & 7.479e-05 & $+$ &    0.6441 & $\approx$ &    0.4222 & $\approx$ \\
+                       & GA    &    0.0760 & $\approx$ &    0.0016 & $+$ &    0.8078 & $\approx$ \\
+                       & BGWO  &    0.2218 & $\approx$ &    0.8647 & $\approx$ &    0.9357 & $\approx$ \\
+                       & BDE   & 1.827e-04 & $+$ &    0.5637 & $\approx$ &    0.4142 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb2}  & BPSO  & 1.577e-06 & $+$ &    0.0015 & $-$ &    0.7023 & $\approx$ \\
+                       & GA    & 9.929e-04 & $-$ & 9.313e-10 & $+$ &    0.0035 & $+$ \\
+                       & BGWO  &    0.2012 & $\approx$ &    0.3454 & $\approx$ &    0.9165 & $\approx$ \\
+                       & BDE   & 1.577e-06 & $+$ &    0.2363 & $\approx$ &    0.4159 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb3}  & BPSO  & 1.174e-06 & $+$ &    0.0079 & $-$ &    0.9687 & $\approx$ \\
+                       & GA    & 3.927e-06 & $-$ & 1.173e-06 & $+$ & 2.859e-07 & $+$ \\
+                       & BGWO  &    0.1386 & $\approx$ &    0.8927 & $\approx$ &    0.7150 & $\approx$ \\
+                       & BDE   & 9.313e-10 & $+$ & 3.407e-06 & $+$ &    0.0977 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb4}  & BPSO  & 6.519e-08 & $+$ &    0.0037 & $-$ &    0.6146 & $\approx$ \\
+                       & GA    &    0.0332 & $+$ &    0.5345 & $\approx$ &    0.8082 & $\approx$ \\
+                       & BGWO  &    0.0256 & $+$ &    0.5016 & $\approx$ &    0.5161 & $\approx$ \\
+                       & BDE   & 4.975e-05 & $+$ &    0.0161 & $-$ &    0.5308 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb5}  & BPSO  & 1.174e-06 & $+$ &    0.4590 & $\approx$ &    0.5370 & $\approx$ \\
+                       & GA    & 2.825e-05 & $-$ & 2.563e-06 & $+$ &    0.2170 & $\approx$ \\
+                       & BGWO  &    0.0029 & $+$ &    0.5525 & $\approx$ &    0.1961 & $\approx$ \\
+                       & BDE   & 1.770e-08 & $+$ & 2.207e-05 & $+$ &    0.5632 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb6}  & BPSO  & 1.863e-09 & $+$ &    0.0351 & $-$ &    0.3223 & $\approx$ \\
+                       & GA    & 5.454e-06 & $-$ & 9.313e-10 & $+$ & 4.163e-07 & $+$ \\
+                       & BGWO  &    0.0117 & $+$ &    0.6547 & $\approx$ &    0.1088 & $\approx$ \\
+                       & BDE   & 1.295e-06 & $+$ & 1.825e-06 & $+$ &    0.7207 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb7}  & BPSO  & 1.304e-08 & $+$ &    0.7533 & $\approx$ &    0.3388 & $\approx$ \\
+                       & GA    &    0.7464 & $\approx$ &    0.3065 & $\approx$ &    0.7468 & $\approx$ \\
+                       & BGWO  &    0.1064 & $\approx$ &    0.7172 & $\approx$ &    0.1718 & $\approx$ \\
+                       & BDE   & 9.311e-06 & $+$ &    0.9272 & $\approx$ &    0.3032 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb8}  & BPSO  & 4.657e-09 & $+$ &    0.1086 & $\approx$ &    0.8092 & $\approx$ \\
+                       & GA    & 1.928e-07 & $-$ & 2.603e-06 & $+$ & 1.742e-04 & $+$ \\
+                       & BGWO  &    0.0148 & $+$ &    0.6378 & $\approx$ &    0.1024 & $\approx$ \\
+                       & BDE   & 9.313e-10 & $+$ &    0.0019 & $+$ &    0.8242 & $\approx$ \\
+    \midrule
+    \textbf{mknapcb9}  & BPSO  & 9.313e-10 & $+$ &    0.1302 & $\approx$ &    0.6435 & $\approx$ \\
+                       & GA    & 7.539e-05 & $-$ & 1.174e-06 & $+$ & 2.356e-07 & $+$ \\
+                       & BGWO  &    0.0117 & $+$ &    0.1797 & $\approx$ &    0.1088 & $\approx$ \\
+                       & BDE   & 1.738e-06 & $+$ & 2.627e-05 & $+$ &    0.8242 & $\approx$ \\
+    \midrule
+    \multicolumn{2}{l}{\textbf{Total ($+ / \approx / -$)}} & \multicolumn{2}{c}{\textbf{24 / 6 / 6}}  & \multicolumn{2}{c}{\textbf{12 / 19 / 5}}  & \multicolumn{2}{c}{\textbf{5 / 31 / 0}} \\
+    \bottomrule
+  \end{tabular*}
+  \vspace{1ex}
+\end{table*}

@@ -1,0 +1,36 @@
+% --- Solution Quality: mknapcb2 (Instance 15) ---
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Solution quality on \textbf{mknapcb2} (inst. 15, $n=250$, $m=5$, $f^*=110\,256$).}
+  \label{tab:calidad_mknapcb2_15}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{MH -- Variant} &
+    \textbf{Best Fitness} &
+    \textbf{Average} &
+    \textbf{Std.} &
+    \textbf{Gap (\%)} \\
+    \midrule
+    BPSO -- Vanilla Exploitation &         106374 &        105320.90 & 441.49 &         4.48 \\
+    BPSO -- Vanilla Exploration  &         107809 & \textbf{107279.29} & 254.25 & \textbf{2.70} \\
+    BPSO -- Binary-Simple        &         107584 &        107132.13 & 300.58 &         2.83 \\
+    BPSO -- Binary-Complex       & \textbf{107863} &        107158.10 & 315.71 &         2.81 \\
+    \midrule
+    GA -- Vanilla Exploitation   & \textbf{110167} & \textbf{110080.61} &  49.07 & \textbf{0.16} \\
+    GA -- Vanilla Exploration    &         108057 &        107421.48 & 336.50 &         2.57 \\
+    GA -- Binary-Simple          &         110049 &        109117.06 & 481.46 &         1.03 \\
+    GA -- Binary-Complex         &         110095 &        109849.87 & 447.72 &         0.37 \\
+    \midrule
+    BGWO -- Vanilla Exploitation &         107193 & \textbf{106435.23} & 318.64 & \textbf{3.47} \\
+    BGWO -- Vanilla Exploration  &         107108 &        106207.55 & 434.30 &         3.67 \\
+    BGWO -- Binary-Simple        & \textbf{108034} &        106278.61 & 482.64 &         3.61 \\
+    BGWO -- Binary-Complex       &         107616 &        106263.39 & 410.61 &         3.62 \\
+    \midrule
+    BDE -- Vanilla Exploitation  &         108908 &        107911.77 & 697.32 &         2.13 \\
+    BDE -- Vanilla Exploration   &         109776 &        109367.52 & 296.86 &         0.81 \\
+    BDE -- Binary-Simple         & \textbf{109850} & \textbf{109527.23} & 197.69 & \textbf{0.66} \\
+    BDE -- Binary-Complex        &         109838 &        109410.74 & 288.50 &         0.77 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
