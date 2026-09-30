@@ -1,0 +1,35 @@
+{
+  "campaign_id": "20260929_141957",
+  "created_at": "2026-09-29T14:19:57",
+  "sampling_mode": "explicit",
+  "k": null,
+  "sample_seed": 1,
+  "include_zero": true,
+  "instances": {
+    "instances/mknapcb1.txt": {
+      "indices": [
+        0,
+        15,
+        29
+      ],
+      "count": 3
+    },
+    "instances/mknapcb2.txt": {
+      "indices": [
+        0,
+        15,
+        29
+      ],
+      "count": 3
+    },
+    "instances/mknapcb3.txt": {
+      "indices": [
+        0,
+        15,
+        29
+      ],
+      "count": 3
+    }
+  },
+  "total": 9
+}

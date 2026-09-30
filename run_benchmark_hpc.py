@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -44,7 +45,7 @@ import numpy as np
 DEFAULT_INSTANCES = [f"instances/mknapcb{i}.txt" for i in range(1, 10)]
 
 # Valores por defecto del modo multi-índice (documentados en la revisión)
-DEFAULT_SAMPLE_SEED = 1000
+DEFAULT_SAMPLE_SEED = 1
 DEFAULT_K = 3
 
 
@@ -90,6 +91,16 @@ def sample_indices(
     return sorted(picks)
 
 
+def _extract_file_number(inst_path: str) -> int:
+    """Extrae el número canónico de archivo (1 a 9) para mantener semillas deterministas fijas."""
+    match = re.search(r"mknapcb(\d+)", Path(inst_path).stem)
+    if match:
+        return int(match.group(1))
+    if inst_path in DEFAULT_INSTANCES:
+        return DEFAULT_INSTANCES.index(inst_path) + 1
+    return 1
+
+
 def build_work_plan(
     args: argparse.Namespace, instancias: List[str]
 ) -> Tuple[List[Tuple[str, int]], str, Dict[str, List[int]]]:
@@ -104,16 +115,19 @@ def build_work_plan(
         indices_by_file = {
             path: sample_indices(
                 path,
-                file_number=i,
+                file_number=_extract_file_number(path),
                 k=args.k,
                 seed_base=args.sample_seed,
                 include_zero=args.include_zero,
             )
-            for i, path in enumerate(instancias, 1)
+            for path in instancias
         }
-    else:
+    elif args.indice is not None:
         sampling_mode = "single"
         indices_by_file = {path: [args.indice] for path in instancias}
+    else:
+        sampling_mode = "explicit"
+        indices_by_file = {path: [0, 15, 29] for path in instancias}
 
     plan = [(path, idx) for path in instancias for idx in indices_by_file[path]]
     return plan, sampling_mode, indices_by_file
@@ -171,15 +185,15 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--indice",
         type=int,
-        default=0,
-        help="Índice dentro de cada archivo de instancia (modo single-index, default: 0)",
+        default=None,
+        help="Índice dentro de cada archivo de instancia (modo single-index)",
     )
     p.add_argument(
         "--indices",
         nargs="+",
         type=int,
         default=None,
-        help="Lista explícita de índices aplicada a todos los archivos (modo multi-índice)",
+        help="Lista explícita de índices aplicada a todos los archivos (default: [0, 15, 29])",
     )
     p.add_argument(
         "--k",
@@ -221,6 +235,11 @@ def parse_args() -> argparse.Namespace:
         "--stop-on-error",
         action="store_true",
         help="Detener el benchmark si alguna instancia falla",
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Muestra el plan de trabajo y guarda el manifiesto sin ejecutar las instancias",
     )
     return p.parse_args()
 
@@ -274,6 +293,11 @@ def main() -> int:
         )
         print(f"  Manifiesto de selección guardado en: {manifest_path}")
         print()
+
+    if args.dry_run:
+        print("  [DRY-RUN] Simulación de prueba finalizada exitosamente.")
+        print(f"  [DRY-RUN] Se verificaron {len(plan)} unidades de trabajo sin lanzar ejecución.")
+        return 0
 
     t_global_start = time.perf_counter()
     reporte = []

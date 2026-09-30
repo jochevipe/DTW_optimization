@@ -9,35 +9,35 @@ Origen: `contexto/Round-1/SINTESIS_REVIEWS.md` — Frente 2 (R1.3): el paper sol
 - **Criterio**: idx=0 siempre incluido (comparabilidad directa con los resultados ya reportados del paper) + 2 índices adicionales muestreados sin reposición de [1,29] con `numpy.random.default_rng(1000 + i)` por archivo `i`. Determinista y documentado.
 - `k=3` (configurable), `seed_base=1000` (configurable).
 
-### Tabla oficial de índices
+### Tabla oficial de índices (Criterio simétrico [0, 15, 29])
 
 | Archivo | m × n | Índices |
 |---|---|---|
-| mknapcb1 | 5×100 | 0, 18, 26 |
-| mknapcb2 | 5×250 | 0, 12, 17 |
-| mknapcb3 | 5×500 | 0, 6, 9 |
-| mknapcb4 | 10×100 | 0, 1, 21 |
-| mknapcb5 | 10×250 | 0, 3, 13 |
-| mknapcb6 | 10×500 | 0, 10, 15 |
-| mknapcb7 | 30×100 | 0, 2, 3 |
-| mknapcb8 | 30×250 | 0, 5, 10 |
-| mknapcb9 | 30×500 | 0, 2, 21 |
+| mknapcb1 | 5×100 | 0, 15, 29 |
+| mknapcb2 | 5×250 | 0, 15, 29 |
+| mknapcb3 | 5×500 | 0, 15, 29 |
+| mknapcb4 | 10×100 | 0, 15, 29 |
+| mknapcb5 | 10×250 | 0, 15, 29 |
+| mknapcb6 | 10×500 | 0, 15, 29 |
+| mknapcb7 | 30×100 | 0, 15, 29 |
+| mknapcb8 | 30×250 | 0, 15, 29 |
+| mknapcb9 | 30×500 | 0, 15, 29 |
 
-Total: 27 instancias (9 archivos × 3 índices).
+Total: 27 instancias (9 archivos × 3 índices: primera, media y última).
 
 ## Tareas
 
-1. [ ] Extender `run_benchmark_hpc.py` con modo multi-índice: flags `--k`, `--sample-seed`, `--include-zero`; generación determinista por archivo; guardado de `instance_selection.json` en la carpeta de campaña (`results/campaign_{id}/`); pasar cada par (archivo, índice) a `run_all_hpc.py` con `--indice`.
-2. [ ] Documentar la campaña en `contexto/Round-1/INSTANCIAS_SELECCIONADAS.md` (tabla oficial, criterio, comando HPC).
-3. [ ] Smoke test local reducido (1 archivo, idx=0, `--epochs 2`, estrategias acotadas) → verificar resultados + análisis estadístico por índice.
-4. [ ] Commit work-unit en `dtw_discreto` (Conventional Commit) y registrar identidad acá.
+1. [x] Extender `run_benchmark_hpc.py` con modo multi-índice: flags `--indices`, `--k`, `--sample-seed`, `--desde`, `--hasta`, `--dry-run`; guardado de `instance_selection.json` en `results/campaign_{id}/`.
+2. [x] Documentar la campaña en `contexto/Round-1/INSTANCIAS_SELECCIONADAS.md` (tabla oficial `[0, 15, 29]`, criterio, protocolo de semillas pareadas, comando HPC).
+3. [x] Ejecución completa de la campaña multi-instancia en HPC: 27 instancias ejecutadas en paralelo mediante 3 trabajos de 3 problemas cada uno con 40 CPUs y 31 épocas.
+4. [x] Análisis estadístico individual por cada (archivo, índice) completado con tests de Wilcoxon y Holm-Bonferroni en `results/estadistico/`.
 
 ## No-goals
 
 - No se toca `run_all_hpc.py` (ya soporta `--indice` arbitrario y guarda por `{inst}_{indice}`).
-- No se implementa análisis agregado multi-instancia en esta feature (etapa posterior).
-- No se alinean `window`/percentiles del config (Frente 3 / precondición aparte).
+- Consolidación global de tablas multi-instancia (etapa posterior).
 
-## Evidencia de commits
+## Evidencia de ejecución
 
-- `412d025` — feat: multi-index HPC campaign for Chu-Beasley revision (27 instances): run_benchmark_hpc.py + INSTANCIAS_SELECCIONADAS.md + este doc. Smoke test end-to-end previo: mknapcb1[0], 2 epochs, 32/32 tareas OK, análisis estadístico OK, manifiesto generado.
+- Campaña ejecutada en HPC Océano: `campaign_20260929_141957` (27 instancias completadas sin errores). Manifiesto en `results/campaign_20260929_141957/instance_selection.json`.
+- Estadísticas generadas en `results/estadistico/mknapcb{1..9}_{0,15,29}/`.

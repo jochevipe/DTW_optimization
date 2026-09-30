@@ -31,13 +31,13 @@ SEMILLA = 1   # None for real randomness across runs
 # DTW — base fields shared by all DTW-enabled strategies
 # ═══════════════════════════════════════════════════════════════════════════
 _DTW_BASE = dict(
-    window=100,
+    window=200,
     band=2,
     min_slope=2.0,
     use_ddtw=True,
     adapt_thresholds=True,
-    p_low=20.0,   # Percentil para theta_c (estancamiento / meseta D2)
-    p_high=80.0,  # Percentil para theta_r y theta_delta (progreso / rampa D1)
+    p_low=40.0,   # Percentil para theta_c (estancamiento / meseta D2)
+    p_high=60.0,  # Percentil para theta_r y theta_delta (progreso / rampa D1)
 )
 
 # --- Fire D2 (A3) — D2-pure: fire when D2 <= theta_c ---
