@@ -1189,16 +1189,6 @@ percentiles $p_{\mathrm{low}},p_{\mathrm{high}}$, $\pi_{\max},\tau_{\mathrm{pat}
 \subsection{Implementation and Reproduction Details}
 \label{subsec:reproduction}
 
-The development repository is
-\url{https://github.com/jochevipe/DTW_optimization}. The implementation
-reference for this specification is commit \texttt{861b1c970ae6}; this
-identifies the inspected source tree, not an embedded provenance record in
-the historical result files. The common module
-\texttt{mkp\_common/monitor.py} implements the distances and thresholds,
-\texttt{mkp\_common/config.py} stores the common experiment settings, and
-the algorithm-specific profiles are constants in \texttt{mkp\_common/mh/}.
-Binary-Complex corresponds to the directory \texttt{binary\_hysteresis},
-whose controller starts in exploration and is reinitialized for every run.
 Algorithms~\ref{alg:run} and~\ref{alg:monitor} expose the decision sequence;
 Appendix~\ref{sec:appendix_reproduction} gives executable reproduction
 commands and the output structure. A public, permanently archived release
@@ -1500,28 +1490,36 @@ runs. These selected runs illustrate trajectories only: they are neither
 means nor typical behavior and provide no evidence of causal effects or
 method superiority; statistical conclusions continue to rely on all 31
 runs per condition. Corresponding selected-run plots for \texttt{mknapcb5}
-and \texttt{mknapcb9} are provided in
-Appendix~\ref{subsec:appendix_convergence_trajectories}.
+and \texttt{mknapcb9} are provided in Appendix~\ref{subsec:appendix_convergence_trajectories}.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.86\linewidth]{../figures/convergence/mknapcb1_binary_simple.pdf}
-  \caption{Selected Binary-Simple convergence trajectories for
-  \texttt{mknapcb1}; instances $0$, $15$, and $29$ appear from top to
-  bottom. For each metaheuristic and instance, the curve is the
-  best-final-fitness run among 31 independent runs.}
-  \label{fig:convergence_mknapcb1_binary_simple}
-\end{figure}
+For conciseness and readability, convergence illustrations are limited
+to three benchmark groups (\texttt{mknapcb1}, \texttt{mknapcb5}, and
+\texttt{mknapcb9}), with three instances per group. Displaying trajectories
+for every experimental condition would substantially expand the manuscript
+and supplementary material. This restriction concerns only the graphical
+illustrations; the tabulated descriptive and statistical analyses cover
+all 27 evaluated instances. Additional convergence plots can be prepared
+upon request.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.86\linewidth]{../figures/convergence/mknapcb1_binary_complex.pdf}
-  \caption{Selected Binary-Complex convergence trajectories for
-  \texttt{mknapcb1}; instances $0$, $15$, and $29$ appear from top to
-  bottom. For each metaheuristic and instance, the curve is the
-  best-final-fitness run among 31 independent runs.}
-  \label{fig:convergence_mknapcb1_binary_complex}
-\end{figure}
+   \begin{figure}[htbp]
+     \centering
+     \includegraphics[width=0.9\linewidth]{figures/mknapcb1_binary_simple.pdf}
+     \caption{Selected Binary-Simple convergence trajectories for
+     \texttt{mknapcb1}; instances $0$, $15$, and $29$ appear from top to
+     bottom. For each metaheuristic and instance, the curve is the
+     best-final-fitness run among 31 independent runs.}
+     \label{fig:convergence_mknapcb1_binary_simple}
+   \end{figure}
+
+   \begin{figure}[htbp]
+     \centering
+     \includegraphics[width=0.9\linewidth]{figures/mknapcb1_binary_complex.pdf}
+     \caption{Selected Binary-Complex convergence trajectories for
+     \texttt{mknapcb1}; instances $0$, $15$, and $29$ appear from top to
+     bottom. For each metaheuristic and instance, the curve is the
+     best-final-fitness run among 31 independent runs.}
+     \label{fig:convergence_mknapcb1_binary_complex}
+   \end{figure}
 
 % ============================================================
 \subsection{Statistical Analysis}
@@ -1969,32 +1967,6 @@ metaheuristic frameworks.
 %}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\authorcontributions{For research articles with several authors, a short paragraph specifying their individual contributions must be provided. The following statements should be used ``Conceptualization, X.X. and Y.Y.; methodology, X.X.; software, X.X.; validation, X.X., Y.Y. and Z.Z.; formal analysis, X.X.; investigation, X.X.; resources, X.X.; data curation, X.X.; writing---original draft preparation, X.X.; writing---review and editing, X.X.; visualization, X.X.; supervision, X.X.; project administration, X.X.; funding acquisition, Y.Y. All authors have read and agreed to the published version of the manuscript.'', please turn to the  \href{http://img.mdpi.org/data/contributor-role-instruction.pdf}{CRediT taxonomy} for the term explanation. Authorship must be limited to those who have contributed substantially to the work~reported.}
-
-\funding{Please add: ``This research received no external funding'' or ``This research was funded by NAME OF FUNDER grant number XXX''. Check carefully that the details given are accurate and use the standard spelling of funding agency names at \url{https://search.crossref.org/funding}, any errors may affect your future funding.}
-
-\institutionalreview{In this section, please add the Institutional Review Board Statement and approval number for studies involving humans or animals. You might choose to exclude this statement if the study did not require ethical approval. Please note that the Editorial Office might ask you for further information. Please add ``The study was conducted in accordance with the Declaration of Helsinki, and approved by the Institutional Review Board (or Ethics Committee) of NAME OF INSTITUTE (protocol code XXX and date of approval).” for studies involving humans OR ``The animal study protocol was approved by the Institutional Review Board (or Ethics Committee) of NAME OF INSTITUTE (protocol code XXX and date of approval).” for studies involving animals OR ``Ethical review and approval were waived for this study due to REASON (please provide a detailed justification).” OR ``Not applicable.” for studies not involving humans or animals.}
-
-\informedconsent{Any research article describing a study involving humans should contain this statement. Please add ``Informed consent was obtained from all subjects involved in the study.'' OR ``Patient consent was waived due to REASON (please provide a detailed justification).'' OR ``Not applicable'' for studies not involving humans. You might also choose to exclude this statement if the study did not involve humans.
-
-Written informed consent for publication must be obtained from participating patients who can be identified (including by the patients themselves). Please state ``Written informed consent has been obtained from the patient(s) to publish this paper.” if applicable.}
-
-% Data and code availability are specified in the author statement below.
-
-%\durcstatement{Current research is limited to the [please insert a specific academic field, e.g., XXX], which is beneficial [share benefits and/or primary use] and does not pose a threat to public health or national security. Authors acknowledge the dual-use potential of the research involving xxx and confirm that all necessary precautions have been taken to prevent potential misuse. As an ethical responsibility, authors strictly adhere to relevant national and international laws about DURC. Authors advocate for responsible deployment, ethical considerations, regulatory compliance, and transparent reporting to mitigate misuse risks and foster beneficial outcomes.}
-
-% Only for journal Nursing Reports
-%\publicinvolvement{Please describe how the public (patients, consumers, carers) were involved in the research. Consider reporting against the GRIPP2 (Guidance for Reporting Involvement of Patients and the Public) checklist. If the public were not involved in any aspect of the research add: ``No public involvement in any aspect of this research''.}
-%
-%% Only for journal Nursing Reports
-%\guidelinesstandards{Please add a statement indicating which reporting guideline was used when drafting the report. For example, ``This manuscript was drafted against the XXX (the full name of reporting guidelines and citation) for XXX (type of research) research''. A complete list of reporting guidelines can be accessed via the equator network: \url{https://www.equator-network.org/}.}
-%
-%% Only for journal Nursing Reports
-%\useofartificialintelligence{Please describe in detail any and all uses of artificial intelligence (AI) or AI-assisted tools used in the preparation of the manuscript. This may include, but is not limited to, language translation, language editing and grammar, or generating text. Alternatively, please state that “AI or AI-assisted tools were not used in drafting any aspect of this manuscript”.}
-
-\acknowledgments{In this section, you can acknowledge any support given that is not covered by the author contribution or funding sections. This may include administrative and technical support, or donations in kind (e.g., materials used for experiments). Where GenAI has been used for purposes such as generating text, data, or graphics, or for study design, data collection, analysis, or interpretation of data, please add ``During the preparation of this manuscript/study, the author(s) used [tool name, version information] for the purposes of [description of use]. The authors have reviewed and edited the output and take full responsibility for the content of this publication.”}
-
-\conflictsofinterest{Declare conflicts of interest or state ``The authors declare no conflicts of interest.” Authors must identify and declare any personal circumstances or interests that may be perceived as inappropriately influencing the representation or interpretation of reported research results. Any role of the funders in the design of the study; in the collection, analyses or interpretation of data; in the writing of the manuscript; or in the decision to publish the results must be declared in this section. If there is no role, please state ``The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript; or in the decision to publish the~results”.} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Optional
@@ -2002,17 +1974,6 @@ Written informed consent for publication must be obtained from participating pat
 %% Only for journal Encyclopedia
 %\entrylink{The Link to this entry published on the encyclopedia platform.}
 
-\abbreviations{Abbreviations}{%
-The following abbreviations are used in this manuscript:\\
-
-\noindent 
-\begin{tabular}{@{}ll}
-MDPI & Multidisciplinary Digital Publishing Institute\\
-DOAJ & Directory of open access journals\\
-TLA   & Three-letter acronym\\
-LD      & Linear dichroism
-\end{tabular}
-}
 
 
 \authorcontributions{
@@ -2033,9 +1994,7 @@ All authors have read and agreed to the published version of the manuscript.
 
 \dataavailability{The MKP benchmark files analyzed in this study are the
 Chu--Beasley OR-Library instances. The development repository is
-\url{https://github.com/jochevipe/DTW_optimization}; its implementation and
-aggregate-result layout are described in Section~\ref{subsec:reproduction}
-and Appendix~\ref{sec:appendix_reproduction}. No permanently archived public
+\url{https://github.com/jochevipe/DTW_optimization}. No permanently archived public
 release of the full experimental code and result data is identified here.
 The campaign's aggregate files do not contain full controller traces, and
 the OAT table does not provide the run-level data needed for uncertainty
@@ -2977,57 +2936,6 @@ the corresponding serialized fitness arrays.
   \end{tabular}
 \end{table}
 
-\subsection{Illustrative Convergence Trajectories}
-\label{subsec:appendix_convergence_trajectories}
-
-These plots extend the trajectory illustrations to \texttt{mknapcb5} and
-\texttt{mknapcb9}. For each variant, the displayed run is selected
-separately for each metaheuristic and instance as that condition's
-best-final-fitness run among 31 independent runs; indices $0$, $15$, and
-$29$ appear from top to bottom. The plots illustrate trajectory progression
-only, not means or typical behavior, and support no causal or superiority
-conclusion.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.86\linewidth]{../figures/convergence/mknapcb5_binary_simple.pdf}
-  \caption{Selected Binary-Simple convergence trajectories for
-  \texttt{mknapcb5}; instances $0$, $15$, and $29$ appear from top to
-  bottom. For each metaheuristic and instance, the curve is the
-  best-final-fitness run among 31 independent runs.}
-  \label{fig:convergence_mknapcb5_binary_simple}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.86\linewidth]{../figures/convergence/mknapcb5_binary_complex.pdf}
-  \caption{Selected Binary-Complex convergence trajectories for
-  \texttt{mknapcb5}; instances $0$, $15$, and $29$ appear from top to
-  bottom. For each metaheuristic and instance, the curve is the
-  best-final-fitness run among 31 independent runs.}
-  \label{fig:convergence_mknapcb5_binary_complex}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.86\linewidth]{../figures/convergence/mknapcb9_binary_simple.pdf}
-  \caption{Selected Binary-Simple convergence trajectories for
-  \texttt{mknapcb9}; instances $0$, $15$, and $29$ appear from top to
-  bottom. For each metaheuristic and instance, the curve is the
-  best-final-fitness run among 31 independent runs.}
-  \label{fig:convergence_mknapcb9_binary_simple}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.86\linewidth]{../figures/convergence/mknapcb9_binary_complex.pdf}
-  \caption{Selected Binary-Complex convergence trajectories for
-  \texttt{mknapcb9}; instances $0$, $15$, and $29$ appear from top to
-  bottom. For each metaheuristic and instance, the curve is the
-  best-final-fitness run among 31 independent runs.}
-  \label{fig:convergence_mknapcb9_binary_complex}
-\end{figure}
-
 \clearpage
 \section{Complete Pairwise Statistical Results}
 \label{sec:appendix_statistics}
@@ -3210,6 +3118,57 @@ Instance & Algorithm &
 \end{longtable}
 \endgroup
 
+\subsection{Illustrative Convergence Trajectories}
+   \label{subsec:appendix_convergence_trajectories}
+
+   These plots extend the trajectory illustrations to \texttt{mknapcb5} and
+   \texttt{mknapcb9}. For each variant, the displayed run is selected
+   separately for each metaheuristic and instance as that condition's
+   best-final-fitness run among 31 independent runs; indices $0$, $15$, and
+   $29$ appear from top to bottom. The plots illustrate trajectory progression
+   only, not means or typical behavior, and support no causal or superiority
+   conclusion.
+
+   \begin{figure}[htbp]
+     \centering
+     \includegraphics[width=0.86\linewidth]{figures/mknapcb5_binary_simple.pdf}
+     \caption{Selected Binary-Simple convergence trajectories for
+     \texttt{mknapcb5}; instances $0$, $15$, and $29$ appear from top to
+     bottom. For each metaheuristic and instance, the curve is the
+     best-final-fitness run among 31 independent runs.}
+     \label{fig:convergence_mknapcb5_binary_simple}
+   \end{figure}
+
+   \begin{figure}[htbp]
+     \centering
+     \includegraphics[width=0.86\linewidth]{figures/mknapcb5_binary_complex.pdf}
+     \caption{Selected Binary-Complex convergence trajectories for
+     \texttt{mknapcb5}; instances $0$, $15$, and $29$ appear from top to
+     bottom. For each metaheuristic and instance, the curve is the
+     best-final-fitness run among 31 independent runs.}
+     \label{fig:convergence_mknapcb5_binary_complex}
+   \end{figure}
+
+   \begin{figure}[htbp]
+     \centering
+     \includegraphics[width=0.86\linewidth]{figures/mknapcb9_binary_simple.pdf}
+     \caption{Selected Binary-Simple convergence trajectories for
+     \texttt{mknapcb9}; instances $0$, $15$, and $29$ appear from top to
+     bottom. For each metaheuristic and instance, the curve is the
+     best-final-fitness run among 31 independent runs.}
+     \label{fig:convergence_mknapcb9_binary_simple}
+   \end{figure}
+
+   \begin{figure}[htbp]
+     \centering
+     \includegraphics[width=0.86\linewidth]{figures/mknapcb9_binary_complex.pdf}
+     \caption{Selected Binary-Complex convergence trajectories for
+     \texttt{mknapcb9}; instances $0$, $15$, and $29$ appear from top to
+     bottom. For each metaheuristic and instance, the curve is the
+     best-final-fitness run among 31 independent runs.}
+     \label{fig:convergence_mknapcb9_binary_complex}
+   \end{figure}
+
 \clearpage
 \section{Complete Computational Runtime Results}
 \label{sec:appendix_runtime}
@@ -3379,87 +3338,10 @@ Instance & Algorithm & V-Exploit & V-Explore & Bin-Simple & Bin-Complex \\
 \end{longtable}
 \endgroup
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\clearpage
-\section{Reproduction Commands and Artifact Boundaries}
-\label{sec:appendix_reproduction}
-
-The following commands are run from the project root with Python 3.11 and
-NumPy, SciPy, Matplotlib, and tqdm installed. They target the reported main
-campaign ($N=20$, $T=2000$, $R=31$), using the common configuration and fixed
-profiles in Tables~\ref{tab:mh_params} and~\ref{tab:dtw_params}. The existing
-HPC submission scripts \texttt{run\_dtw1.sh}, \texttt{run\_dtw2.sh}, and
-\texttt{run\_dtw3.sh} split the nine groups into three disjoint sets.
-The three commands below run those sets sequentially with one worker for
-portability. Increasing \texttt{--cpus} changes scheduling, not the seed list
-or iteration budget; it can change measured runtimes.
-
-\begingroup\footnotesize
-\begin{verbatim}
-python -m pip install numpy scipy matplotlib tqdm
-python run_benchmark_hpc.py --desde 1 --hasta 3 \
-  --indices 0 15 29 --epochs 31 --cpus 1
-python run_benchmark_hpc.py --desde 4 --hasta 6 \
-  --indices 0 15 29 --epochs 31 --cpus 1
-python run_benchmark_hpc.py --desde 7 --hasta 9 \
-  --indices 0 15 29 --epochs 31 --cpus 1
-\end{verbatim}
-\endgroup
-Backslash continuation is shown for a POSIX shell; on other platforms each
-command can be entered on one line. These commands execute all four
-strategies; no strategy is skipped. Seed $e+1$ is assigned internally by
-\texttt{run\_all\_hpc.py}, and no external sample-seed argument is needed
-when explicit instance indices are supplied. Population size, iteration
-budget, monitor settings, and profile constants must remain at the reported
-values. Package installation above is a minimal dependency command, not a
-version-locked reconstruction of the historical HPC environment.
-
-Raw aggregate files are stored under
-\begin{quote}\small
-\texttt{results/<strategy>/todos/<group>\_<index>/}\\
-\texttt{comparacion\_mhs\_<run-id>/<algorithm>\_<group>\_<index>.json}.
-\end{quote}
-The strategy keys are \texttt{vanilla\_explotacion},
-\texttt{vanilla\_exploracion}, \texttt{binary\_simple}, and
-\texttt{binary\_hysteresis}; algorithm keys are \texttt{PSO},
-\texttt{GA}, \texttt{GWO}, and \texttt{DE}. Every file should contain 31
-finite values for fitness, runtime, and transition count. Each launch also
-creates an instance-selection manifest under
-\texttt{results/campaign\_<id>/}. When the work is split across jobs,
-each manifest covers only that job's selected groups, not all 27 instances.
-
-After preserving the intended raw result set, the tables and activation
-figure can be regenerated with the following commands:
-\begingroup\footnotesize
-\begin{verbatim}
-python -m analisis.generar_tablas_solucion --indices 0 15 29
-python -m analisis.generar_tablas_wilcoxon --indices 0 15 29
-python -m analisis.generar_tablas_bonferroni --indices 0 15 29
-python -m analisis.generar_tablas_tiempo --indices 0 15 29
-python -m analisis.generar_figura_activaciones --indices 0 15 29
-\end{verbatim}
-\endgroup
-The generators select the latest run directory for each strategy and
-instance. To avoid mixing campaigns after further experiments, preserve
-the selected run identifiers and use a separate results root containing
-only the intended files (the generators accept \texttt{--results-dir}).
-The full campaign has 432 condition files and 13,392 fitness values.
-Local Wilcoxon comparisons remain unadjusted and exploratory; the three
-global control-versus-baseline contrasts use Bonferroni--Dunn correction.
-Printed table values may be rounded; very small post-hoc probabilities are
-reported in scientific notation in this manuscript rather than as zero.
-
-These commands reproduce the main-campaign computation and its aggregate
-analyses, not the separate OAT campaigns. The sensitivity summary alone is
-insufficient to reconstruct paired effects or confidence intervals.
-Likewise, obtaining synchronized plots requires retaining the runner's
-\texttt{historial\_fitness}, \texttt{historial\_dtw}, and
-\texttt{historial\_modos} arrays before aggregate serialization.
-For a verifiable release, the source snapshot, dependency versions, selected
-run identifiers, seed convention, raw aggregates, and any additionally
-captured traces must be archived together; a development URL is not a
-substitute for such an immutable release.
 
 %\isPreprints{}{% This command is only used for ``preprints''.
 \begin{adjustwidth}{-\extralength}{0cm}
