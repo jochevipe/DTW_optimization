@@ -74,9 +74,10 @@
 
 ---
 
-**13. Línea 899** - 1. Please state the name of the manufacturer/company, city, and country from where all the chemicals & reagents, devices, instruments, commercial cell lines/samples/materials was sourced. 2. Please state which version of all the software was used (e.g., v 1.0.0). %J.V.: ok
+**13. Línea 899** - 1. Please state the name of the manufacturer/company, city, and country from where all the chemicals & reagents, devices, instruments, commercial cell lines/samples/materials was sourced. 2. Please state which version of all the software was used (e.g., v 1.0.0). %J.V.: veersion de slurm 23.11.4
 
-*Respuesta/cambio*: Se añadieron Python 3.11.0 y NumPy 2.1.3 del entorno local usado para prototipado y algunos experimentos. Solo queda pendiente confirmar la versión de Slurm. **revisar**
+
+*Respuesta/cambio*: Se indicaron Python 3.11.0, NumPy 2.1.3 y Slurm 23.11.4 usados en el clúster HPC, según confirmación del autor. **realizado**
 
 ---
 
@@ -88,7 +89,7 @@
 
 **15. Línea 907** - Please state which version of the software was used. %J.V.: "buscar la version de numpy desde el codigo"
 
-*Respuesta/cambio*: Se añadieron NumPy 2.1.3 y Python 3.11.0 del entorno local usado para prototipado y algunos experimentos, sin atribuir estas versiones al entorno remoto HPC/Slurm. **realizado**
+*Respuesta/cambio*: Se indicó NumPy 2.1.3 usado en el clúster HPC. **realizado**
 
 ---
 

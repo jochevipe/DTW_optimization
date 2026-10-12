@@ -1,0 +1,77 @@
+[
+  {
+    "asset": "figures/mknapcb1_binary_simple.pdf",
+    "source_sha256": "a777f47d0bf9b1661fe16abb3964102fb97dccb7d3d38d961188492d4c4a73d1",
+    "boxes_rotation_identical": true,
+    "pixel_difference_bbox": null,
+    "previews": [
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb1_binary_simple-before.png",
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb1_binary_simple-after.png"
+    ]
+  },
+  {
+    "asset": "figures/mknapcb1_binary_complex.pdf",
+    "source_sha256": "d580bc2a4b0b47f3529e3459d64ecde7f0800fddd55d984bf66c5672749bbb6a",
+    "boxes_rotation_identical": true,
+    "pixel_difference_bbox": null,
+    "previews": [
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb1_binary_complex-before.png",
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb1_binary_complex-after.png"
+    ]
+  },
+  {
+    "asset": "fig_temporal_diagnostics.pdf",
+    "source_sha256": "677398346ba78203787ad645768e1ff0199a799116601ef906fd7504b9c33e58",
+    "boxes_rotation_identical": true,
+    "pixel_difference_bbox": [
+      82,
+      61,
+      108,
+      257
+    ],
+    "previews": [
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\fig_temporal_diagnostics-before.png",
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\fig_temporal_diagnostics-after.png"
+    ]
+  },
+  {
+    "asset": "figures/mknapcb5_binary_simple.pdf",
+    "source_sha256": "e3068dad2b13065d681849a444f0c23812782af68d8c8de570d1c47d1fc43cfa",
+    "boxes_rotation_identical": true,
+    "pixel_difference_bbox": null,
+    "previews": [
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb5_binary_simple-before.png",
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb5_binary_simple-after.png"
+    ]
+  },
+  {
+    "asset": "figures/mknapcb5_binary_complex.pdf",
+    "source_sha256": "398f315228d0e4de7d207d0c6aaed2e8957820b88a157d3d463ca44c7aba6076",
+    "boxes_rotation_identical": true,
+    "pixel_difference_bbox": null,
+    "previews": [
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb5_binary_complex-before.png",
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb5_binary_complex-after.png"
+    ]
+  },
+  {
+    "asset": "figures/mknapcb9_binary_simple.pdf",
+    "source_sha256": "a403be7ca51e04eea7c5e4980f50f0da6184c46e0b0d79cec6f95f6bbb0b41e6",
+    "boxes_rotation_identical": true,
+    "pixel_difference_bbox": null,
+    "previews": [
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb9_binary_simple-before.png",
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb9_binary_simple-after.png"
+    ]
+  },
+  {
+    "asset": "figures/mknapcb9_binary_complex.pdf",
+    "source_sha256": "ad31e492fdd8b3dd1b40902aebd290377a3e22cacde7751ce34057f56b737a6b",
+    "boxes_rotation_identical": true,
+    "pixel_difference_bbox": null,
+    "previews": [
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb9_binary_complex-before.png",
+      "C:\\Users\\joche\\Jose_cosas\\Uni\\Investigacion\\LB2\\DTW_optimization\\paper\\figure-comma-trial\\mknapcb9_binary_complex-after.png"
+    ]
+  }
+]
